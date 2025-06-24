@@ -6,8 +6,9 @@ import {SizeVaultStorage} from "@src/SizeVaultStorage.sol";
 import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 
-abstract contract SizeVaultStrategistActions is SizeVaultStorage, AccessControlUpgradeable {
+abstract contract SizeVaultStrategistActions is SizeVaultStorage, PausableUpgradeable, AccessControlUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     /*//////////////////////////////////////////////////////////////
@@ -27,7 +28,7 @@ abstract contract SizeVaultStrategistActions is SizeVaultStorage, AccessControlU
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function setStrategies(address[] calldata strategies_) external onlyRole(STRATEGIST_ROLE) {
+    function setStrategies(address[] calldata strategies_) external whenNotPaused onlyRole(STRATEGIST_ROLE) {
         uint256 length = strategies.length();
         for (uint256 i = 0; i < length; i++) {
             _removeStrategy(strategies.at(i));
@@ -37,16 +38,17 @@ abstract contract SizeVaultStrategistActions is SizeVaultStorage, AccessControlU
         }
     }
 
-    function addStrategy(address strategy) external onlyRole(STRATEGIST_ROLE) {
+    function addStrategy(address strategy) external whenNotPaused onlyRole(STRATEGIST_ROLE) {
         _addStrategy(strategy);
     }
 
-    function removeStrategy(address strategy) external onlyRole(STRATEGIST_ROLE) {
+    function removeStrategy(address strategy) external whenNotPaused onlyRole(STRATEGIST_ROLE) {
         _removeStrategy(strategy);
     }
 
     function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount)
         external
+        whenNotPaused
         onlyRole(STRATEGIST_ROLE)
     {
         require(strategies.contains(address(strategyFrom)), InvalidStrategy(address(strategyFrom)));

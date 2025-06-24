@@ -16,11 +16,11 @@ bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
 contract SizeVault is
     ERC4626Upgradeable,
+    SizeVaultStrategistActions,
     AccessControlUpgradeable,
     PausableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable,
-    SizeVaultStrategistActions,
     SizeVaultView
 {
     /// @custom:oz-upgrades-unsafe-allow constructor
