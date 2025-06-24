@@ -45,11 +45,8 @@ abstract contract BaseStrategy is
         _disableInitializers();
     }
 
-    function initialize(SizeVault sizeVault_, IERC20 asset_, string memory name_, string memory symbol_)
-        public
-        initializer
-    {
-        __ERC4626_init(asset_);
+    function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_) public initializer {
+        __ERC4626_init(IERC20(address(sizeVault_.asset())));
         __ERC20_init(name_, symbol_);
         __AccessControl_init();
         __Pausable_init();

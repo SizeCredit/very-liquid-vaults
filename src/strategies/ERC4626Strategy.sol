@@ -15,10 +15,6 @@ import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
 contract ERC4626Strategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
-    function description() external view override returns (string memory) {
-        return string.concat("ERC4626 ", IERC20Metadata(asset()).symbol(), " Strategy");
-    }
-
     function pullAssets(address to, uint256 amount)
         public
         override
