@@ -9,6 +9,7 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/ut
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SizeVaultStorage} from "@src/SizeVaultStorage.sol";
 import {SizeVaultStrategistActions} from "@src/SizeVaultStrategistActions.sol";
+import {SizeVaultView} from "@src/SizeVaultView.sol";
 
 bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -19,7 +20,8 @@ contract SizeVault is
     PausableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable,
-    SizeVaultStrategistActions
+    SizeVaultStrategistActions,
+    SizeVaultView
 {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
