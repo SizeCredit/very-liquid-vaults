@@ -10,7 +10,8 @@ import {SizeVault} from "@src/SizeVault.sol";
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
+import {STRATEGIST_ROLE, PAUSER_ROLE} from "@src/SizeVault.sol";
+import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 
 abstract contract BaseStrategy is
     IStrategy,
@@ -18,6 +19,7 @@ abstract contract BaseStrategy is
     AccessControlUpgradeable,
     PausableUpgradeable,
     ReentrancyGuardUpgradeable,
+    MulticallUpgradeable,
     UUPSUpgradeable
 {
     using SafeERC20 for IERC20;
@@ -37,6 +39,13 @@ abstract contract BaseStrategy is
     error NullAddress();
 
     /*//////////////////////////////////////////////////////////////
+                              EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    event SizeVaultSet(address indexed sizeVaultBefore, address indexed sizeVaultAfter);
+    event PullAssets(address indexed to, uint256 amount);
+
+    /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
@@ -51,10 +60,12 @@ abstract contract BaseStrategy is
         __AccessControl_init();
         __Pausable_init();
         __ReentrancyGuard_init();
+        __Multicall_init();
         __UUPSUpgradeable_init();
 
         require(sizeVault_ != SizeVault(address(0)), NullAddress());
 
+        emit SizeVaultSet(address(0), address(sizeVault_));
         sizeVault = sizeVault_;
     }
 
@@ -67,11 +78,8 @@ abstract contract BaseStrategy is
         _;
     }
 
-    modifier onlySizeVaultAdmin() {
-        require(
-            sizeVault.hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
-            AccessControlUnauthorizedAccount(msg.sender, DEFAULT_ADMIN_ROLE)
-        );
+    modifier onlySizeVaultHasRole(bytes32 role) {
+        require(sizeVault.hasRole(role, msg.sender), AccessControlUnauthorizedAccount(msg.sender, role));
         _;
     }
 
@@ -80,13 +88,35 @@ abstract contract BaseStrategy is
         _;
     }
 
+    modifier notNullAddress(address address_) {
+        require(address_ != address(0), NullAddress());
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function pause() external onlySizeVaultHasRole(PAUSER_ROLE) {
+        _pause();
+    }
+
+    function unpause() external onlySizeVaultHasRole(PAUSER_ROLE) {
+        _unpause();
+    }
+
     /*//////////////////////////////////////////////////////////////
                               INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function _authorizeUpgrade(address newImplementation) internal override onlySizeVaultAdmin {}
+    function _authorizeUpgrade(address newImplementation) internal override onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {}
 
-    function _update(address from, address to, uint256 value) internal override whenNotPausedAndSizeVaultNotPaused {
+    function _update(address from, address to, uint256 value)
+        internal
+        override
+        whenNotPausedAndSizeVaultNotPaused
+        nonReentrant
+    {
         super._update(from, to, value);
     }
 }

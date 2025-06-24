@@ -11,12 +11,62 @@ import {BaseStrategy} from "@src/strategies/BaseStrategy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
+/// @title ERC4626Strategy
+/// @notice A strategy that invests assets in an ERC4626 vault
 contract ERC4626Strategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
-    function pullAssets(address to, uint256 amount) public override whenNotPausedAndSizeVaultNotPaused onlySizeVault {
-        // TODO withdraw funds from vault
-        IERC20(asset()).safeTransfer(to, amount);
+    /*//////////////////////////////////////////////////////////////
+                              STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    IERC4626 public vault;
+
+    /*//////////////////////////////////////////////////////////////
+                              ERC4626 FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function totalAssets() public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return vault.convertToAssets(vault.balanceOf(address(this)));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function setVault(IERC4626 vault_) external onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {
+        vault = vault_;
+    }
+
+    function pullAssets(address to, uint256 amount)
+        external
+        override
+        whenNotPausedAndSizeVaultNotPaused
+        onlySizeVault
+        nonReentrant
+        notNullAddress(to)
+    {
+        emit PullAssets(to, amount);
+        vault.withdraw(amount, to, address(this));
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
+        super._deposit(caller, receiver, assets, shares);
+        IERC20(asset()).forceApprove(address(vault), assets);
+        vault.deposit(assets, address(this));
+    }
+
+    function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
+        internal
+        override
+    {
+        super._withdraw(caller, receiver, owner, assets, shares);
+        vault.withdraw(assets, receiver, address(this));
     }
 }

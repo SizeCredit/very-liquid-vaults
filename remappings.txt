@@ -1,5 +1,6 @@
 @src/=src/
 @test/=test/
 @script/=script/
+@deps/=deps/
 @openzeppelin/=lib/openzeppelin-contracts/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/

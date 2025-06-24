@@ -12,6 +12,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
 
+/// @title CashStrategy
+/// @notice A strategy that only holds cash assets, and does not invest in any other vaults
 contract CashStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
@@ -20,7 +22,10 @@ contract CashStrategy is BaseStrategy {
         override
         whenNotPausedAndSizeVaultNotPaused
         onlySizeVault
+        nonReentrant
+        notNullAddress(to)
     {
+        emit PullAssets(to, amount);
         IERC20(asset()).safeTransfer(to, amount);
     }
 }
