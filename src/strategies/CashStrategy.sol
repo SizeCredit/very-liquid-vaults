@@ -18,8 +18,7 @@ contract CashStrategy is BaseStrategy {
     function pullAssets(address to, uint256 amount)
         external
         override
-        whenNotPaused
-        whenSizeVaultNotPaused
+        whenNotPausedAndSizeVaultNotPaused
         onlySizeVault
     {
         IERC20(asset()).safeTransfer(to, amount);

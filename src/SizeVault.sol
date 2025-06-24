@@ -14,15 +14,7 @@ import {SizeVaultView} from "@src/SizeVaultView.sol";
 bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
-contract SizeVault is
-    ERC4626Upgradeable,
-    SizeVaultStrategistActions,
-    AccessControlUpgradeable,
-    PausableUpgradeable,
-    ReentrancyGuardUpgradeable,
-    UUPSUpgradeable,
-    SizeVaultView
-{
+contract SizeVault is ERC4626Upgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, SizeVaultView {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();

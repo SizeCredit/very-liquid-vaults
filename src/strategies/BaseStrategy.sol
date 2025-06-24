@@ -62,11 +62,6 @@ abstract contract BaseStrategy is
                               MODIFIERS
     //////////////////////////////////////////////////////////////*/
 
-    modifier whenSizeVaultNotPaused() {
-        require(!sizeVault.paused(), EnforcedPause());
-        _;
-    }
-
     modifier onlySizeVault() {
         require(msg.sender == address(sizeVault), OnlySizeVault());
         _;
@@ -80,13 +75,18 @@ abstract contract BaseStrategy is
         _;
     }
 
+    modifier whenNotPausedAndSizeVaultNotPaused() {
+        require(!paused() && !sizeVault.paused(), EnforcedPause());
+        _;
+    }
+
     /*//////////////////////////////////////////////////////////////
                               INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     function _authorizeUpgrade(address newImplementation) internal override onlySizeVaultAdmin {}
 
-    function _update(address from, address to, uint256 value) internal override whenNotPaused whenSizeVaultNotPaused {
+    function _update(address from, address to, uint256 value) internal override whenNotPausedAndSizeVaultNotPaused {
         super._update(from, to, value);
     }
 }

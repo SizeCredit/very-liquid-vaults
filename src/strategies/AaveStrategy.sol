@@ -18,8 +18,7 @@ contract AaveStrategy is BaseStrategy {
     function pullAssets(address to, uint256 amount)
         external
         override
-        whenNotPaused
-        whenSizeVaultNotPaused
+        whenNotPausedAndSizeVaultNotPaused
         onlySizeVault
     {
         // TODO withdraw funds from aave

@@ -15,13 +15,7 @@ import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
 contract ERC4626Strategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
-    function pullAssets(address to, uint256 amount)
-        public
-        override
-        whenNotPaused
-        whenSizeVaultNotPaused
-        onlySizeVault
-    {
+    function pullAssets(address to, uint256 amount) public override whenNotPausedAndSizeVaultNotPaused onlySizeVault {
         // TODO withdraw funds from vault
         IERC20(asset()).safeTransfer(to, amount);
     }

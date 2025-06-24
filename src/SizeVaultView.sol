@@ -2,9 +2,9 @@
 pragma solidity 0.8.26;
 
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {SizeVaultStorage} from "@src/SizeVaultStorage.sol";
+import {SizeVaultStrategistActions} from "@src/SizeVaultStrategistActions.sol";
 
-contract SizeVaultView is SizeVaultStorage {
+abstract contract SizeVaultView is SizeVaultStrategistActions {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     function getStrategies() external view returns (address[] memory) {
