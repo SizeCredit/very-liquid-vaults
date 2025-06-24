@@ -12,11 +12,11 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
 
-contract AaveStrategy is BaseStrategy {
+contract CashStrategy is BaseStrategy {
     using SafeERC20 for IERC20;
 
     function description() external view override returns (string memory) {
-        return string.concat("Aave ", IERC20Metadata(asset()).symbol(), " Strategy");
+        return string.concat("Cash ", IERC20Metadata(asset()).symbol(), " Strategy");
     }
 
     function pullAssets(address to, uint256 amount)
@@ -26,7 +26,6 @@ contract AaveStrategy is BaseStrategy {
         whenSizeVaultNotPaused
         onlySizeVault
     {
-        // TODO withdraw funds from aave
         IERC20(asset()).safeTransfer(to, amount);
     }
 }

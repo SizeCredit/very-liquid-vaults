@@ -14,13 +14,12 @@ bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
 contract SizeVault is
-    SizeVaultStrategistActions,
-    SizeVaultStorage,
     ERC4626Upgradeable,
     AccessControlUpgradeable,
     PausableUpgradeable,
     ReentrancyGuardUpgradeable,
-    UUPSUpgradeable
+    UUPSUpgradeable,
+    SizeVaultStrategistActions
 {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {

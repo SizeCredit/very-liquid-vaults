@@ -2,9 +2,11 @@
 pragma solidity 0.8.26;
 
 import {EnumerableMap} from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
-import {AddressDeque} from "@src/libraries/AddressDequeLibrary.sol";
+import {DoubleEndedQueue} from "@openzeppelin/contracts/utils/structs/DoubleEndedQueue.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 abstract contract SizeVaultStorage {
-    AddressDeque internal withdrawStrategyOrder;
-    AddressDeque internal depositStrategyOrder;
+    EnumerableSet.AddressSet internal strategies;
+    DoubleEndedQueue.Bytes32Deque internal withdrawStrategyOrder;
+    DoubleEndedQueue.Bytes32Deque internal depositStrategyOrder;
 }
