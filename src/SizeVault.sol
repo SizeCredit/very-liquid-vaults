@@ -7,17 +7,21 @@ import {AccessControlUpgradeable} from "@openzeppelin-upgradeable/contracts/acce
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SizeVaultStorage} from "@src/SizeVaultStorage.sol";
+import {SizeVaultStrategistActions} from "@src/SizeVaultStrategistActions.sol";
+
+bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
+bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
 contract SizeVault is
+    SizeVaultStrategistActions,
+    SizeVaultStorage,
     ERC4626Upgradeable,
     AccessControlUpgradeable,
     PausableUpgradeable,
     ReentrancyGuardUpgradeable,
     UUPSUpgradeable
 {
-    bytes32 public constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
