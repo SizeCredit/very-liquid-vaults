@@ -4,14 +4,18 @@ pragma solidity 0.8.26;
 import {AccessControlUpgradeable} from "@openzeppelin-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {SizeVaultStorage} from "@src/SizeVaultStorage.sol";
 import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
-import {AddressDequeLibrary} from "@src/libraries/AddressDequeLibrary.sol";
-import {DoubleEndedQueue} from "@openzeppelin/contracts/utils/structs/DoubleEndedQueue.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 abstract contract SizeVaultStrategistActions is SizeVaultStorage, AccessControlUpgradeable {
-    using AddressDequeLibrary for DoubleEndedQueue.Bytes32Deque;
     using EnumerableSet for EnumerableSet.AddressSet;
+
+    /*//////////////////////////////////////////////////////////////
+                              EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    event StrategyAdded(address strategy);
+    event StrategyRemoved(address strategy);
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -20,12 +24,25 @@ abstract contract SizeVaultStrategistActions is SizeVaultStorage, AccessControlU
     error InvalidStrategy(address strategy);
 
     /*//////////////////////////////////////////////////////////////
-                              FUNCTIONS
+                              EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    function setStrategies(address[] calldata strategies_) external onlyRole(STRATEGIST_ROLE) {
+        uint256 length = strategies.length();
+        for (uint256 i = 0; i < length; i++) {
+            _removeStrategy(strategies.at(i));
+        }
+        for (uint256 i = 0; i < strategies_.length; i++) {
+            _addStrategy(strategies_[i]);
+        }
+    }
+
     function addStrategy(address strategy) external onlyRole(STRATEGIST_ROLE) {
-        withdrawStrategyOrder.pushBack(strategy);
-        depositStrategyOrder.pushBack(strategy);
+        _addStrategy(strategy);
+    }
+
+    function removeStrategy(address strategy) external onlyRole(STRATEGIST_ROLE) {
+        _removeStrategy(strategy);
     }
 
     function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount)
@@ -36,5 +53,23 @@ abstract contract SizeVaultStrategistActions is SizeVaultStorage, AccessControlU
         require(strategies.contains(address(strategyTo)), InvalidStrategy(address(strategyTo)));
 
         strategyFrom.pullAssets(address(strategyTo), amount);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function _addStrategy(address strategy) private {
+        bool added = strategies.add(strategy);
+        if (added) {
+            emit StrategyAdded(strategy);
+        }
+    }
+
+    function _removeStrategy(address strategy) private {
+        bool removed = strategies.remove(strategy);
+        if (removed) {
+            emit StrategyRemoved(strategy);
+        }
     }
 }
