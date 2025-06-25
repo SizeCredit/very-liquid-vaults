@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
@@ -10,12 +12,24 @@ import {SizeVault} from "@src/SizeVault.sol";
 import {PAUSER_ROLE} from "@src/SizeVault.sol";
 
 contract BaseStrategyVaultTest is BaseTest {
-    function test_BaseStrategyVault_initialize() public {
+    function test_BaseStrategyVault_initialize() public view {
         assertEq(address(baseStrategyVault.sizeVault()), address(sizeVault));
         assertEq(baseStrategyVault.asset(), address(sizeVault.asset()));
         assertEq(baseStrategyVault.name(), "Size Base ERC20Mock Strategy Mock");
         assertEq(baseStrategyVault.symbol(), "sizeBaseE20MMOCK");
         assertEq(baseStrategyVault.decimals(), asset.decimals(), 6);
+    }
+
+    function test_BaseStrategyVault_upgrade() public {
+        BaseStrategyVaultMock newBaseStrategyVault = new BaseStrategyVaultMock();
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, DEFAULT_ADMIN_ROLE)
+        );
+        UUPSUpgradeable(address(baseStrategyVault)).upgradeToAndCall(address(newBaseStrategyVault), "");
+
+        vm.prank(admin);
+        UUPSUpgradeable(address(baseStrategyVault)).upgradeToAndCall(address(newBaseStrategyVault), "");
     }
 
     function test_BaseStrategyVault_initialize_invalidInitialization_reverts() public {

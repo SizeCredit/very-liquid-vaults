@@ -6,7 +6,7 @@ import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 contract BaseStrategyVaultMock is BaseStrategyVault {
     error NotImplemented();
 
-    function pullAssets(address to, uint256 amount) external override {
+    function pullAssets(address, uint256) external pure override {
         revert NotImplemented();
     }
 }

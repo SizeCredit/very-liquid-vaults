@@ -11,6 +11,7 @@ import {SizeVaultStorage} from "@src/SizeVaultStorage.sol";
 import {SizeVaultStrategistActions} from "@src/SizeVaultStrategistActions.sol";
 import {SizeVaultView} from "@src/SizeVaultView.sol";
 
+bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 

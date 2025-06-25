@@ -13,6 +13,8 @@ import {CashStrategyVaultScript as BaseStrategyVaultMockScript} from "@script/Ba
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 
 contract BaseTest is Test {
+    bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
+
     SizeVault internal sizeVault;
     CashStrategyVault internal cashStrategyVault;
     BaseStrategyVaultMock internal baseStrategyVault;
@@ -23,7 +25,7 @@ contract BaseTest is Test {
     address internal charlie = address(0x30000);
     address internal admin = address(0x40000);
 
-    function setUp() public {
+    function setUp() public virtual {
         asset = IERC20Metadata(address(new ERC20Mock()));
         vm.mockCall(address(asset), abi.encodeWithSelector(IERC20Metadata.decimals.selector), abi.encode(6));
 
@@ -41,7 +43,7 @@ contract BaseTest is Test {
         _asset.approve(_spender, _amount);
     }
 
-    function assertEq(uint256 _a, uint256 _b, uint256 _c) internal {
+    function assertEq(uint256 _a, uint256 _b, uint256 _c) internal pure {
         assertEq(_a, _b);
         assertEq(_a, _c);
     }
