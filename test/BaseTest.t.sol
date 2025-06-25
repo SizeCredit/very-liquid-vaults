@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
 import {SizeVault} from "@src/SizeVault.sol";
@@ -13,15 +13,14 @@ contract BaseTest is Test {
     SizeVault internal sizeVault;
     CashStrategyVault internal cashStrategyVault;
     IERC20Metadata internal asset;
-    address internal admin;
 
     address internal alice = address(0x10000);
     address internal bob = address(0x20000);
     address internal charlie = address(0x30000);
+    address internal admin = address(0x40000);
 
     function setUp() public {
         asset = IERC20Metadata(address(new ERC20Mock()));
-        admin = address(this);
 
         sizeVault = (new SizeVaultScript()).deploy(asset, admin);
         cashStrategyVault = (new CashStrategyVaultScript()).deploy(sizeVault);
