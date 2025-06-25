@@ -1,0 +1,3 @@
+corpusDir: "echidna-corpus-cash-strategy-vault"
+testMode: assertion
+testLimit: 100000

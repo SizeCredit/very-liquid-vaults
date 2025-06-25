@@ -11,12 +11,16 @@ import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.sol";
 import {CashStrategyVaultScript as BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
+import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.sol";
+import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
+import {Setup, Contracts} from "@test/Setup.sol";
 
-contract BaseTest is Test {
+contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 
     SizeVault internal sizeVault;
     CashStrategyVault internal cashStrategyVault;
+    CryticCashStrategyVaultMock internal cryticCashStrategyVault;
     BaseStrategyVaultMock internal baseStrategyVault;
     IERC20Metadata internal asset;
 
@@ -26,12 +30,12 @@ contract BaseTest is Test {
     address internal admin = address(0x40000);
 
     function setUp() public virtual {
-        asset = IERC20Metadata(address(new ERC20Mock()));
-        vm.mockCall(address(asset), abi.encodeWithSelector(IERC20Metadata.decimals.selector), abi.encode(6));
-
-        sizeVault = (new SizeVaultScript()).deploy(asset, admin);
-        cashStrategyVault = (new CashStrategyVaultScript()).deploy(sizeVault);
-        baseStrategyVault = (new BaseStrategyVaultMockScript()).deploy(sizeVault);
+        Contracts memory contracts = setup(admin);
+        sizeVault = contracts.sizeVault;
+        cashStrategyVault = contracts.cashStrategyVault;
+        cryticCashStrategyVault = contracts.cryticCashStrategyVault;
+        baseStrategyVault = contracts.baseStrategyVault;
+        asset = contracts.asset;
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {
