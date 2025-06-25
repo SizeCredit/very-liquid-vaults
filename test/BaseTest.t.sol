@@ -25,6 +25,7 @@ contract BaseTest is Test {
 
     function setUp() public {
         asset = IERC20Metadata(address(new ERC20Mock()));
+        vm.mockCall(address(asset), abi.encodeWithSelector(IERC20Metadata.decimals.selector), abi.encode(6));
 
         sizeVault = (new SizeVaultScript()).deploy(asset, admin);
         cashStrategyVault = (new CashStrategyVaultScript()).deploy(sizeVault);
@@ -38,5 +39,10 @@ contract BaseTest is Test {
     function _approve(address _user, IERC20Metadata _asset, address _spender, uint256 _amount) internal {
         vm.prank(_user);
         _asset.approve(_spender, _amount);
+    }
+
+    function assertEq(uint256 _a, uint256 _b, uint256 _c) internal {
+        assertEq(_a, _b);
+        assertEq(_a, _c);
     }
 }

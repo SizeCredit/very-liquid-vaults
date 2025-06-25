@@ -12,10 +12,15 @@ import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {STRATEGIST_ROLE, PAUSER_ROLE} from "@src/SizeVault.sol";
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
+import {ERC20PermitUpgradeable} from
+    "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 
 abstract contract BaseStrategyVault is
     IStrategy,
     ERC4626Upgradeable,
+    ERC20PermitUpgradeable,
     AccessControlUpgradeable,
     PausableUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -57,6 +62,7 @@ abstract contract BaseStrategyVault is
     function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_) public initializer {
         __ERC4626_init(IERC20(address(sizeVault_.asset())));
         __ERC20_init(name_, symbol_);
+        __ERC20Permit_init(name_);
         __AccessControl_init();
         __Pausable_init();
         __ReentrancyGuard_init();
@@ -103,6 +109,16 @@ abstract contract BaseStrategyVault is
 
     function unpause() external onlySizeVaultHasRole(PAUSER_ROLE) {
         _unpause();
+    }
+
+    function decimals()
+        public
+        view
+        virtual
+        override(IERC20Metadata, ERC20Upgradeable, ERC4626Upgradeable)
+        returns (uint8)
+    {
+        return super.decimals();
     }
 
     /*//////////////////////////////////////////////////////////////
