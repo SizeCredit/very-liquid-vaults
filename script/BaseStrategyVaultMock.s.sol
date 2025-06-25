@@ -6,7 +6,7 @@ import {SizeVault} from "@src/SizeVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
-import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.sol";
+import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
 
 contract CashStrategyVaultScript is Script {
     SizeVault sizeVault;

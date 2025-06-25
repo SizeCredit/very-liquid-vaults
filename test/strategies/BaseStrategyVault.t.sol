@@ -7,7 +7,7 @@ import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/U
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
-import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.sol";
+import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
 import {SizeVault} from "@src/SizeVault.sol";
 import {PAUSER_ROLE} from "@src/SizeVault.sol";
 

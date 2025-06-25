@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IERC20MintBurn} from "@test/mocks/IERC20MintBurn.sol";
+import {IERC20MintBurn} from "@test/mocks/IERC20MintBurn.t.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract USDC is ERC20, IERC20MintBurn, Ownable {

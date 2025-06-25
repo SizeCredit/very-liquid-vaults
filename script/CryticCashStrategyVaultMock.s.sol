@@ -5,7 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {SizeVault} from "@src/SizeVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.sol";
+import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 
 contract CryticCashStrategyVaultMockScript is Script {

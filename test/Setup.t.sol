@@ -6,12 +6,12 @@ import {SizeVaultScript} from "@script/SizeVault.s.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
-import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.sol";
+import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
 import {CashStrategyVaultScript as BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
-import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.sol";
+import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
-import {USDC} from "@test/mocks/USDC.sol";
+import {USDC} from "@test/mocks/USDC.t.sol";
 
 struct Contracts {
     SizeVault sizeVault;
