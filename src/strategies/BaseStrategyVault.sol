@@ -13,7 +13,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {STRATEGIST_ROLE, PAUSER_ROLE} from "@src/SizeVault.sol";
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 
-abstract contract BaseStrategy is
+abstract contract BaseStrategyVault is
     IStrategy,
     ERC4626Upgradeable,
     AccessControlUpgradeable,

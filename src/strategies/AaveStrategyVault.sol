@@ -7,37 +7,36 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/ut
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SizeVault} from "@src/SizeVault.sol";
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
-import {BaseStrategy} from "@src/strategies/BaseStrategy.sol";
+import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IPool} from "@deps/aave/interfaces/IPool.sol";
 
-/// @title ERC4626Strategy
-/// @notice A strategy that invests assets in an ERC4626 vault
-contract ERC4626Strategy is BaseStrategy {
+/// @title AaveStrategyVault
+/// @notice A strategy that invests assets in Aave
+contract AaveStrategyVault is BaseStrategyVault {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    IERC4626 public vault;
+    IPool public pool;
 
     /*//////////////////////////////////////////////////////////////
-                              ERC4626 FUNCTIONS
+                              EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    function totalAssets() public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.convertToAssets(vault.balanceOf(address(this)));
-    }
+    event PoolSet(address indexed poolBefore, address indexed poolAfter);
 
     /*//////////////////////////////////////////////////////////////
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function setVault(IERC4626 vault_) external onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {
-        vault = vault_;
+    function setPool(IPool pool_) external notNullAddress(address(pool_)) onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {
+        emit PoolSet(address(pool), address(pool_));
+        pool = pool_;
     }
 
     function pullAssets(address to, uint256 amount)
@@ -49,7 +48,7 @@ contract ERC4626Strategy is BaseStrategy {
         notNullAddress(to)
     {
         emit PullAssets(to, amount);
-        vault.withdraw(amount, to, address(this));
+        pool.withdraw(asset(), amount, to);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -58,8 +57,8 @@ contract ERC4626Strategy is BaseStrategy {
 
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         super._deposit(caller, receiver, assets, shares);
-        IERC20(asset()).forceApprove(address(vault), assets);
-        vault.deposit(assets, address(this));
+        IERC20(asset()).forceApprove(address(pool), assets);
+        pool.supply(asset(), assets, address(this), 0);
     }
 
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
@@ -67,6 +66,6 @@ contract ERC4626Strategy is BaseStrategy {
         override
     {
         super._withdraw(caller, receiver, owner, assets, shares);
-        vault.withdraw(assets, receiver, address(this));
+        pool.withdraw(asset(), assets, receiver);
     }
 }

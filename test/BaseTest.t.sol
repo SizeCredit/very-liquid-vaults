@@ -6,12 +6,12 @@ import {SizeVault} from "@src/SizeVault.sol";
 import {SizeVaultScript} from "@script/SizeVault.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {CashStrategyScript} from "@script/CashStrategy.s.sol";
-import {CashStrategy} from "@src/strategies/CashStrategy.sol";
+import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
+import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 
 contract BaseTest is Test {
     SizeVault internal sizeVault;
-    CashStrategy internal cashStrategy;
+    CashStrategyVault internal cashStrategyVault;
     IERC20Metadata internal asset;
     address internal admin;
 
@@ -23,11 +23,8 @@ contract BaseTest is Test {
         asset = IERC20Metadata(address(new ERC20Mock()));
         admin = address(this);
 
-        SizeVaultScript sizeVaultScript = new SizeVaultScript();
-        sizeVault = sizeVaultScript.deploy(asset, admin);
-
-        CashStrategyScript cashStrategyScript = new CashStrategyScript();
-        cashStrategy = cashStrategyScript.deploy(sizeVault);
+        sizeVault = (new SizeVaultScript()).deploy(asset, admin);
+        cashStrategyVault = (new CashStrategyVaultScript()).deploy(sizeVault);
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {
