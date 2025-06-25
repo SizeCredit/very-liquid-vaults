@@ -16,3 +16,9 @@ docs/
 # Coverage
 lcov.info
 report/
+
+# Crytic
+crytic-export/
+medusa-corpus*
+echidna-corpus*
+slither_results.json
