@@ -136,7 +136,7 @@ contract PoolMock is IPool, Ownable {
         revert NotImplemented();
     }
 
-    function getReserveNormalizedIncome(address reserve) external view returns (uint256) {
+    function getReserveNormalizedIncome(address) external pure returns (uint256) {
         revert NotImplemented();
     }
 
@@ -147,6 +147,9 @@ contract PoolMock is IPool, Ownable {
     function getReserveData(address reserve) external view returns (DataTypes.ReserveDataLegacy memory data) {
         data.aTokenAddress = address(aTokens[reserve]);
         data.liquidityIndex = uint128(indexes[reserve]);
+        // Bit 56 = 1 (active), Bit 57 = 0 (not frozen), Bit 60 = 0 (not paused), Bits 48-55 = decimals
+        data.configuration =
+            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (uint8(IERC20Metadata(reserve).decimals()) << 48)});
     }
 
     function getVirtualUnderlyingBalance(address) external pure returns (uint128) {

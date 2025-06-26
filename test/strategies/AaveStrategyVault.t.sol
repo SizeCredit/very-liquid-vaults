@@ -13,7 +13,7 @@ contract AaveStrategyVaultTest is BaseTest {
         aaveStrategyVault.deposit(amount, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), amount);
         assertEq(aaveStrategyVault.totalAssets(), amount);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), amount);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), amount);
         assertEq(asset.balanceOf(alice), 0);
     }
 
@@ -25,7 +25,7 @@ contract AaveStrategyVaultTest is BaseTest {
         aaveStrategyVault.deposit(depositAmount, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), depositAmount);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), depositAmount);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), depositAmount);
         assertEq(asset.balanceOf(alice), 0);
 
         uint256 withdrawAmount = 30e18;
@@ -33,7 +33,7 @@ contract AaveStrategyVaultTest is BaseTest {
         aaveStrategyVault.withdraw(withdrawAmount, alice, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), depositAmount - withdrawAmount);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount - withdrawAmount);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), depositAmount - withdrawAmount);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), depositAmount - withdrawAmount);
         assertEq(asset.balanceOf(alice), withdrawAmount);
     }
 
@@ -51,7 +51,7 @@ contract AaveStrategyVaultTest is BaseTest {
         aaveStrategyVault.pullAssets(bob, pullAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount - pullAmount);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), depositAmount - pullAmount);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), depositAmount - pullAmount);
         assertEq(asset.balanceOf(bob), pullAmount);
     }
 
@@ -69,14 +69,14 @@ contract AaveStrategyVaultTest is BaseTest {
         aaveStrategyVault.pullAssets(bob, pullAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount - pullAmount);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), depositAmount - pullAmount);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), depositAmount - pullAmount);
         assertEq(asset.balanceOf(bob), pullAmount);
 
         vm.prank(alice);
         aaveStrategyVault.redeem(shares, alice, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), 0);
         assertEq(aaveStrategyVault.totalAssets(), 0);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), 0);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), 0);
         assertEq(asset.balanceOf(alice), depositAmount - pullAmount);
     }
 
@@ -96,7 +96,7 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.balanceOf(bob), 0);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount + donation);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), depositAmount + donation);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), depositAmount + donation);
 
         uint256 previewRedeemAssets = aaveStrategyVault.previewRedeem(shares);
         uint256 withdrawAmount = depositAmount + donation;
@@ -114,7 +114,7 @@ contract AaveStrategyVaultTest is BaseTest {
         aaveStrategyVault.withdraw(withdrawAmount - 1, alice, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), 0);
         assertEq(aaveStrategyVault.totalAssets(), 1);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), 1);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), 1);
         assertEq(asset.balanceOf(alice), withdrawAmount - 1);
     }
 
@@ -134,7 +134,7 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.balanceOf(bob), 0);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount + donation);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), depositAmount + donation);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), depositAmount + donation);
 
         uint256 previewWithdrawShares = aaveStrategyVault.previewWithdraw(depositAmount + donation);
         assertEq(previewWithdrawShares, shares + 1);
@@ -143,7 +143,7 @@ contract AaveStrategyVaultTest is BaseTest {
         aaveStrategyVault.redeem(shares, alice, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), 0);
         assertEq(aaveStrategyVault.totalAssets(), 1);
-        assertEq(asset.balanceOf(address(aaveStrategyVault)), 1);
+        assertEq(asset.balanceOf(address(aaveStrategyVault.aToken())), 1);
         assertEq(asset.balanceOf(alice), depositAmount + donation - 1);
     }
 }

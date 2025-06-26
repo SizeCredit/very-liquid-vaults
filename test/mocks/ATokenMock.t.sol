@@ -8,8 +8,11 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {WadRayMath} from "@deps/aave/protocol/libraries/math/WadRayMath.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ATokenMock is IAToken, ERC20, Ownable {
+    using SafeERC20 for IERC20;
+
     error NotImplemented();
 
     address public immutable underlying;
@@ -19,6 +22,7 @@ contract ATokenMock is IAToken, ERC20, Ownable {
         ERC20(_name, _symbol)
     {
         underlying = _underlying;
+        IERC20(_underlying).forceApprove(_owner, type(uint256).max);
     }
 
     function initialize(
@@ -44,7 +48,7 @@ contract ATokenMock is IAToken, ERC20, Ownable {
     }
 
     function balanceOf(address account) public view override(IERC20, ERC20) returns (uint256) {
-        return WadRayMath.wadMul(super.balanceOf(account), IPool(owner()).getReserveData(underlying).liquidityIndex);
+        return WadRayMath.rayMul(super.balanceOf(account), IPool(owner()).getReserveData(underlying).liquidityIndex);
     }
 
     function mintToTreasury(uint256, uint256) external pure {

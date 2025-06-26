@@ -42,6 +42,20 @@ contract BaseTest is Test, Setup {
         baseStrategyVault = contracts.baseStrategyVault;
         asset = contracts.asset;
         pool = contracts.pool;
+
+        vm.label(address(sizeVault), "SizeVault");
+        vm.label(address(cashStrategyVault), "CashStrategyVault");
+        vm.label(address(aaveStrategyVault), "AaveStrategyVault");
+        vm.label(address(cryticCashStrategyVault), "CryticCashStrategyVault");
+        vm.label(address(baseStrategyVault), "BaseStrategyVault");
+        vm.label(address(asset), "Asset");
+        vm.label(address(pool), "Pool");
+        vm.label(address(alice), "alice");
+        vm.label(address(bob), "bob");
+        vm.label(address(charlie), "charlie");
+        vm.label(address(admin), "admin");
+        vm.label(address(this), "Test");
+        vm.label(address(0), "address(0)");
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {
