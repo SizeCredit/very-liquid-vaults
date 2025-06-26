@@ -30,7 +30,7 @@ contract BaseTest is Test, Setup {
     address internal admin = address(0x40000);
 
     function setUp() public virtual {
-        Contracts memory contracts = setup(admin);
+        Contracts memory contracts = deploy(admin);
         sizeVault = contracts.sizeVault;
         cashStrategyVault = contracts.cashStrategyVault;
         cryticCashStrategyVault = contracts.cryticCashStrategyVault;

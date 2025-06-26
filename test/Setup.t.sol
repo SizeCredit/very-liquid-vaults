@@ -22,7 +22,7 @@ struct Contracts {
 }
 
 abstract contract Setup {
-    function setup(address admin) public returns (Contracts memory) {
+    function deploy(address admin) public returns (Contracts memory) {
         Contracts memory contracts;
         contracts.asset = IERC20Metadata(address(new USDC(admin)));
         contracts.sizeVault = (new SizeVaultScript()).deploy(contracts.asset, admin);

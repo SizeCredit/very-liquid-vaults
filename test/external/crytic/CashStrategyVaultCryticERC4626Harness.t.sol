@@ -6,7 +6,7 @@ import {Setup, Contracts} from "@test/Setup.t.sol";
 
 contract CashStrategyVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
     constructor() {
-        Contracts memory contracts = setup(address(this));
+        Contracts memory contracts = deploy(address(this));
         initialize(address(contracts.cryticCashStrategyVault), address(contracts.asset), true);
     }
 }
