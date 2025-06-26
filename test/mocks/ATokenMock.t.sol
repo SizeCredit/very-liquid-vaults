@@ -44,7 +44,7 @@ contract ATokenMock is IAToken, ERC20, Ownable {
     }
 
     function balanceOf(address account) public view override(IERC20, ERC20) returns (uint256) {
-        return WadRayMath.wadMul(super.balanceOf(account), IPool(msg.sender).getReserveNormalizedIncome(underlying));
+        return WadRayMath.wadMul(super.balanceOf(account), IPool(owner()).getReserveData(underlying).liquidityIndex);
     }
 
     function mintToTreasury(uint256, uint256) external pure {

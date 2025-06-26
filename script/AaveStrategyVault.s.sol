@@ -5,10 +5,10 @@ import {Script, console} from "forge-std/Script.sol";
 import {SizeVault} from "@src/SizeVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
-import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
 
-contract BaseStrategyVaultMockScript is Script {
+contract AaveStrategyVaultScript is Script {
     SizeVault sizeVault;
 
     function setUp() public {
@@ -23,19 +23,17 @@ contract BaseStrategyVaultMockScript is Script {
         vm.stopBroadcast();
     }
 
-    function deploy(SizeVault sizeVault_) public returns (BaseStrategyVaultMock) {
-        return BaseStrategyVaultMock(
+    function deploy(SizeVault sizeVault_) public returns (AaveStrategyVault) {
+        return AaveStrategyVault(
             address(
                 new ERC1967Proxy(
-                    address(new BaseStrategyVaultMock()),
+                    address(new AaveStrategyVault()),
                     abi.encodeCall(
                         BaseStrategyVault.initialize,
                         (
                             sizeVault_,
-                            string.concat(
-                                "Size Base ", IERC20Metadata(address(sizeVault_.asset())).name(), " Strategy Mock"
-                            ),
-                            string.concat("sizeBase", IERC20Metadata(address(sizeVault_.asset())).symbol(), "MOCK")
+                            string.concat("Size Aave ", IERC20Metadata(address(sizeVault_.asset())).name(), " Strategy"),
+                            string.concat("sizeAave", IERC20Metadata(address(sizeVault_.asset())).symbol())
                         )
                     )
                 )

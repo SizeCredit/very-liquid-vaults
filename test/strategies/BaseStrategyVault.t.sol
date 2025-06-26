@@ -15,8 +15,8 @@ contract BaseStrategyVaultTest is BaseTest {
     function test_BaseStrategyVault_initialize() public view {
         assertEq(address(baseStrategyVault.sizeVault()), address(sizeVault));
         assertEq(baseStrategyVault.asset(), address(sizeVault.asset()));
-        assertEq(baseStrategyVault.name(), "Size Base ERC20Mock Strategy Mock");
-        assertEq(baseStrategyVault.symbol(), "sizeBaseE20MMOCK");
+        assertEq(baseStrategyVault.name(), "Size Base USD Coin Strategy Mock");
+        assertEq(baseStrategyVault.symbol(), "sizeBaseUSDCMOCK");
         assertEq(baseStrategyVault.decimals(), asset.decimals(), 6);
     }
 

@@ -26,8 +26,8 @@ contract PoolMock is IPool, Ownable {
             aTokens[reserve] = new ATokenMock(
                 address(this),
                 reserve,
-                string.concat("AToken ", IERC20Metadata(reserve).name()),
-                string.concat("a", IERC20Metadata(reserve).symbol())
+                string.concat("AToken ", IERC20Metadata(reserve).name(), " Mock"),
+                string.concat("a", IERC20Metadata(reserve).symbol(), "MOCK")
             );
         }
         indexes[reserve] = _index;
@@ -137,15 +137,16 @@ contract PoolMock is IPool, Ownable {
     }
 
     function getReserveNormalizedIncome(address reserve) external view returns (uint256) {
-        return indexes[reserve];
+        revert NotImplemented();
     }
 
     function getReserveNormalizedVariableDebt(address) external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function getReserveData(address) external pure returns (DataTypes.ReserveDataLegacy memory) {
-        revert NotImplemented();
+    function getReserveData(address reserve) external view returns (DataTypes.ReserveDataLegacy memory data) {
+        data.aTokenAddress = address(aTokens[reserve]);
+        data.liquidityIndex = uint128(indexes[reserve]);
     }
 
     function getVirtualUnderlyingBalance(address) external pure returns (uint128) {

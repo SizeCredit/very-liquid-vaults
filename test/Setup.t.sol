@@ -6,8 +6,10 @@ import {SizeVaultScript} from "@script/SizeVault.s.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
-import {CashStrategyVaultScript as BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
+import {BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
+import {AaveStrategyVaultScript} from "@script/AaveStrategyVault.s.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
@@ -15,10 +17,12 @@ import {USDC} from "@test/mocks/USDC.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {PoolMockScript} from "@script/PoolMock.s.sol";
 import {WadRayMath} from "@deps/aave/protocol/libraries/math/WadRayMath.sol";
+import {hevm as vm} from "@crytic/properties/contracts/util/Hevm.sol";
 
 struct Contracts {
     SizeVault sizeVault;
     CashStrategyVault cashStrategyVault;
+    AaveStrategyVault aaveStrategyVault;
     CryticCashStrategyVaultMock cryticCashStrategyVault;
     BaseStrategyVaultMock baseStrategyVault;
     IERC20Metadata asset;
@@ -31,10 +35,17 @@ abstract contract Setup {
         contracts.asset = IERC20Metadata(address(new USDC(admin)));
         contracts.sizeVault = (new SizeVaultScript()).deploy(contracts.asset, admin);
         contracts.cashStrategyVault = (new CashStrategyVaultScript()).deploy(contracts.sizeVault);
+        contracts.aaveStrategyVault = (new AaveStrategyVaultScript()).deploy(contracts.sizeVault);
         contracts.cryticCashStrategyVault = (new CryticCashStrategyVaultMockScript()).deploy(contracts.sizeVault);
         contracts.baseStrategyVault = (new BaseStrategyVaultMockScript()).deploy(contracts.sizeVault);
         contracts.pool = (new PoolMockScript()).deploy(admin);
+
+        vm.prank(admin);
         contracts.pool.setIndex(address(contracts.asset), WadRayMath.RAY);
+
+        vm.prank(admin);
+        contracts.aaveStrategyVault.setPool(contracts.pool);
+
         return contracts;
     }
 }

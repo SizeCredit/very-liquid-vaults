@@ -9,18 +9,20 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
-import {CashStrategyVaultScript as BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
+import {BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
 import {Setup, Contracts} from "@test/Setup.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 
 contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 
     SizeVault internal sizeVault;
     CashStrategyVault internal cashStrategyVault;
+    AaveStrategyVault internal aaveStrategyVault;
     CryticCashStrategyVaultMock internal cryticCashStrategyVault;
     BaseStrategyVaultMock internal baseStrategyVault;
     IERC20Metadata internal asset;
@@ -35,6 +37,7 @@ contract BaseTest is Test, Setup {
         Contracts memory contracts = deploy(admin);
         sizeVault = contracts.sizeVault;
         cashStrategyVault = contracts.cashStrategyVault;
+        aaveStrategyVault = contracts.aaveStrategyVault;
         cryticCashStrategyVault = contracts.cryticCashStrategyVault;
         baseStrategyVault = contracts.baseStrategyVault;
         asset = contracts.asset;
