@@ -12,6 +12,9 @@ import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
 import {USDC} from "@test/mocks/USDC.t.sol";
+import {PoolMock} from "@test/mocks/PoolMock.t.sol";
+import {PoolMockScript} from "@script/PoolMock.s.sol";
+import {WadRayMath} from "@deps/aave/protocol/libraries/math/WadRayMath.sol";
 
 struct Contracts {
     SizeVault sizeVault;
@@ -19,6 +22,7 @@ struct Contracts {
     CryticCashStrategyVaultMock cryticCashStrategyVault;
     BaseStrategyVaultMock baseStrategyVault;
     IERC20Metadata asset;
+    PoolMock pool;
 }
 
 abstract contract Setup {
@@ -29,6 +33,8 @@ abstract contract Setup {
         contracts.cashStrategyVault = (new CashStrategyVaultScript()).deploy(contracts.sizeVault);
         contracts.cryticCashStrategyVault = (new CryticCashStrategyVaultMockScript()).deploy(contracts.sizeVault);
         contracts.baseStrategyVault = (new BaseStrategyVaultMockScript()).deploy(contracts.sizeVault);
+        contracts.pool = (new PoolMockScript()).deploy(admin);
+        contracts.pool.setIndex(address(contracts.asset), WadRayMath.RAY);
         return contracts;
     }
 }

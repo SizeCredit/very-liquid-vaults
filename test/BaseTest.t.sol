@@ -14,6 +14,7 @@ import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
 import {Setup, Contracts} from "@test/Setup.t.sol";
+import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 
 contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
@@ -23,6 +24,7 @@ contract BaseTest is Test, Setup {
     CryticCashStrategyVaultMock internal cryticCashStrategyVault;
     BaseStrategyVaultMock internal baseStrategyVault;
     IERC20Metadata internal asset;
+    PoolMock internal pool;
 
     address internal alice = address(0x10000);
     address internal bob = address(0x20000);
@@ -36,6 +38,7 @@ contract BaseTest is Test, Setup {
         cryticCashStrategyVault = contracts.cryticCashStrategyVault;
         baseStrategyVault = contracts.baseStrategyVault;
         asset = contracts.asset;
+        pool = contracts.pool;
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {
