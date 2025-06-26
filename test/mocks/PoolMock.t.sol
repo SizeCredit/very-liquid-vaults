@@ -4,329 +4,303 @@ pragma solidity 0.8.26;
 import {IPool} from "@deps/aave/interfaces/IPool.sol";
 import {IPoolAddressesProvider} from "@deps/aave/interfaces/IPoolAddressesProvider.sol";
 import {DataTypes} from "@deps/aave/protocol/libraries/types/DataTypes.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IAToken} from "@deps/aave/interfaces/IAToken.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ATokenMock} from "@test/mocks/ATokenMock.t.sol";
 
-contract PoolMock is IPool {
+contract PoolMock is IPool, Ownable {
+    using SafeERC20 for IERC20;
+
+    mapping(address reserve => IAToken aToken) public aTokens;
+    mapping(address reserve => uint256 index) public indexes;
+
     error NotImplemented();
 
-    function mintUnbacked(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external {
+    constructor(address _owner) Ownable(_owner) {}
+
+    function setIndex(address reserve, uint256 _index) external onlyOwner {
+        if (aTokens[reserve] == IAToken(address(0))) {
+            aTokens[reserve] = new ATokenMock(
+                address(this),
+                reserve,
+                string.concat("AToken ", IERC20Metadata(reserve).name()),
+                string.concat("a", IERC20Metadata(reserve).symbol())
+            );
+        }
+        indexes[reserve] = _index;
+    }
+
+    function mintUnbacked(address, uint256, address, uint16) external pure {
         revert NotImplemented();
     }
 
-    function backUnbacked(address asset, uint256 amount, uint256 fee) external returns (uint256) {
+    function backUnbacked(address, uint256, uint256) external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external {
-        revert NotImplemented();
+    function supply(address asset, uint256 amount, address onBehalfOf, uint16) external {
+        IERC20(asset).safeTransferFrom(onBehalfOf, address(aTokens[asset]), amount);
+        aTokens[asset].mint(address(this), onBehalfOf, amount, indexes[asset]);
     }
 
-    function supplyWithPermit(
-        address asset,
-        uint256 amount,
-        address onBehalfOf,
-        uint16 referralCode,
-        uint256 deadline,
-        uint8 permitV,
-        bytes32 permitR,
-        bytes32 permitS
-    ) external {
+    function supplyWithPermit(address, uint256, address, uint16, uint256, uint8, bytes32, bytes32) external pure {
         revert NotImplemented();
     }
 
     function withdraw(address asset, uint256 amount, address to) external returns (uint256) {
+        aTokens[asset].burn(address(this), to, amount, indexes[asset]);
+        IERC20(asset).safeTransferFrom(address(aTokens[asset]), to, amount);
+        return amount;
+    }
+
+    function borrow(address, uint256, uint256, uint16, address) external pure {
         revert NotImplemented();
     }
 
-    function borrow(address asset, uint256 amount, uint256 interestRateMode, uint16 referralCode, address onBehalfOf)
-        external
-    {
+    function repay(address, uint256, uint256, address) external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function repay(address asset, uint256 amount, uint256 interestRateMode, address onBehalfOf)
+    function repayWithPermit(address, uint256, uint256, address, uint256, uint8, bytes32, bytes32)
         external
+        pure
         returns (uint256)
     {
         revert NotImplemented();
     }
 
-    function repayWithPermit(
-        address asset,
-        uint256 amount,
-        uint256 interestRateMode,
-        address onBehalfOf,
-        uint256 deadline,
-        uint8 permitV,
-        bytes32 permitR,
-        bytes32 permitS
-    ) external returns (uint256) {
+    function repayWithATokens(address, uint256, uint256) external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function repayWithATokens(address asset, uint256 amount, uint256 interestRateMode) external returns (uint256) {
+    function setUserUseReserveAsCollateral(address, bool) external pure {
         revert NotImplemented();
     }
 
-    function setUserUseReserveAsCollateral(address asset, bool useAsCollateral) external {
-        revert NotImplemented();
-    }
-
-    function liquidationCall(
-        address collateralAsset,
-        address debtAsset,
-        address user,
-        uint256 debtToCover,
-        bool receiveAToken
-    ) external {
+    function liquidationCall(address, address, address, uint256, bool) external pure {
         revert NotImplemented();
     }
 
     function flashLoan(
-        address receiverAddress,
-        address[] calldata assets,
-        uint256[] calldata amounts,
-        uint256[] calldata interestRateModes,
-        address onBehalfOf,
-        bytes calldata params,
-        uint16 referralCode
-    ) external {
+        address,
+        address[] calldata,
+        uint256[] calldata,
+        uint256[] calldata,
+        address,
+        bytes calldata,
+        uint16
+    ) external pure {
         revert NotImplemented();
     }
 
-    function flashLoanSimple(
-        address receiverAddress,
-        address asset,
-        uint256 amount,
-        bytes calldata params,
-        uint16 referralCode
-    ) external {
+    function flashLoanSimple(address, address, uint256, bytes calldata, uint16) external pure {
         revert NotImplemented();
     }
 
-    function getUserAccountData(address user)
-        external
-        view
-        returns (
-            uint256 totalCollateralBase,
-            uint256 totalDebtBase,
-            uint256 availableBorrowsBase,
-            uint256 currentLiquidationThreshold,
-            uint256 ltv,
-            uint256 healthFactor
-        )
-    {
+    function getUserAccountData(address) external pure returns (uint256, uint256, uint256, uint256, uint256, uint256) {
         revert NotImplemented();
     }
 
-    function initReserve(
-        address asset,
-        address aTokenAddress,
-        address variableDebtAddress,
-        address interestRateStrategyAddress
-    ) external {
+    function initReserve(address, address, address, address) external pure {
         revert NotImplemented();
     }
 
-    function dropReserve(address asset) external {
+    function dropReserve(address) external pure {
         revert NotImplemented();
     }
 
-    function setReserveInterestRateStrategyAddress(address asset, address rateStrategyAddress) external {
+    function setReserveInterestRateStrategyAddress(address, address) external pure {
         revert NotImplemented();
     }
 
-    function syncIndexesState(address asset) external {
+    function syncIndexesState(address) external pure {
         revert NotImplemented();
     }
 
-    function syncRatesState(address asset) external {
+    function syncRatesState(address) external pure {
         revert NotImplemented();
     }
 
-    function setConfiguration(address asset, DataTypes.ReserveConfigurationMap calldata configuration) external {
+    function setConfiguration(address, DataTypes.ReserveConfigurationMap calldata) external pure {
         revert NotImplemented();
     }
 
-    function getConfiguration(address asset) external view returns (DataTypes.ReserveConfigurationMap memory) {
+    function getConfiguration(address) external pure returns (DataTypes.ReserveConfigurationMap memory) {
         revert NotImplemented();
     }
 
-    function getUserConfiguration(address user) external view returns (DataTypes.UserConfigurationMap memory) {
+    function getUserConfiguration(address) external pure returns (DataTypes.UserConfigurationMap memory) {
         revert NotImplemented();
     }
 
-    function getReserveNormalizedIncome(address asset) external view returns (uint256) {
+    function getReserveNormalizedIncome(address reserve) external view returns (uint256) {
+        return indexes[reserve];
+    }
+
+    function getReserveNormalizedVariableDebt(address) external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function getReserveNormalizedVariableDebt(address asset) external view returns (uint256) {
+    function getReserveData(address) external pure returns (DataTypes.ReserveDataLegacy memory) {
         revert NotImplemented();
     }
 
-    function getReserveData(address asset) external view returns (DataTypes.ReserveDataLegacy memory) {
+    function getVirtualUnderlyingBalance(address) external pure returns (uint128) {
         revert NotImplemented();
     }
 
-    function getVirtualUnderlyingBalance(address asset) external view returns (uint128) {
+    function finalizeTransfer(address, address, address, uint256, uint256, uint256) external pure {
         revert NotImplemented();
     }
 
-    function finalizeTransfer(
-        address asset,
-        address from,
-        address to,
-        uint256 amount,
-        uint256 balanceFromBefore,
-        uint256 balanceToBefore
-    ) external {
+    function getReservesList() external pure returns (address[] memory) {
         revert NotImplemented();
     }
 
-    function getReservesList() external view returns (address[] memory) {
+    function getReservesCount() external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function getReservesCount() external view returns (uint256) {
+    function getReserveAddressById(uint16) external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getReserveAddressById(uint16 id) external view returns (address) {
+    function ADDRESSES_PROVIDER() external pure returns (IPoolAddressesProvider) {
         revert NotImplemented();
     }
 
-    function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider) {
+    function updateBridgeProtocolFee(uint256) external pure {
         revert NotImplemented();
     }
 
-    function updateBridgeProtocolFee(uint256 bridgeProtocolFee) external {
+    function updateFlashloanPremiums(uint128, uint128) external pure {
         revert NotImplemented();
     }
 
-    function updateFlashloanPremiums(uint128 flashLoanPremiumTotal, uint128 flashLoanPremiumToProtocol) external {
+    function configureEModeCategory(uint8, DataTypes.EModeCategoryBaseConfiguration memory) external pure {
         revert NotImplemented();
     }
 
-    function configureEModeCategory(uint8 id, DataTypes.EModeCategoryBaseConfiguration memory config) external {
+    function configureEModeCategoryCollateralBitmap(uint8, uint128) external pure {
         revert NotImplemented();
     }
 
-    function configureEModeCategoryCollateralBitmap(uint8 id, uint128 collateralBitmap) external {
+    function configureEModeCategoryBorrowableBitmap(uint8, uint128) external pure {
         revert NotImplemented();
     }
 
-    function configureEModeCategoryBorrowableBitmap(uint8 id, uint128 borrowableBitmap) external {
+    function getEModeCategoryData(uint8) external pure returns (DataTypes.EModeCategoryLegacy memory) {
         revert NotImplemented();
     }
 
-    function getEModeCategoryData(uint8 id) external view returns (DataTypes.EModeCategoryLegacy memory) {
+    function getEModeCategoryLabel(uint8) external pure returns (string memory) {
         revert NotImplemented();
     }
 
-    function getEModeCategoryLabel(uint8 id) external view returns (string memory) {
+    function getEModeCategoryCollateralConfig(uint8) external pure returns (DataTypes.CollateralConfig memory) {
         revert NotImplemented();
     }
 
-    function getEModeCategoryCollateralConfig(uint8 id) external view returns (DataTypes.CollateralConfig memory) {
+    function getEModeCategoryCollateralBitmap(uint8) external pure returns (uint128) {
         revert NotImplemented();
     }
 
-    function getEModeCategoryCollateralBitmap(uint8 id) external view returns (uint128) {
+    function getEModeCategoryBorrowableBitmap(uint8) external pure returns (uint128) {
         revert NotImplemented();
     }
 
-    function getEModeCategoryBorrowableBitmap(uint8 id) external view returns (uint128) {
+    function setUserEMode(uint8) external pure {
         revert NotImplemented();
     }
 
-    function setUserEMode(uint8 categoryId) external {
+    function getUserEMode(address) external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function getUserEMode(address user) external view returns (uint256) {
+    function resetIsolationModeTotalDebt(address) external pure {
         revert NotImplemented();
     }
 
-    function resetIsolationModeTotalDebt(address asset) external {
+    function setLiquidationGracePeriod(address, uint40) external pure {
         revert NotImplemented();
     }
 
-    function setLiquidationGracePeriod(address asset, uint40 until) external {
+    function getLiquidationGracePeriod(address) external pure returns (uint40) {
         revert NotImplemented();
     }
 
-    function getLiquidationGracePeriod(address asset) external view returns (uint40) {
+    function FLASHLOAN_PREMIUM_TOTAL() external pure returns (uint128) {
         revert NotImplemented();
     }
 
-    function FLASHLOAN_PREMIUM_TOTAL() external view returns (uint128) {
+    function BRIDGE_PROTOCOL_FEE() external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function BRIDGE_PROTOCOL_FEE() external view returns (uint256) {
+    function FLASHLOAN_PREMIUM_TO_PROTOCOL() external pure returns (uint128) {
         revert NotImplemented();
     }
 
-    function FLASHLOAN_PREMIUM_TO_PROTOCOL() external view returns (uint128) {
+    function MAX_NUMBER_RESERVES() external pure returns (uint16) {
         revert NotImplemented();
     }
 
-    function MAX_NUMBER_RESERVES() external view returns (uint16) {
+    function mintToTreasury(address[] calldata) external pure {
         revert NotImplemented();
     }
 
-    function mintToTreasury(address[] calldata assets) external {
+    function rescueTokens(address, address, uint256) external pure {
         revert NotImplemented();
     }
 
-    function rescueTokens(address token, address to, uint256 amount) external {
+    function deposit(address, uint256, address, uint16) external pure {
         revert NotImplemented();
     }
 
-    function deposit(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external {
+    function eliminateReserveDeficit(address, uint256) external pure {
         revert NotImplemented();
     }
 
-    function eliminateReserveDeficit(address asset, uint256 amount) external {
+    function getReserveDeficit(address) external pure returns (uint256) {
         revert NotImplemented();
     }
 
-    function getReserveDeficit(address asset) external view returns (uint256) {
+    function getReserveAToken(address) external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getReserveAToken(address asset) external view returns (address) {
+    function getReserveVariableDebtToken(address) external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getReserveVariableDebtToken(address asset) external view returns (address) {
+    function getFlashLoanLogic() external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getFlashLoanLogic() external view returns (address) {
+    function getBorrowLogic() external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getBorrowLogic() external view returns (address) {
+    function getBridgeLogic() external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getBridgeLogic() external view returns (address) {
+    function getEModeLogic() external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getEModeLogic() external view returns (address) {
+    function getLiquidationLogic() external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getLiquidationLogic() external view returns (address) {
+    function getPoolLogic() external pure returns (address) {
         revert NotImplemented();
     }
 
-    function getPoolLogic() external view returns (address) {
-        revert NotImplemented();
-    }
-
-    function getSupplyLogic() external view returns (address) {
+    function getSupplyLogic() external pure returns (address) {
         revert NotImplemented();
     }
 }
