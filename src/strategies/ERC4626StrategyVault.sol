@@ -76,14 +76,6 @@ contract ERC4626StrategyVault is BaseStrategyVault {
         return vault.maxMint(address(this));
     }
 
-    function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(super.maxWithdraw(owner), vault.maxWithdraw(address(this)));
-    }
-
-    function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(super.maxRedeem(owner), vault.maxRedeem(address(this)));
-    }
-
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         return vault.convertToAssets(vault.balanceOf(address(this)));
     }

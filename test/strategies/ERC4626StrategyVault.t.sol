@@ -73,13 +73,13 @@ contract ERC4626StrategyVaultTest is BaseTest {
         assertEq(asset.balanceOf(bob), pullAmount);
 
         uint256 maxRedeem = erc4626StrategyVault.maxRedeem(alice);
-        assertEq(maxRedeem, depositAmount - pullAmount);
+        assertEq(maxRedeem, shares);
 
         uint256 maxWithdraw = erc4626StrategyVault.maxWithdraw(alice);
 
         vm.prank(alice);
-        erc4626StrategyVault.redeem(maxRedeem, alice, alice);
-        assertEq(erc4626StrategyVault.balanceOf(alice), pullAmount);
+        erc4626StrategyVault.redeem(shares, alice, alice);
+        assertEq(erc4626StrategyVault.balanceOf(alice), 0);
         assertEq(erc4626StrategyVault.totalAssets(), depositAmount - pullAmount - maxWithdraw);
         assertEq(asset.balanceOf(address(vault)), 0);
         assertEq(asset.balanceOf(alice), maxWithdraw);
