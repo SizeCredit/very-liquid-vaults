@@ -1,36 +1,69 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {IPool} from "@deps/aave/interfaces/IPool.sol";
-import {IPoolAddressesProvider} from "@deps/aave/interfaces/IPoolAddressesProvider.sol";
-import {DataTypes} from "@deps/aave/protocol/libraries/types/DataTypes.sol";
+import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+import {IPoolAddressesProvider} from "@aave/contracts/interfaces/IPoolAddressesProvider.sol";
+import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IAToken} from "@deps/aave/interfaces/IAToken.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ATokenMock} from "@test/mocks/ATokenMock.t.sol";
+import {AToken} from "@aave/contracts/protocol/tokenization/AToken.sol";
+import {VariableDebtToken} from "@aave/contracts/protocol/tokenization/VariableDebtToken.sol";
+import {PoolAddressesProvider} from "@aave/contracts/protocol/configuration/PoolAddressesProvider.sol";
+import {MockIncentivesController} from "@aave/contracts/mocks/helpers/MockIncentivesController.sol";
+import {ATokenInstance} from "@aave/contracts/instances/ATokenInstance.sol";
+import {VariableDebtTokenInstance} from "@aave/contracts/instances/VariableDebtTokenInstance.sol";
 
 contract PoolMock is IPool, Ownable {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
 
-    mapping(address reserve => IAToken aToken) public aTokens;
-    mapping(address reserve => uint256 index) public indexes;
+    struct Data {
+        AToken aToken;
+        VariableDebtToken debtToken;
+        uint256 reserveIndex;
+    }
+
+    PoolAddressesProvider private immutable addressesProvider;
+    mapping(address asset => Data data) private datas;
 
     error NotImplemented();
 
-    constructor(address _owner) Ownable(_owner) {}
+    constructor(address _owner) Ownable(_owner) {
+        addressesProvider = new PoolAddressesProvider("", address(this));
+    }
 
-    function setIndex(address reserve, uint256 _index) external onlyOwner {
-        if (aTokens[reserve] == IAToken(address(0))) {
-            aTokens[reserve] = new ATokenMock(
-                address(this),
-                reserve,
-                string.concat("AToken ", IERC20Metadata(reserve).name(), " Mock"),
-                string.concat("a", IERC20Metadata(reserve).symbol(), "MOCK")
+    function setLiquidityIndex(address asset, uint256 index) public onlyOwner {
+        Data storage data = datas[asset];
+        if (data.reserveIndex == 0) {
+            data.aToken = new ATokenInstance(IPool(address(this)));
+            data.debtToken = new VariableDebtTokenInstance(IPool(address(this)));
+            MockIncentivesController incentivesController = new MockIncentivesController();
+            uint8 decimals = IERC20Metadata(asset).decimals();
+            string memory name = IERC20Metadata(asset).name();
+            string memory symbol = IERC20Metadata(asset).symbol();
+
+            data.aToken.initialize(
+                IPool(address(this)),
+                owner(),
+                asset,
+                incentivesController,
+                decimals,
+                string.concat("AToken ", name),
+                string.concat("a", IERC20Metadata(asset).symbol()),
+                ""
+            );
+            data.debtToken.initialize(
+                IPool(address(this)),
+                asset,
+                incentivesController,
+                decimals,
+                string.concat("VariableDebtToken ", name),
+                string.concat("d", symbol),
+                ""
             );
         }
-        indexes[reserve] = _index;
+        data.reserveIndex = index;
     }
 
     function mintUnbacked(address, uint256, address, uint16) external pure {
@@ -42,8 +75,9 @@ contract PoolMock is IPool, Ownable {
     }
 
     function supply(address asset, uint256 amount, address onBehalfOf, uint16) external {
-        IERC20(asset).safeTransferFrom(onBehalfOf, address(aTokens[asset]), amount);
-        aTokens[asset].mint(address(this), onBehalfOf, amount, indexes[asset]);
+        Data memory data = datas[asset];
+        IERC20Metadata(asset).safeTransferFrom(msg.sender, address(data.aToken), amount);
+        data.aToken.mint(address(this), onBehalfOf, amount, data.reserveIndex);
     }
 
     function supplyWithPermit(address, uint256, address, uint16, uint256, uint8, bytes32, bytes32) external pure {
@@ -51,8 +85,9 @@ contract PoolMock is IPool, Ownable {
     }
 
     function withdraw(address asset, uint256 amount, address to) external returns (uint256) {
-        aTokens[asset].burn(msg.sender, to, amount, indexes[asset]);
-        IERC20(asset).safeTransferFrom(address(aTokens[asset]), to, amount);
+        amount = amount < datas[asset].aToken.balanceOf(msg.sender) ? amount : datas[asset].aToken.balanceOf(msg.sender);
+        Data memory data = datas[asset];
+        data.aToken.burn(msg.sender, to, amount, data.reserveIndex);
         return amount;
     }
 
@@ -136,8 +171,8 @@ contract PoolMock is IPool, Ownable {
         revert NotImplemented();
     }
 
-    function getReserveNormalizedIncome(address) external pure returns (uint256) {
-        revert NotImplemented();
+    function getReserveNormalizedIncome(address asset) external view returns (uint256) {
+        return datas[asset].reserveIndex;
     }
 
     function getReserveNormalizedVariableDebt(address) external pure returns (uint256) {
@@ -145,8 +180,8 @@ contract PoolMock is IPool, Ownable {
     }
 
     function getReserveData(address reserve) external view returns (DataTypes.ReserveDataLegacy memory data) {
-        data.aTokenAddress = address(aTokens[reserve]);
-        data.liquidityIndex = uint128(indexes[reserve]);
+        data.aTokenAddress = address(datas[reserve].aToken);
+        data.liquidityIndex = uint128(datas[reserve].reserveIndex);
         // Bit 56 = 1 (active), Bit 57 = 0 (not frozen), Bit 60 = 0 (not paused), Bits 48-55 = decimals
         data.configuration =
             DataTypes.ReserveConfigurationMap({data: (1 << 56) | (uint8(IERC20Metadata(reserve).decimals()) << 48)});
@@ -156,9 +191,7 @@ contract PoolMock is IPool, Ownable {
         revert NotImplemented();
     }
 
-    function finalizeTransfer(address, address, address, uint256, uint256, uint256) external pure {
-        revert NotImplemented();
-    }
+    function finalizeTransfer(address, address, address, uint256, uint256, uint256) external pure {}
 
     function getReservesList() external pure returns (address[] memory) {
         revert NotImplemented();
@@ -172,8 +205,8 @@ contract PoolMock is IPool, Ownable {
         revert NotImplemented();
     }
 
-    function ADDRESSES_PROVIDER() external pure returns (IPoolAddressesProvider) {
-        revert NotImplemented();
+    function ADDRESSES_PROVIDER() external view returns (IPoolAddressesProvider) {
+        return addressesProvider;
     }
 
     function updateBridgeProtocolFee(uint256) external pure {

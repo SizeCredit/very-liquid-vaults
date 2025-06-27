@@ -12,8 +12,8 @@ import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
-import {IPool} from "@deps/aave/interfaces/IPool.sol";
-import {IAToken} from "@deps/aave/interfaces/IAToken.sol";
+import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 
 /// @title AaveStrategyVault
 /// @notice A strategy that invests assets in Aave

@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
-import {IAToken} from "@deps/aave/interfaces/IAToken.sol";
+import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 
 contract AaveStrategyVaultTest is BaseTest {
     IAToken aToken;
@@ -81,11 +81,20 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(asset.balanceOf(bob), pullAmount);
 
         vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxRedeem.selector, alice, shares, shares - 1)
+        );
         aaveStrategyVault.redeem(shares, alice, alice);
-        assertEq(aaveStrategyVault.balanceOf(alice), 0);
-        assertEq(aaveStrategyVault.totalAssets(), 0);
-        assertEq(asset.balanceOf(address(aToken)), 0);
-        assertEq(asset.balanceOf(alice), depositAmount - pullAmount);
+
+        uint256 maxRedeem = aaveStrategyVault.maxRedeem(alice);
+        assertEq(maxRedeem, shares - 1);
+
+        vm.prank(alice);
+        aaveStrategyVault.redeem(maxRedeem, alice, alice);
+        assertEq(aaveStrategyVault.balanceOf(alice), 1);
+        assertEq(aaveStrategyVault.totalAssets(), 1);
+        assertEq(asset.balanceOf(address(aToken)), 1);
+        assertEq(asset.balanceOf(alice), depositAmount - pullAmount - 1);
     }
 
     function test_AaveStrategyVault_deposit_donate_withdraw() public {
@@ -102,7 +111,7 @@ contract AaveStrategyVaultTest is BaseTest {
         vm.prank(bob);
         asset.transfer(address(aToken), donation);
         vm.prank(admin);
-        pool.setIndex(address(asset), (depositAmount + donation) * 1e27 / depositAmount);
+        pool.setLiquidityIndex(address(asset), (depositAmount + donation) * 1e27 / depositAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.balanceOf(bob), 0);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount + donation);
@@ -142,7 +151,7 @@ contract AaveStrategyVaultTest is BaseTest {
         vm.prank(bob);
         asset.transfer(address(aToken), donation);
         vm.prank(admin);
-        pool.setIndex(address(asset), (depositAmount + donation) * 1e27 / depositAmount);
+        pool.setLiquidityIndex(address(asset), (depositAmount + donation) * 1e27 / depositAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.balanceOf(bob), 0);
         assertEq(aaveStrategyVault.totalAssets(), depositAmount + donation);

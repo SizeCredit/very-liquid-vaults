@@ -16,7 +16,7 @@ import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVault
 import {USDC} from "@test/mocks/USDC.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {PoolMockScript} from "@script/PoolMock.s.sol";
-import {WadRayMath} from "@deps/aave/protocol/libraries/math/WadRayMath.sol";
+import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
 import {hevm as vm} from "@crytic/properties/contracts/util/Hevm.sol";
 
 struct Contracts {
@@ -41,7 +41,7 @@ abstract contract Setup {
         contracts.pool = (new PoolMockScript()).deploy(admin);
 
         vm.prank(admin);
-        contracts.pool.setIndex(address(contracts.asset), WadRayMath.RAY);
+        contracts.pool.setLiquidityIndex(address(contracts.asset), WadRayMath.RAY);
 
         vm.prank(admin);
         contracts.aaveStrategyVault.setPool(contracts.pool);
