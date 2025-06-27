@@ -12,6 +12,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {DEFAULT_ADMIN_ROLE} from "@src/SizeVault.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title ERC4626StrategyVault
 /// @notice A strategy that invests assets in an ERC4626 vault
@@ -67,20 +68,20 @@ contract ERC4626StrategyVault is BaseStrategyVault {
                               ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
-    function maxDeposit(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.maxWithdraw(owner);
+    function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return vault.maxDeposit(address(this));
     }
 
-    function maxMint(address receiver) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.maxMint(receiver);
+    function maxMint(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return vault.maxMint(address(this));
     }
 
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.maxWithdraw(owner);
+        return Math.min(super.maxWithdraw(owner), vault.maxWithdraw(address(this)));
     }
 
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.maxRedeem(owner);
+        return Math.min(super.maxRedeem(owner), vault.maxRedeem(address(this)));
     }
 
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
@@ -97,7 +98,7 @@ contract ERC4626StrategyVault is BaseStrategyVault {
         internal
         override
     {
-        vault.withdraw(assets, receiver, address(this));
+        vault.withdraw(assets, address(this), address(this));
         super._withdraw(caller, receiver, owner, assets, shares);
     }
 }

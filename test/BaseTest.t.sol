@@ -19,6 +19,7 @@ import {Setup, Contracts} from "@test/Setup.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
+import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 
 contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
@@ -33,6 +34,7 @@ contract BaseTest is Test, Setup {
     CryticERC4626StrategyVaultMock internal cryticERC4626StrategyVault;
     IERC20Metadata internal asset;
     PoolMock internal pool;
+    VaultMock internal vault;
     IAToken internal aToken;
 
     address internal alice = address(0x10000);
@@ -52,6 +54,7 @@ contract BaseTest is Test, Setup {
         cryticERC4626StrategyVault = contracts.cryticERC4626StrategyVault;
         asset = contracts.asset;
         pool = contracts.pool;
+        vault = contracts.vault;
         aToken = IAToken(pool.getReserveData(address(asset)).aTokenAddress);
 
         vm.label(address(sizeVault), "SizeVault");
@@ -68,6 +71,7 @@ contract BaseTest is Test, Setup {
         vm.label(address(asset), "Asset");
         vm.label(address(pool), "Pool");
         vm.label(address(aToken), "AToken");
+        vm.label(address(vault), "Vault");
 
         vm.label(address(alice), "alice");
         vm.label(address(bob), "bob");

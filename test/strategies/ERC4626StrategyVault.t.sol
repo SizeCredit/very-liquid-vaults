@@ -13,7 +13,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         erc4626StrategyVault.deposit(amount, alice);
         assertEq(erc4626StrategyVault.balanceOf(alice), amount);
         assertEq(erc4626StrategyVault.totalAssets(), amount);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), amount);
+        assertEq(asset.balanceOf(address(vault)), amount);
         assertEq(asset.balanceOf(alice), 0);
     }
 
@@ -25,7 +25,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         erc4626StrategyVault.deposit(depositAmount, alice);
         assertEq(erc4626StrategyVault.balanceOf(alice), depositAmount);
         assertEq(erc4626StrategyVault.totalAssets(), depositAmount);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), depositAmount);
+        assertEq(asset.balanceOf(address(vault)), depositAmount);
         assertEq(asset.balanceOf(alice), 0);
 
         uint256 withdrawAmount = 30e18;
@@ -33,7 +33,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         erc4626StrategyVault.withdraw(withdrawAmount, alice, alice);
         assertEq(erc4626StrategyVault.balanceOf(alice), depositAmount - withdrawAmount);
         assertEq(erc4626StrategyVault.totalAssets(), depositAmount - withdrawAmount);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), depositAmount - withdrawAmount);
+        assertEq(asset.balanceOf(address(vault)), depositAmount - withdrawAmount);
         assertEq(asset.balanceOf(alice), withdrawAmount);
     }
 
@@ -51,7 +51,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         erc4626StrategyVault.pullAssets(bob, pullAmount);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(erc4626StrategyVault.totalAssets(), depositAmount - pullAmount);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), depositAmount - pullAmount);
+        assertEq(asset.balanceOf(address(vault)), depositAmount - pullAmount);
         assertEq(asset.balanceOf(bob), pullAmount);
     }
 
@@ -69,15 +69,20 @@ contract ERC4626StrategyVaultTest is BaseTest {
         erc4626StrategyVault.pullAssets(bob, pullAmount);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(erc4626StrategyVault.totalAssets(), depositAmount - pullAmount);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), depositAmount - pullAmount);
+        assertEq(asset.balanceOf(address(vault)), depositAmount - pullAmount);
         assertEq(asset.balanceOf(bob), pullAmount);
 
+        uint256 maxRedeem = erc4626StrategyVault.maxRedeem(alice);
+        assertEq(maxRedeem, depositAmount - pullAmount);
+
+        uint256 maxWithdraw = erc4626StrategyVault.maxWithdraw(alice);
+
         vm.prank(alice);
-        erc4626StrategyVault.redeem(shares, alice, alice);
-        assertEq(erc4626StrategyVault.balanceOf(alice), 0);
-        assertEq(erc4626StrategyVault.totalAssets(), 0);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), 0);
-        assertEq(asset.balanceOf(alice), depositAmount - pullAmount);
+        erc4626StrategyVault.redeem(maxRedeem, alice, alice);
+        assertEq(erc4626StrategyVault.balanceOf(alice), pullAmount);
+        assertEq(erc4626StrategyVault.totalAssets(), depositAmount - pullAmount - maxWithdraw);
+        assertEq(asset.balanceOf(address(vault)), 0);
+        assertEq(asset.balanceOf(alice), maxWithdraw);
     }
 
     function test_ERC4626StrategyVault_deposit_donate_withdraw() public {
@@ -92,14 +97,14 @@ contract ERC4626StrategyVaultTest is BaseTest {
         uint256 donation = 30e18;
         _mint(asset, bob, donation);
         vm.prank(bob);
-        asset.transfer(address(erc4626StrategyVault), donation);
+        asset.transfer(address(vault), donation);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(erc4626StrategyVault.balanceOf(bob), 0);
-        assertEq(erc4626StrategyVault.totalAssets(), depositAmount + donation);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), depositAmount + donation);
+        assertEq(erc4626StrategyVault.totalAssets(), depositAmount + donation - 1);
+        assertEq(asset.balanceOf(address(vault)), depositAmount + donation);
 
         uint256 previewRedeemAssets = erc4626StrategyVault.previewRedeem(shares);
-        uint256 withdrawAmount = depositAmount + donation;
+        uint256 withdrawAmount = depositAmount + donation - 1;
         assertEq(previewRedeemAssets, withdrawAmount - 1);
 
         vm.prank(alice);
@@ -114,7 +119,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         erc4626StrategyVault.withdraw(withdrawAmount - 1, alice, alice);
         assertEq(erc4626StrategyVault.balanceOf(alice), 0);
         assertEq(erc4626StrategyVault.totalAssets(), 1);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), 1);
+        assertEq(asset.balanceOf(address(vault)), 2);
         assertEq(asset.balanceOf(alice), withdrawAmount - 1);
     }
 
@@ -130,20 +135,20 @@ contract ERC4626StrategyVaultTest is BaseTest {
         uint256 donation = 30e18;
         _mint(asset, bob, donation);
         vm.prank(bob);
-        asset.transfer(address(erc4626StrategyVault), donation);
+        asset.transfer(address(vault), donation);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(erc4626StrategyVault.balanceOf(bob), 0);
-        assertEq(erc4626StrategyVault.totalAssets(), depositAmount + donation);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), depositAmount + donation);
+        assertEq(erc4626StrategyVault.totalAssets(), depositAmount + donation - 1);
+        assertEq(asset.balanceOf(address(vault)), depositAmount + donation);
 
-        uint256 previewWithdrawShares = erc4626StrategyVault.previewWithdraw(depositAmount + donation);
+        uint256 previewWithdrawShares = erc4626StrategyVault.previewWithdraw(depositAmount + donation - 1);
         assertEq(previewWithdrawShares, shares + 1);
 
         vm.prank(alice);
         erc4626StrategyVault.redeem(shares, alice, alice);
         assertEq(erc4626StrategyVault.balanceOf(alice), 0);
         assertEq(erc4626StrategyVault.totalAssets(), 1);
-        assertEq(asset.balanceOf(address(erc4626StrategyVault)), 1);
-        assertEq(asset.balanceOf(alice), depositAmount + donation - 1);
+        assertEq(asset.balanceOf(address(vault)), 2);
+        assertEq(asset.balanceOf(alice), depositAmount + donation - 2);
     }
 }
