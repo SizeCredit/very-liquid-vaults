@@ -6,11 +6,8 @@ import {BaseTest} from "@test/BaseTest.t.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 
 contract AaveStrategyVaultTest is BaseTest {
-    IAToken aToken;
-
     function setUp() public override {
         super.setUp();
-        aToken = aaveStrategyVault.aToken();
     }
 
     function test_AaveStrategyVault_deposit_balanceOf_totalAssets() public {

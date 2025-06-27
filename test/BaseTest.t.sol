@@ -12,21 +12,24 @@ import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
 import {BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
-import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
+import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
 import {Setup, Contracts} from "@test/Setup.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
+import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 
 contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 
     SizeVault internal sizeVault;
     CashStrategyVault internal cashStrategyVault;
-    AaveStrategyVault internal aaveStrategyVault;
     CryticCashStrategyVaultMock internal cryticCashStrategyVault;
+    AaveStrategyVault internal aaveStrategyVault;
+    CryticAaveStrategyVaultMock internal cryticAaveStrategyVault;
     BaseStrategyVaultMock internal baseStrategyVault;
     IERC20Metadata internal asset;
     PoolMock internal pool;
+    IAToken internal aToken;
 
     address internal alice = address(0x10000);
     address internal bob = address(0x20000);
@@ -37,23 +40,29 @@ contract BaseTest is Test, Setup {
         Contracts memory contracts = deploy(admin);
         sizeVault = contracts.sizeVault;
         cashStrategyVault = contracts.cashStrategyVault;
-        aaveStrategyVault = contracts.aaveStrategyVault;
         cryticCashStrategyVault = contracts.cryticCashStrategyVault;
+        aaveStrategyVault = contracts.aaveStrategyVault;
+        cryticAaveStrategyVault = contracts.cryticAaveStrategyVault;
         baseStrategyVault = contracts.baseStrategyVault;
         asset = contracts.asset;
         pool = contracts.pool;
+        aToken = IAToken(pool.getReserveData(address(asset)).aTokenAddress);
 
         vm.label(address(sizeVault), "SizeVault");
         vm.label(address(cashStrategyVault), "CashStrategyVault");
-        vm.label(address(aaveStrategyVault), "AaveStrategyVault");
         vm.label(address(cryticCashStrategyVault), "CryticCashStrategyVault");
+        vm.label(address(aaveStrategyVault), "AaveStrategyVault");
+        vm.label(address(cryticAaveStrategyVault), "CryticAaveStrategyVault");
         vm.label(address(baseStrategyVault), "BaseStrategyVault");
         vm.label(address(asset), "Asset");
         vm.label(address(pool), "Pool");
+        vm.label(address(aToken), "AToken");
+
         vm.label(address(alice), "alice");
         vm.label(address(bob), "bob");
         vm.label(address(charlie), "charlie");
         vm.label(address(admin), "admin");
+
         vm.label(address(this), "Test");
         vm.label(address(0), "address(0)");
     }

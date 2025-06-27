@@ -13,6 +13,8 @@ import {AaveStrategyVaultScript} from "@script/AaveStrategyVault.s.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
+import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
+import {CryticAaveStrategyVaultMockScript} from "@script/CryticAaveStrategyVaultMock.s.sol";
 import {USDC} from "@test/mocks/USDC.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {PoolMockScript} from "@script/PoolMock.s.sol";
@@ -24,6 +26,7 @@ struct Contracts {
     CashStrategyVault cashStrategyVault;
     AaveStrategyVault aaveStrategyVault;
     CryticCashStrategyVaultMock cryticCashStrategyVault;
+    CryticAaveStrategyVaultMock cryticAaveStrategyVault;
     BaseStrategyVaultMock baseStrategyVault;
     IERC20Metadata asset;
     PoolMock pool;
@@ -37,6 +40,7 @@ abstract contract Setup {
         contracts.cashStrategyVault = (new CashStrategyVaultScript()).deploy(contracts.sizeVault);
         contracts.aaveStrategyVault = (new AaveStrategyVaultScript()).deploy(contracts.sizeVault);
         contracts.cryticCashStrategyVault = (new CryticCashStrategyVaultMockScript()).deploy(contracts.sizeVault);
+        contracts.cryticAaveStrategyVault = (new CryticAaveStrategyVaultMockScript()).deploy(contracts.sizeVault);
         contracts.baseStrategyVault = (new BaseStrategyVaultMockScript()).deploy(contracts.sizeVault);
         contracts.pool = (new PoolMockScript()).deploy(admin);
 
