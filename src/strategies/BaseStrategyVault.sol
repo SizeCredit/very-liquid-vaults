@@ -3,25 +3,24 @@ pragma solidity 0.8.26;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {AccessControlUpgradeable} from "@openzeppelin-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SizeVault} from "@src/SizeVault.sol";
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {STRATEGIST_ROLE, PAUSER_ROLE} from "@src/SizeVault.sol";
+import {STRATEGIST_ROLE, PAUSER_ROLE, DEFAULT_ADMIN_ROLE} from "@src/SizeVault.sol";
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 import {ERC20PermitUpgradeable} from
     "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 abstract contract BaseStrategyVault is
     IStrategy,
     ERC4626Upgradeable,
     ERC20PermitUpgradeable,
-    AccessControlUpgradeable,
     PausableUpgradeable,
     ReentrancyGuardUpgradeable,
     MulticallUpgradeable,
@@ -63,7 +62,6 @@ abstract contract BaseStrategyVault is
         __ERC4626_init(IERC20(address(sizeVault_.asset())));
         __ERC20_init(name_, symbol_);
         __ERC20Permit_init(name_);
-        __AccessControl_init();
         __Pausable_init();
         __ReentrancyGuard_init();
         __Multicall_init();
@@ -85,7 +83,7 @@ abstract contract BaseStrategyVault is
     }
 
     modifier onlySizeVaultHasRole(bytes32 role) {
-        require(sizeVault.hasRole(role, msg.sender), AccessControlUnauthorizedAccount(msg.sender, role));
+        require(sizeVault.hasRole(role, msg.sender), IAccessControl.AccessControlUnauthorizedAccount(msg.sender, role));
         _;
     }
 

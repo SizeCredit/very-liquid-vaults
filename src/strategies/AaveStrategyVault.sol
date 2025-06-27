@@ -11,7 +11,7 @@ import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/Pau
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {STRATEGIST_ROLE} from "@src/SizeVault.sol";
+import {DEFAULT_ADMIN_ROLE} from "@src/SizeVault.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 
@@ -48,13 +48,23 @@ contract AaveStrategyVault is BaseStrategyVault {
     event PoolSet(address indexed poolBefore, address indexed poolAfter);
 
     /*//////////////////////////////////////////////////////////////
+                              ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    error PoolAlreadySet();
+
+    /*//////////////////////////////////////////////////////////////
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     function setPool(IPool pool_) external notNullAddress(address(pool_)) onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {
-        emit PoolSet(address(pool), address(pool_));
+        if (address(pool) != address(0)) {
+            revert PoolAlreadySet();
+        }
         pool = pool_;
         aToken = IAToken(pool.getReserveData(address(asset())).aTokenAddress);
+
+        emit PoolSet(address(0), address(pool_));
     }
 
     function pullAssets(address to, uint256 amount)
@@ -65,8 +75,9 @@ contract AaveStrategyVault is BaseStrategyVault {
         nonReentrant
         notNullAddress(to)
     {
-        emit PullAssets(to, amount);
         pool.withdraw(asset(), amount, to);
+
+        emit PullAssets(to, amount);
     }
 
     /*//////////////////////////////////////////////////////////////
