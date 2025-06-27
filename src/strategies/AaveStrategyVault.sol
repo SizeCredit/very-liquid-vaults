@@ -136,8 +136,8 @@ contract AaveStrategyVault is BaseStrategyVault {
         internal
         override
     {
+        pool.withdraw(asset(), assets, address(this));
         super._withdraw(caller, receiver, owner, assets, shares);
-        pool.withdraw(asset(), assets, receiver);
     }
 
     /*//////////////////////////////////////////////////////////////

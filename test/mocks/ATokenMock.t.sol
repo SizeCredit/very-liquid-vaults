@@ -38,13 +38,13 @@ contract ATokenMock is IAToken, ERC20, Ownable {
         revert NotImplemented();
     }
 
-    function mint(address, address onBehalfOf, uint256 amount, uint256) external onlyOwner returns (bool) {
-        _mint(onBehalfOf, amount);
+    function mint(address, address onBehalfOf, uint256 amount, uint256 index) external onlyOwner returns (bool) {
+        _mint(onBehalfOf, WadRayMath.rayMul(amount, index));
         return true;
     }
 
-    function burn(address from, address, uint256 amount, uint256) external onlyOwner {
-        _burn(from, amount);
+    function burn(address from, address, uint256 amount, uint256 index) external onlyOwner {
+        _burn(from, WadRayMath.rayDiv(amount, index));
     }
 
     function balanceOf(address account) public view override(IERC20, ERC20) returns (uint256) {

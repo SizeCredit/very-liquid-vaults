@@ -51,7 +51,7 @@ contract PoolMock is IPool, Ownable {
     }
 
     function withdraw(address asset, uint256 amount, address to) external returns (uint256) {
-        aTokens[asset].burn(address(this), to, amount, indexes[asset]);
+        aTokens[asset].burn(msg.sender, to, amount, indexes[asset]);
         IERC20(asset).safeTransferFrom(address(aTokens[asset]), to, amount);
         return amount;
     }
