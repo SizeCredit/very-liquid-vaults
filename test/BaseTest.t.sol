@@ -11,8 +11,10 @@ import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
 import {BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
+import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
+import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
 import {Setup, Contracts} from "@test/Setup.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
@@ -27,6 +29,8 @@ contract BaseTest is Test, Setup {
     AaveStrategyVault internal aaveStrategyVault;
     CryticAaveStrategyVaultMock internal cryticAaveStrategyVault;
     BaseStrategyVaultMock internal baseStrategyVault;
+    ERC4626StrategyVault internal erc4626StrategyVault;
+    CryticERC4626StrategyVaultMock internal cryticERC4626StrategyVault;
     IERC20Metadata internal asset;
     PoolMock internal pool;
     IAToken internal aToken;
@@ -44,16 +48,23 @@ contract BaseTest is Test, Setup {
         aaveStrategyVault = contracts.aaveStrategyVault;
         cryticAaveStrategyVault = contracts.cryticAaveStrategyVault;
         baseStrategyVault = contracts.baseStrategyVault;
+        erc4626StrategyVault = contracts.erc4626StrategyVault;
+        cryticERC4626StrategyVault = contracts.cryticERC4626StrategyVault;
         asset = contracts.asset;
         pool = contracts.pool;
         aToken = IAToken(pool.getReserveData(address(asset)).aTokenAddress);
 
         vm.label(address(sizeVault), "SizeVault");
-        vm.label(address(cashStrategyVault), "CashStrategyVault");
-        vm.label(address(cryticCashStrategyVault), "CryticCashStrategyVault");
-        vm.label(address(aaveStrategyVault), "AaveStrategyVault");
-        vm.label(address(cryticAaveStrategyVault), "CryticAaveStrategyVault");
+
         vm.label(address(baseStrategyVault), "BaseStrategyVault");
+        vm.label(address(cashStrategyVault), "CashStrategyVault");
+        vm.label(address(aaveStrategyVault), "AaveStrategyVault");
+        vm.label(address(erc4626StrategyVault), "ERC4626StrategyVault");
+
+        vm.label(address(cryticCashStrategyVault), "CryticCashStrategyVault");
+        vm.label(address(cryticAaveStrategyVault), "CryticAaveStrategyVault");
+        vm.label(address(cryticERC4626StrategyVault), "CryticERC4626StrategyVault");
+
         vm.label(address(asset), "Asset");
         vm.label(address(pool), "Pool");
         vm.label(address(aToken), "AToken");

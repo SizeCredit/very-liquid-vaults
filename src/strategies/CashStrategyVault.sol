@@ -25,7 +25,7 @@ contract CashStrategyVault is BaseStrategyVault {
         nonReentrant
         notNullAddress(to)
     {
-        emit PullAssets(to, amount);
         IERC20(asset()).safeTransfer(to, amount);
+        emit PullAssets(to, amount);
     }
 }

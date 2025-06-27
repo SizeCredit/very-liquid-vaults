@@ -31,22 +31,25 @@ contract ERC4626StrategyVault is BaseStrategyVault {
     event VaultSet(address indexed vaultBefore, address indexed vaultAfter);
 
     /*//////////////////////////////////////////////////////////////
-                              ERRORS
+                              CONSTRUCTOR / INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
-    error VaultAlreadySet();
+    function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_, IERC4626 vault_)
+        public
+        virtual
+        initializer
+    {
+        super.initialize(sizeVault_, name_, symbol_);
+
+        require(address(vault_) != address(0), NullAddress());
+
+        vault = vault_;
+        emit VaultSet(address(0), address(vault_));
+    }
 
     /*//////////////////////////////////////////////////////////////
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
-
-    function setVault(IERC4626 vault_) external onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {
-        if (address(vault) != address(0)) {
-            revert VaultAlreadySet();
-        }
-        vault = vault_;
-        emit VaultSet(address(0), address(vault_));
-    }
 
     function pullAssets(address to, uint256 amount)
         external

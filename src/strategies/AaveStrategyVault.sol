@@ -48,22 +48,20 @@ contract AaveStrategyVault is BaseStrategyVault {
     event PoolSet(address indexed poolBefore, address indexed poolAfter);
 
     /*//////////////////////////////////////////////////////////////
-                              ERRORS
+                              CONSTRUCTOR / INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
-    error PoolAlreadySet();
+    function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_, IPool pool_)
+        public
+        virtual
+        initializer
+    {
+        super.initialize(sizeVault_, name_, symbol_);
 
-    /*//////////////////////////////////////////////////////////////
-                              EXTERNAL FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
+        require(address(pool_) != address(0), NullAddress());
 
-    function setPool(IPool pool_) external notNullAddress(address(pool_)) onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {
-        if (address(pool) != address(0)) {
-            revert PoolAlreadySet();
-        }
         pool = pool_;
         aToken = IAToken(pool.getReserveData(address(asset())).aTokenAddress);
-
         emit PoolSet(address(0), address(pool_));
     }
 

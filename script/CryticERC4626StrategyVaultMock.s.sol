@@ -5,45 +5,45 @@ import {Script, console} from "forge-std/Script.sol";
 import {SizeVault} from "@src/SizeVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
-import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
-import {PoolMock} from "@test/mocks/PoolMock.t.sol";
+import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
+import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
+import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 
-contract CryticAaveStrategyVaultMockScript is Script {
+contract CryticERC4626StrategyVaultMockScript is Script {
     SizeVault sizeVault;
-    PoolMock pool;
+    VaultMock vault;
 
     function setUp() public {
         sizeVault = SizeVault(vm.envAddress("SIZE_VAULT"));
-        pool = PoolMock(vm.envAddress("POOL"));
+        vault = VaultMock(vm.envAddress("VAULT"));
     }
 
     function run() public {
         vm.startBroadcast();
 
-        deploy(sizeVault, pool);
+        deploy(sizeVault, vault);
 
         vm.stopBroadcast();
     }
 
-    function deploy(SizeVault sizeVault_, PoolMock pool_) public returns (CryticAaveStrategyVaultMock) {
-        return CryticAaveStrategyVaultMock(
+    function deploy(SizeVault sizeVault_, VaultMock vault_) public returns (CryticERC4626StrategyVaultMock) {
+        return CryticERC4626StrategyVaultMock(
             address(
                 new ERC1967Proxy(
-                    address(new CryticAaveStrategyVaultMock()),
+                    address(new CryticERC4626StrategyVaultMock()),
                     abi.encodeCall(
-                        AaveStrategyVault.initialize,
+                        ERC4626StrategyVault.initialize,
                         (
                             sizeVault_,
                             string.concat(
-                                "Size Crytic Aave ",
+                                "Size Crytic ERC4626 ",
                                 IERC20Metadata(address(sizeVault_.asset())).name(),
                                 " Strategy Mock"
                             ),
                             string.concat(
-                                "sizeCryticAave", IERC20Metadata(address(sizeVault_.asset())).symbol(), "MOCK"
+                                "sizeCryticERC4626", IERC20Metadata(address(sizeVault_.asset())).symbol(), "MOCK"
                             ),
-                            pool_
+                            vault_
                         )
                     )
                 )

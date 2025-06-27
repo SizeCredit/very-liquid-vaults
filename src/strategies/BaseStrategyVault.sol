@@ -58,7 +58,7 @@ abstract contract BaseStrategyVault is
         _disableInitializers();
     }
 
-    function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_) public initializer {
+    function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_) public virtual initializer {
         __ERC4626_init(IERC20(address(sizeVault_.asset())));
         __ERC20_init(name_, symbol_);
         __ERC20Permit_init(name_);
@@ -69,8 +69,8 @@ abstract contract BaseStrategyVault is
 
         require(sizeVault_ != SizeVault(address(0)), NullAddress());
 
-        emit SizeVaultSet(address(0), address(sizeVault_));
         sizeVault = sizeVault_;
+        emit SizeVaultSet(address(0), address(sizeVault_));
     }
 
     /*//////////////////////////////////////////////////////////////
