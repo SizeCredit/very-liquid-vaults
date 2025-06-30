@@ -36,4 +36,24 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
             IMockERC20(_underlying_).burn(address(aToken), loss);
         }
     }
+
+    function test_AaveStrategyVaultERC4626StdTest_prop_RT_withdraw_mint_concrete_01() public {
+        Init memory init = Init({
+            user: [
+                0x0000000000000000000000000000000000000a08,
+                0x0000000000000000000000000000000093D23924,
+                0x000000000000000000000000000000000000148F,
+                0x0000000000000000000000000000000000000D8c
+            ],
+            share: [uint256(3124842407), uint256(22070), uint256(10516), uint256(17532)],
+            asset: [
+                uint256(3772),
+                uint256(17407968069164285757463176509318334648167656062203764059593649382681748198074),
+                uint256(9564),
+                uint256(9378)
+            ],
+            yield: int256(73)
+        });
+        test_RT_withdraw_mint(init, 2898150533);
+    }
 }
