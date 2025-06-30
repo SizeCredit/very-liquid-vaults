@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity 0.8.23;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SizeVault} from "@src/SizeVault.sol";
-import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {DEFAULT_ADMIN_ROLE} from "@src/SizeVault.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
+import {Auth} from "@src/Auth.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 
 /// @title AaveStrategyVault
 /// @notice A strategy that invests assets in Aave
@@ -46,33 +43,39 @@ contract AaveStrategyVault is BaseStrategyVault {
     //////////////////////////////////////////////////////////////*/
 
     event PoolSet(address indexed poolBefore, address indexed poolAfter);
+    event ATokenSet(address indexed aTokenBefore, address indexed aTokenAfter);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
-    function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_, IPool pool_)
-        public
-        virtual
-        initializer
-    {
-        super.initialize(sizeVault_, name_, symbol_);
-
-        require(address(pool_) != address(0), NullAddress());
+    function initialize(
+        Auth auth_,
+        SizeVault sizeVault_,
+        IERC20 asset_,
+        string memory name_,
+        string memory symbol_,
+        uint256 firstDepositAmount,
+        IPool pool_
+    ) public virtual initializer {
+        if (address(pool_) == address(0)) {
+            revert NullAddress();
+        }
 
         pool = pool_;
-        aToken = IAToken(pool.getReserveData(address(asset())).aTokenAddress);
+        aToken = IAToken(pool_.getReserveData(address(sizeVault_.asset())).aTokenAddress);
+
         emit PoolSet(address(0), address(pool_));
+        emit ATokenSet(address(0), address(aToken));
+
+        super.initialize(auth_, sizeVault_, asset_, name_, symbol_, firstDepositAmount);
     }
 
-    function pullAssets(address to, uint256 amount)
-        external
-        override
-        whenNotPausedAndSizeVaultNotPaused
-        onlySizeVault
-        nonReentrant
-        notNullAddress(to)
-    {
+    function pullAssets(address to, uint256 amount) external override notPaused onlySizeVault nonReentrant {
+        if (to == address(0)) {
+            revert NullAddress();
+        }
+
         pool.withdraw(asset(), amount, to);
 
         emit PullAssets(to, amount);

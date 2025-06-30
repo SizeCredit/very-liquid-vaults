@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity 0.8.23;
 
 import {ERC4626Test, IMockERC20} from "@a16z/erc4626-tests/ERC4626.test.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
@@ -10,9 +10,9 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         super.setUp();
 
         vm.prank(admin);
-        Ownable(address(asset)).transferOwnership(address(this));
+        Ownable(address(erc20Asset)).transferOwnership(address(this));
 
-        _underlying_ = address(asset);
+        _underlying_ = address(erc20Asset);
         _vault_ = address(aaveStrategyVault);
         _delta_ = 0;
         _vaultMayBeEmpty = true;
@@ -24,10 +24,10 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
             // gain
             vm.assume(init.yield < int256(uint256(type(uint128).max)));
             uint256 gain = uint256(init.yield);
-            uint256 balance = asset.balanceOf(address(aToken));
+            uint256 balance = erc20Asset.balanceOf(address(aToken));
             try IMockERC20(_underlying_).mint(address(aToken), gain) {
                 vm.prank(admin);
-                pool.setLiquidityIndex(address(asset), (balance + gain) * 1e27 / balance);
+                pool.setLiquidityIndex(address(erc20Asset), (balance + gain) * 1e27 / balance);
             } catch {
                 vm.assume(false);
             }
