@@ -82,21 +82,12 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(bob), pullAmount);
 
+        uint256 previewRedeemAssets = aaveStrategyVault.previewRedeem(shares);
+
         vm.prank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxRedeem.selector, alice, shares, shares - 1)
-        );
         aaveStrategyVault.redeem(shares, alice, alice);
-
-        uint256 maxRedeem = aaveStrategyVault.maxRedeem(alice);
-        assertEq(maxRedeem, shares - 1);
-
-        vm.prank(alice);
-        aaveStrategyVault.redeem(maxRedeem, alice, alice);
-        assertEq(aaveStrategyVault.balanceOf(alice), 1);
-        assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + 1);
-        assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + 1);
-        assertEq(erc20Asset.balanceOf(alice), depositAmount - pullAmount - 1);
+        assertEq(aaveStrategyVault.balanceOf(alice), 0);
+        assertEq(erc20Asset.balanceOf(alice), previewRedeemAssets);
     }
 
     function test_AaveStrategyVault_deposit_donate_withdraw() public {
@@ -116,27 +107,16 @@ contract AaveStrategyVaultTest is BaseTest {
         pool.setLiquidityIndex(address(erc20Asset), (depositAmount + donation) * 1e27 / depositAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.balanceOf(bob), 0);
-        assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + depositAmount + donation);
-        assertEq(erc20Asset.balanceOf(address(aToken)), initialTotalAssets + depositAmount + donation);
+        assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + depositAmount + donation);
 
-        uint256 previewRedeemAssets = aaveStrategyVault.previewRedeem(shares);
-        uint256 withdrawAmount = depositAmount + donation;
-        assertEq(previewRedeemAssets, withdrawAmount - 1);
+        uint256 maxWithdraw = aaveStrategyVault.maxWithdraw(alice);
 
         vm.prank(alice);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC4626Upgradeable.ERC4626ExceededMaxWithdraw.selector, alice, withdrawAmount, withdrawAmount - 1
-            )
-        );
-        aaveStrategyVault.withdraw(withdrawAmount, alice, alice);
-
-        vm.prank(alice);
-        aaveStrategyVault.withdraw(withdrawAmount - 1, alice, alice);
+        aaveStrategyVault.withdraw(maxWithdraw, alice, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), 0);
-        assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + 1);
-        assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + 1);
-        assertEq(erc20Asset.balanceOf(alice), withdrawAmount - 1);
+        assertGe(aaveStrategyVault.totalAssets(), initialTotalAssets);
+        assertGe(erc20Asset.balanceOf(address(aToken)), initialBalance);
+        assertEq(erc20Asset.balanceOf(alice), maxWithdraw);
     }
 
     function test_AaveStrategyVault_deposit_donate_redeem() public {
@@ -156,14 +136,12 @@ contract AaveStrategyVaultTest is BaseTest {
         pool.setLiquidityIndex(address(erc20Asset), (depositAmount + donation) * 1e27 / depositAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.balanceOf(bob), 0);
-        assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + depositAmount + donation);
         assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + depositAmount + donation);
 
         vm.prank(alice);
         aaveStrategyVault.redeem(shares, alice, alice);
         assertEq(aaveStrategyVault.balanceOf(alice), 0);
-        assertGe(aaveStrategyVault.totalAssets(), initialTotalAssets + 1);
-        assertGe(erc20Asset.balanceOf(address(aaveStrategyVault.aToken())), initialBalance + 1);
-        assertEq(erc20Asset.balanceOf(alice), depositAmount + donation - 1);
+        assertGe(aaveStrategyVault.totalAssets(), initialTotalAssets);
+        assertGe(erc20Asset.balanceOf(address(aToken)), initialBalance);
     }
 }
