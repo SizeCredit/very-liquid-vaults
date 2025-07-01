@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
 
 import {Script, console} from "forge-std/Script.sol";
 import {SizeVault} from "@src/SizeVault.sol";
@@ -7,40 +7,52 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Auth} from "@src/Auth.sol";
 
 contract ERC4626StrategyVaultScript is Script {
+    using SafeERC20 for IERC20;
+
+    Auth auth;
     SizeVault sizeVault;
+    uint256 firstDepositAmount;
     IERC4626 vault;
 
     function setUp() public {
         sizeVault = SizeVault(vm.envAddress("SIZE_VAULT"));
+        auth = Auth(vm.envAddress("AUTH"));
+        firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
         vault = IERC4626(vm.envAddress("VAULT"));
     }
 
     function run() public {
         vm.startBroadcast();
 
-        deploy(sizeVault, vault);
+        deploy(auth, sizeVault, firstDepositAmount, vault);
 
         vm.stopBroadcast();
     }
 
-    function deploy(SizeVault sizeVault_, IERC4626 vault_) public returns (ERC4626StrategyVault) {
-        return ERC4626StrategyVault(
-            address(
-                new ERC1967Proxy(
-                    address(new ERC4626StrategyVault()),
-                    abi.encodeCall(
-                        ERC4626StrategyVault.initialize,
-                        (
-                            sizeVault_,
-                            string.concat("Size ", IERC20Metadata(address(vault_.asset())).name(), " Strategy"),
-                            string.concat("size", IERC20Metadata(address(vault_.asset())).symbol()),
-                            vault_
-                        )
-                    )
-                )
-            )
+    function deploy(Auth auth_, SizeVault sizeVault_, uint256 firstDepositAmount_, IERC4626 vault_)
+        public
+        returns (ERC4626StrategyVault erc4626StrategyVault)
+    {
+        string memory name = string.concat("Size ", IERC20Metadata(address(vault_.asset())).name(), " Strategy");
+        string memory symbol = string.concat("size", IERC20Metadata(address(vault_.asset())).symbol());
+        address implementation = address(new ERC4626StrategyVault());
+        bytes memory initializationData = abi.encodeCall(
+            ERC4626StrategyVault.initialize,
+            (auth_, sizeVault_, IERC20(sizeVault_.asset()), name, symbol, firstDepositAmount_, vault_)
+        );
+        bytes memory creationCode =
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
+        bytes32 salt = keccak256(initializationData);
+        erc4626StrategyVault = ERC4626StrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
+        IERC20(address(vault_.asset())).forceApprove(address(erc4626StrategyVault), firstDepositAmount_);
+        Create2.deploy(
+            0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
     }
 }

@@ -1,49 +1,117 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity 0.8.23;
 
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {AccessControlUpgradeable} from "@openzeppelin-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SizeVaultStorage} from "@src/SizeVaultStorage.sol";
-import {SizeVaultStrategistActions} from "@src/SizeVaultStrategistActions.sol";
-import {SizeVaultView} from "@src/SizeVaultView.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {Auth, STRATEGIST_ROLE} from "@src/Auth.sol";
+import {IStrategy} from "@src/strategies/IStrategy.sol";
 
-bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
-bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
-bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+contract SizeVault is BaseVault {
+    using EnumerableSet for EnumerableSet.AddressSet;
 
-contract SizeVault is ERC4626Upgradeable, ReentrancyGuardUpgradeable, UUPSUpgradeable, SizeVaultView {
+    /*//////////////////////////////////////////////////////////////
+                              STORAGE
+    //////////////////////////////////////////////////////////////*/
+
+    EnumerableSet.AddressSet internal strategies;
+
+    /*//////////////////////////////////////////////////////////////
+                              EVENTS
+    //////////////////////////////////////////////////////////////*/
+
+    event StrategyAdded(address strategy);
+    event StrategyRemoved(address strategy);
+
+    /*//////////////////////////////////////////////////////////////
+                              ERRORS
+    //////////////////////////////////////////////////////////////*/
+
+    error InvalidStrategy(address strategy);
+
+    /*//////////////////////////////////////////////////////////////
+                              CONSTRUCTOR / INITIALIZER
+    //////////////////////////////////////////////////////////////*/
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(IERC20 asset_, string memory name_, string memory symbol_, address admin_) public initializer {
-        __ERC4626_init(asset_);
-        __ERC20_init(name_, symbol_);
-        __AccessControl_init();
-        __Pausable_init();
-        __ReentrancyGuard_init();
-        __UUPSUpgradeable_init();
-
-        _grantRole(DEFAULT_ADMIN_ROLE, admin_);
-        _grantRole(STRATEGIST_ROLE, admin_);
+    function initialize(
+        Auth auth_,
+        IERC20 asset_,
+        string memory name_,
+        string memory symbol_,
+        uint256 firstDepositAmount_
+    ) public virtual override initializer {
+        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount_);
     }
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
+    /*//////////////////////////////////////////////////////////////
+                              EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
-    function pause() external onlyRole(PAUSER_ROLE) {
-        _pause();
+    function setStrategies(address[] calldata strategies_) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
+        uint256 length = strategies.length();
+        for (uint256 i = 0; i < length; i++) {
+            _removeStrategy(strategies.at(i));
+        }
+        for (uint256 i = 0; i < strategies_.length; i++) {
+            _addStrategy(strategies_[i]);
+        }
     }
 
-    function unpause() external onlyRole(PAUSER_ROLE) {
-        _unpause();
+    function addStrategy(address strategy) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
+        _addStrategy(strategy);
     }
 
-    function _update(address from, address to, uint256 value) internal override whenNotPaused {
-        super._update(from, to, value);
+    function removeStrategy(address strategy) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
+        _removeStrategy(strategy);
+    }
+
+    function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount)
+        external
+        whenNotPaused
+        onlyAuth(STRATEGIST_ROLE)
+    {
+        if (!strategies.contains(address(strategyFrom))) {
+            revert InvalidStrategy(address(strategyFrom));
+        }
+        if (!strategies.contains(address(strategyTo))) {
+            revert InvalidStrategy(address(strategyTo));
+        }
+
+        strategyFrom.pullAssets(address(strategyTo), amount);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              INTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function _addStrategy(address strategy) private {
+        bool added = strategies.add(strategy);
+        if (added) {
+            emit StrategyAdded(strategy);
+        }
+    }
+
+    function _removeStrategy(address strategy) private {
+        bool removed = strategies.remove(strategy);
+        if (removed) {
+            emit StrategyRemoved(strategy);
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function getStrategies() external view returns (address[] memory) {
+        return strategies.values();
+    }
+
+    function getStrategy(uint256 index) external view returns (address) {
+        return strategies.at(index);
     }
 }

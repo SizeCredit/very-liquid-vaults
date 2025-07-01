@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity 0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
 import {SizeVault} from "@src/SizeVault.sol";
@@ -15,7 +15,7 @@ import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
 import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
-import {Setup, Contracts} from "@test/Setup.t.sol";
+import {Setup} from "@test/Setup.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
@@ -24,39 +24,15 @@ import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 
-    SizeVault internal sizeVault;
-    CashStrategyVault internal cashStrategyVault;
-    CryticCashStrategyVaultMock internal cryticCashStrategyVault;
-    AaveStrategyVault internal aaveStrategyVault;
-    CryticAaveStrategyVaultMock internal cryticAaveStrategyVault;
-    BaseStrategyVaultMock internal baseStrategyVault;
-    ERC4626StrategyVault internal erc4626StrategyVault;
-    CryticERC4626StrategyVaultMock internal cryticERC4626StrategyVault;
-    IERC20Metadata internal asset;
-    PoolMock internal pool;
-    VaultMock internal vault;
-    IAToken internal aToken;
-
     address internal alice = address(0x10000);
     address internal bob = address(0x20000);
     address internal charlie = address(0x30000);
     address internal admin = address(0x40000);
 
     function setUp() public virtual {
-        Contracts memory contracts = deploy(admin);
-        sizeVault = contracts.sizeVault;
-        cashStrategyVault = contracts.cashStrategyVault;
-        cryticCashStrategyVault = contracts.cryticCashStrategyVault;
-        aaveStrategyVault = contracts.aaveStrategyVault;
-        cryticAaveStrategyVault = contracts.cryticAaveStrategyVault;
-        baseStrategyVault = contracts.baseStrategyVault;
-        erc4626StrategyVault = contracts.erc4626StrategyVault;
-        cryticERC4626StrategyVault = contracts.cryticERC4626StrategyVault;
-        asset = contracts.asset;
-        pool = contracts.pool;
-        vault = contracts.vault;
-        aToken = IAToken(pool.getReserveData(address(asset)).aTokenAddress);
+        deploy(admin);
 
+        vm.label(address(auth), "Auth");
         vm.label(address(sizeVault), "SizeVault");
 
         vm.label(address(baseStrategyVault), "BaseStrategyVault");
@@ -68,10 +44,10 @@ contract BaseTest is Test, Setup {
         vm.label(address(cryticAaveStrategyVault), "CryticAaveStrategyVault");
         vm.label(address(cryticERC4626StrategyVault), "CryticERC4626StrategyVault");
 
-        vm.label(address(asset), "Asset");
+        vm.label(address(erc20Asset), "ERC20Asset");
         vm.label(address(pool), "Pool");
         vm.label(address(aToken), "AToken");
-        vm.label(address(vault), "Vault");
+        vm.label(address(erc4626Vault), "ERC4626Vault");
 
         vm.label(address(alice), "alice");
         vm.label(address(bob), "bob");

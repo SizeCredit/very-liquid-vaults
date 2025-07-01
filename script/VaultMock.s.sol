@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.23;
 
 import {Script, console} from "forge-std/Script.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";

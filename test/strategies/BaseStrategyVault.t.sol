@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity 0.8.23;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
 import {SizeVault} from "@src/SizeVault.sol";
-import {PAUSER_ROLE} from "@src/SizeVault.sol";
+import {PAUSER_ROLE, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BaseStrategyVaultTest is BaseTest {
     function test_BaseStrategyVault_initialize() public view {
@@ -17,7 +17,7 @@ contract BaseStrategyVaultTest is BaseTest {
         assertEq(baseStrategyVault.asset(), address(sizeVault.asset()));
         assertEq(baseStrategyVault.name(), "Size Base USD Coin Strategy Mock");
         assertEq(baseStrategyVault.symbol(), "sizeBaseUSDCMOCK");
-        assertEq(baseStrategyVault.decimals(), asset.decimals(), 6);
+        assertEq(baseStrategyVault.decimals(), erc20Asset.decimals(), 6);
     }
 
     function test_BaseStrategyVault_upgrade() public {
@@ -35,14 +35,16 @@ contract BaseStrategyVaultTest is BaseTest {
     function test_BaseStrategyVault_initialize_invalidInitialization_reverts() public {
         BaseStrategyVaultMock newBaseStrategyVault = new BaseStrategyVaultMock();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        newBaseStrategyVault.initialize(SizeVault(address(0)), "Test", "TST");
+        newBaseStrategyVault.initialize(
+            auth, SizeVault(address(0)), IERC20(address(0)), "Test", "TST", FIRST_DEPOSIT_AMOUNT
+        );
     }
 
     function test_BaseStrategyVault_pause_success() public {
         assertFalse(baseStrategyVault.paused());
 
         vm.prank(admin);
-        sizeVault.grantRole(PAUSER_ROLE, admin);
+        auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
         baseStrategyVault.pause();
@@ -58,7 +60,7 @@ contract BaseStrategyVaultTest is BaseTest {
 
     function test_BaseStrategyVault_unpause_success() public {
         vm.prank(admin);
-        sizeVault.grantRole(PAUSER_ROLE, admin);
+        auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
         baseStrategyVault.pause();
@@ -72,7 +74,7 @@ contract BaseStrategyVaultTest is BaseTest {
 
     function test_BaseStrategyVault_unpause_unauthorized_reverts() public {
         vm.prank(admin);
-        sizeVault.grantRole(PAUSER_ROLE, admin);
+        auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
         baseStrategyVault.pause();
@@ -83,12 +85,12 @@ contract BaseStrategyVaultTest is BaseTest {
     }
 
     function test_BaseStrategyVault_deposit_whenPaused_reverts() public {
-        uint256 amount = 100e18;
-        _mint(asset, alice, amount);
-        _approve(alice, asset, address(baseStrategyVault), amount);
+        uint256 amount = 100e6;
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(baseStrategyVault), amount);
 
         vm.prank(admin);
-        sizeVault.grantRole(PAUSER_ROLE, admin);
+        auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
         baseStrategyVault.pause();
@@ -98,16 +100,13 @@ contract BaseStrategyVaultTest is BaseTest {
         baseStrategyVault.deposit(amount, alice);
     }
 
-    function test_BaseStrategyVault_deposit_whenSizeVaultPaused_reverts() public {
-        uint256 amount = 100e18;
-        _mint(asset, alice, amount);
-        _approve(alice, asset, address(baseStrategyVault), amount);
+    function test_BaseStrategyVault_deposit_whenAuthPaused_reverts() public {
+        uint256 amount = 100e6;
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(baseStrategyVault), amount);
 
         vm.prank(admin);
-        sizeVault.grantRole(PAUSER_ROLE, admin);
-
-        vm.prank(admin);
-        sizeVault.pause();
+        auth.pause();
 
         vm.prank(alice);
         vm.expectRevert();
@@ -115,15 +114,15 @@ contract BaseStrategyVaultTest is BaseTest {
     }
 
     function test_BaseStrategyVault_transfer_whenPaused_reverts() public {
-        uint256 amount = 100e18;
-        _mint(asset, alice, amount);
-        _approve(alice, asset, address(baseStrategyVault), amount);
+        uint256 amount = 100e6;
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(baseStrategyVault), amount);
 
         vm.prank(alice);
         baseStrategyVault.deposit(amount, alice);
 
         vm.prank(admin);
-        sizeVault.grantRole(PAUSER_ROLE, admin);
+        auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
         baseStrategyVault.pause();
@@ -133,19 +132,16 @@ contract BaseStrategyVaultTest is BaseTest {
         baseStrategyVault.transfer(bob, amount);
     }
 
-    function test_BaseStrategyVault_transfer_whenSizeVaultPaused_reverts() public {
-        uint256 amount = 100e18;
-        _mint(asset, alice, amount);
-        _approve(alice, asset, address(baseStrategyVault), amount);
+    function test_BaseStrategyVault_transfer_whenAuthPaused_reverts() public {
+        uint256 amount = 100e6;
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(baseStrategyVault), amount);
 
         vm.prank(alice);
         baseStrategyVault.deposit(amount, alice);
 
         vm.prank(admin);
-        sizeVault.grantRole(PAUSER_ROLE, admin);
-
-        vm.prank(admin);
-        sizeVault.pause();
+        auth.pause();
 
         vm.prank(alice);
         vm.expectRevert();
@@ -159,25 +155,27 @@ contract BaseStrategyVaultTest is BaseTest {
     }
 
     function test_BaseStrategyVault_deposit_withdraw_basic() public {
-        uint256 depositAmount = 100e18;
-        _mint(asset, alice, depositAmount);
-        _approve(alice, asset, address(baseStrategyVault), depositAmount);
+        uint256 depositAmount = 100e6;
+        _mint(erc20Asset, alice, depositAmount);
+        _approve(alice, erc20Asset, address(baseStrategyVault), depositAmount);
 
         vm.prank(alice);
         baseStrategyVault.deposit(depositAmount, alice);
 
         assertEq(baseStrategyVault.balanceOf(alice), depositAmount);
-        assertEq(baseStrategyVault.totalAssets(), depositAmount);
-        assertEq(asset.balanceOf(address(baseStrategyVault)), depositAmount);
-        assertEq(asset.balanceOf(alice), 0);
+        assertEq(baseStrategyVault.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount);
+        assertEq(erc20Asset.balanceOf(address(baseStrategyVault)), FIRST_DEPOSIT_AMOUNT + depositAmount);
+        assertEq(erc20Asset.balanceOf(alice), 0);
 
-        uint256 withdrawAmount = 30e18;
+        uint256 withdrawAmount = 30e6;
         vm.prank(alice);
         baseStrategyVault.withdraw(withdrawAmount, alice, alice);
 
         assertEq(baseStrategyVault.balanceOf(alice), depositAmount - withdrawAmount);
-        assertEq(baseStrategyVault.totalAssets(), depositAmount - withdrawAmount);
-        assertEq(asset.balanceOf(address(baseStrategyVault)), depositAmount - withdrawAmount);
-        assertEq(asset.balanceOf(alice), withdrawAmount);
+        assertEq(baseStrategyVault.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
+        assertEq(
+            erc20Asset.balanceOf(address(baseStrategyVault)), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount
+        );
+        assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
     }
 }

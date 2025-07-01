@@ -1,33 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity 0.8.23;
 
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SizeVault} from "@src/SizeVault.sol";
-import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {STRATEGIST_ROLE, PAUSER_ROLE, DEFAULT_ADMIN_ROLE} from "@src/SizeVault.sol";
-import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
-import {ERC20PermitUpgradeable} from
-    "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {Auth} from "@src/Auth.sol";
+import {BaseVault} from "@src/BaseVault.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-abstract contract BaseStrategyVault is
-    IStrategy,
-    ERC4626Upgradeable,
-    ERC20PermitUpgradeable,
-    PausableUpgradeable,
-    ReentrancyGuardUpgradeable,
-    MulticallUpgradeable,
-    UUPSUpgradeable
-{
-    using SafeERC20 for IERC20;
-
+abstract contract BaseStrategyVault is IStrategy, BaseVault {
     /*//////////////////////////////////////////////////////////////
                               STORAGE
     //////////////////////////////////////////////////////////////*/
@@ -40,7 +20,8 @@ abstract contract BaseStrategyVault is
     //////////////////////////////////////////////////////////////*/
 
     error OnlySizeVault();
-    error NullAddress();
+    error NullAmount();
+    error InvalidAsset();
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -58,16 +39,25 @@ abstract contract BaseStrategyVault is
         _disableInitializers();
     }
 
-    function initialize(SizeVault sizeVault_, string memory name_, string memory symbol_) public virtual initializer {
-        __ERC4626_init(IERC20(address(sizeVault_.asset())));
-        __ERC20_init(name_, symbol_);
-        __ERC20Permit_init(name_);
-        __Pausable_init();
-        __ReentrancyGuard_init();
-        __Multicall_init();
-        __UUPSUpgradeable_init();
+    function initialize(
+        Auth auth_,
+        SizeVault sizeVault_,
+        IERC20 asset_,
+        string memory name_,
+        string memory symbol_,
+        uint256 firstDepositAmount_
+    ) public virtual initializer {
+        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount_);
 
-        require(sizeVault_ != SizeVault(address(0)), NullAddress());
+        if (sizeVault_ == SizeVault(address(0))) {
+            revert NullAddress();
+        }
+        if (sizeVault_.asset() != address(asset_)) {
+            revert InvalidAsset();
+        }
+        if (firstDepositAmount_ == 0) {
+            revert NullAmount();
+        }
 
         sizeVault = sizeVault_;
         emit SizeVaultSet(address(0), address(sizeVault_));
@@ -78,59 +68,9 @@ abstract contract BaseStrategyVault is
     //////////////////////////////////////////////////////////////*/
 
     modifier onlySizeVault() {
-        require(msg.sender == address(sizeVault), OnlySizeVault());
+        if (msg.sender != address(sizeVault)) {
+            revert OnlySizeVault();
+        }
         _;
-    }
-
-    modifier onlySizeVaultHasRole(bytes32 role) {
-        require(sizeVault.hasRole(role, msg.sender), IAccessControl.AccessControlUnauthorizedAccount(msg.sender, role));
-        _;
-    }
-
-    modifier whenNotPausedAndSizeVaultNotPaused() {
-        require(!paused() && !sizeVault.paused(), EnforcedPause());
-        _;
-    }
-
-    modifier notNullAddress(address address_) {
-        require(address_ != address(0), NullAddress());
-        _;
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                              EXTERNAL FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
-    function pause() external onlySizeVaultHasRole(PAUSER_ROLE) {
-        _pause();
-    }
-
-    function unpause() external onlySizeVaultHasRole(PAUSER_ROLE) {
-        _unpause();
-    }
-
-    function decimals()
-        public
-        view
-        virtual
-        override(IERC20Metadata, ERC20Upgradeable, ERC4626Upgradeable)
-        returns (uint8)
-    {
-        return super.decimals();
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                              INTERNAL FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
-    function _authorizeUpgrade(address newImplementation) internal override onlySizeVaultHasRole(DEFAULT_ADMIN_ROLE) {}
-
-    function _update(address from, address to, uint256 value)
-        internal
-        override
-        whenNotPausedAndSizeVaultNotPaused
-        nonReentrant
-    {
-        super._update(from, to, value);
     }
 }
