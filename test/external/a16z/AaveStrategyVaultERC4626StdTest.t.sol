@@ -21,10 +21,10 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
     }
 
     function setUpYield(ERC4626Test.Init memory init) public override {
+        uint256 balance = erc20Asset.balanceOf(address(aToken));
         if (init.yield >= 0) {
             // gain
             vm.assume(init.yield < int256(uint256(type(uint128).max)));
-            uint256 balance = erc20Asset.balanceOf(address(aToken));
             uint256 gain = uint256(init.yield);
             IMockERC20(_underlying_).mint(address(aToken), gain);
             vm.prank(admin);
@@ -33,6 +33,7 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
             // loss
             vm.assume(init.yield > type(int256).min);
             uint256 loss = uint256(-1 * init.yield);
+            vm.assume(loss < balance);
             IMockERC20(_underlying_).burn(address(aToken), loss);
         }
     }
