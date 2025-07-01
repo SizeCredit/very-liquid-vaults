@@ -48,24 +48,93 @@ abstract contract Setup {
     Auth internal auth;
 
     function deploy(address admin) public {
-        USDC usdc = new USDC(admin);
-        erc20Asset = IERC20Metadata(address(usdc));
-
+        USDC usdc = _deployUSDC(admin);
         FIRST_DEPOSIT_AMOUNT = 10 * (10 ** erc20Asset.decimals());
+        (
+            AuthScript authScript,
+            SizeVaultScript sizeVaultScript,
+            CashStrategyVaultScript cashStrategyVaultScript,
+            AaveStrategyVaultScript aaveStrategyVaultScript,
+            ERC4626StrategyVaultScript erc4626StrategyVaultScript,
+            CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
+            CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
+            CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
+            BaseStrategyVaultMockScript baseStrategyVaultScript,
+            PoolMockScript poolMockScript,
+            VaultMockScript vaultMockScript
+        ) = _deployScripts();
+        _mintToScripts(usdc, admin,
+            sizeVaultScript,
+            cashStrategyVaultScript,
+            aaveStrategyVaultScript,
+            erc4626StrategyVaultScript,
+            cryticCashStrategyVaultScript,
+            cryticAaveStrategyVaultScript,
+            cryticERC4626StrategyVaultScript,
+            baseStrategyVaultScript
+        );
+        _deployContracts(
+            admin,
+            authScript,
+            sizeVaultScript,
+            cashStrategyVaultScript,
+            aaveStrategyVaultScript,
+            erc4626StrategyVaultScript,
+            cryticCashStrategyVaultScript,
+            cryticAaveStrategyVaultScript,
+            cryticERC4626StrategyVaultScript,
+            baseStrategyVaultScript,
+            poolMockScript,
+            vaultMockScript
+        );
+    }
 
-        AuthScript authScript = new AuthScript();
-        SizeVaultScript sizeVaultScript = new SizeVaultScript();
-        CashStrategyVaultScript cashStrategyVaultScript = new CashStrategyVaultScript();
-        AaveStrategyVaultScript aaveStrategyVaultScript = new AaveStrategyVaultScript();
-        ERC4626StrategyVaultScript erc4626StrategyVaultScript = new ERC4626StrategyVaultScript();
-        CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript = new CryticCashStrategyVaultMockScript();
-        CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript = new CryticAaveStrategyVaultMockScript();
-        CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript =
-            new CryticERC4626StrategyVaultMockScript();
-        BaseStrategyVaultMockScript baseStrategyVaultScript = new BaseStrategyVaultMockScript();
-        PoolMockScript poolMockScript = new PoolMockScript();
-        VaultMockScript vaultMockScript = new VaultMockScript();
+    function _deployUSDC(address admin) internal returns (USDC usdc) {
+        usdc = new USDC(admin);
+        erc20Asset = IERC20Metadata(address(usdc));
+    }
 
+    function _deployScripts()
+        internal
+        returns (
+            AuthScript authScript,
+            SizeVaultScript sizeVaultScript,
+            CashStrategyVaultScript cashStrategyVaultScript,
+            AaveStrategyVaultScript aaveStrategyVaultScript,
+            ERC4626StrategyVaultScript erc4626StrategyVaultScript,
+            CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
+            CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
+            CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
+            BaseStrategyVaultMockScript baseStrategyVaultScript,
+            PoolMockScript poolMockScript,
+            VaultMockScript vaultMockScript
+        )
+    {
+        authScript = new AuthScript();
+        sizeVaultScript = new SizeVaultScript();
+        cashStrategyVaultScript = new CashStrategyVaultScript();
+        aaveStrategyVaultScript = new AaveStrategyVaultScript();
+        erc4626StrategyVaultScript = new ERC4626StrategyVaultScript();
+        cryticCashStrategyVaultScript = new CryticCashStrategyVaultMockScript();
+        cryticAaveStrategyVaultScript = new CryticAaveStrategyVaultMockScript();
+        cryticERC4626StrategyVaultScript = new CryticERC4626StrategyVaultMockScript();
+        baseStrategyVaultScript = new BaseStrategyVaultMockScript();
+        poolMockScript = new PoolMockScript();
+        vaultMockScript = new VaultMockScript();
+    }
+
+    function _mintToScripts(
+        USDC usdc,
+        address admin,
+        SizeVaultScript sizeVaultScript,
+        CashStrategyVaultScript cashStrategyVaultScript,
+        AaveStrategyVaultScript aaveStrategyVaultScript,
+        ERC4626StrategyVaultScript erc4626StrategyVaultScript,
+        CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
+        CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
+        CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
+        BaseStrategyVaultMockScript baseStrategyVaultScript
+    ) internal {
         address[8] memory scripts = [
             address(sizeVaultScript),
             address(cashStrategyVaultScript),
@@ -76,12 +145,26 @@ abstract contract Setup {
             address(cryticERC4626StrategyVaultScript),
             address(baseStrategyVaultScript)
         ];
-
         for (uint256 i = 0; i < scripts.length; i++) {
             vm.prank(admin);
             usdc.mint(scripts[i], FIRST_DEPOSIT_AMOUNT);
         }
+    }
 
+    function _deployContracts(
+        address admin,
+        AuthScript authScript,
+        SizeVaultScript sizeVaultScript,
+        CashStrategyVaultScript cashStrategyVaultScript,
+        AaveStrategyVaultScript aaveStrategyVaultScript,
+        ERC4626StrategyVaultScript erc4626StrategyVaultScript,
+        CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
+        CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
+        CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
+        BaseStrategyVaultMockScript baseStrategyVaultScript,
+        PoolMockScript poolMockScript,
+        VaultMockScript vaultMockScript
+    ) internal {
         auth = authScript.deploy(admin);
         pool = poolMockScript.deploy(admin, erc20Asset);
         erc4626Vault = vaultMockScript.deploy(admin, erc20Asset, "Vault", "VAULT");
@@ -94,7 +177,6 @@ abstract contract Setup {
         cryticERC4626StrategyVault =
             cryticERC4626StrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
         baseStrategyVault = baseStrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT);
-
         aToken = IAToken(pool.getReserveData(address(erc20Asset)).aTokenAddress);
     }
 }
