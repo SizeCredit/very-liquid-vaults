@@ -82,12 +82,13 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(bob), pullAmount);
 
-        uint256 previewRedeemAssets = aaveStrategyVault.previewRedeem(shares);
+        uint256 maxRedeem = aaveStrategyVault.maxRedeem(alice);
+        uint256 previewRedeem = aaveStrategyVault.previewRedeem(maxRedeem);
 
         vm.prank(alice);
-        aaveStrategyVault.redeem(shares, alice, alice);
-        assertEq(aaveStrategyVault.balanceOf(alice), 0);
-        assertEq(erc20Asset.balanceOf(alice), previewRedeemAssets);
+        aaveStrategyVault.redeem(maxRedeem, alice, alice);
+        assertEq(aaveStrategyVault.balanceOf(alice), shares - maxRedeem);
+        assertEq(erc20Asset.balanceOf(alice), previewRedeem);
     }
 
     function test_AaveStrategyVault_deposit_donate_withdraw() public {

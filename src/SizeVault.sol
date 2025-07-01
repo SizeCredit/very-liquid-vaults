@@ -30,22 +30,14 @@ contract SizeVault is BaseVault {
     error InvalidStrategy(address strategy);
 
     /*//////////////////////////////////////////////////////////////
-                              CONSTRUCTOR / INITIALIZER
+                              ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    function initialize(
-        Auth auth_,
-        IERC20 asset_,
-        string memory name_,
-        string memory symbol_,
-        uint256 firstDepositAmount_
-    ) public virtual override initializer {
-        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount_);
+    function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
+        super._deposit(caller, receiver, assets, shares);
+        // address firstStrategy = strategies.at(0);
+        // IERC20(asset()).forceApprove(firstStrategy, assets);
+        // IStrategy(firstStrategy).deposit(assets, receiver);
     }
 
     /*//////////////////////////////////////////////////////////////

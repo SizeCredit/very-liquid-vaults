@@ -63,7 +63,9 @@ abstract contract Setup {
             PoolMockScript poolMockScript,
             VaultMockScript vaultMockScript
         ) = _deployScripts();
-        _mintToScripts(usdc, admin,
+        _mintToScripts(
+            usdc,
+            admin,
             sizeVaultScript,
             cashStrategyVaultScript,
             aaveStrategyVaultScript,
