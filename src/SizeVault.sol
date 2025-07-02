@@ -76,7 +76,8 @@ contract SizeVault is BaseVault {
     }
 
     function maxMint(address receiver) public view override returns (uint256) {
-        return convertToShares(maxDeposit(receiver));
+        uint256 maxDepositAmount = maxDeposit(receiver);
+        return maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
     }
 
     function maxWithdraw(address owner) public view override returns (uint256) {
