@@ -53,7 +53,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function pullAssets(address to, uint256 amount)
+    function transferAssets(address to, uint256 amount)
         external
         override
         notPaused
@@ -65,7 +65,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
         }
 
         vault.withdraw(amount, to, address(this));
-        emit PullAssets(to, amount);
+        emit TransferAssets(to, amount);
     }
 
     /*//////////////////////////////////////////////////////////////

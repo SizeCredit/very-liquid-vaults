@@ -12,7 +12,7 @@ import {SIZE_VAULT_ROLE} from "@src/Auth.sol";
 contract CashStrategyVault is BaseVault, IStrategy {
     using SafeERC20 for IERC20;
 
-    function pullAssets(address to, uint256 amount)
+    function transferAssets(address to, uint256 amount)
         external
         override
         notPaused
@@ -24,6 +24,6 @@ contract CashStrategyVault is BaseVault, IStrategy {
         }
 
         IERC20(asset()).safeTransfer(to, amount);
-        emit PullAssets(to, amount);
+        emit TransferAssets(to, amount);
     }
 }

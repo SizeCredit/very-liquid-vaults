@@ -25,8 +25,9 @@ contract SizeVault is BaseVault {
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event StrategyAdded(address strategy);
-    event StrategyRemoved(address strategy);
+    event StrategyAdded(address indexed strategy);
+    event StrategyRemoved(address indexed strategy);
+    event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -194,7 +195,8 @@ contract SizeVault is BaseVault {
             revert InvalidStrategy(address(strategyTo));
         }
 
-        strategyFrom.pullAssets(address(strategyTo), amount);
+        strategyFrom.transferAssets(address(strategyTo), amount);
+        emit Rebalance(address(strategyFrom), address(strategyTo), amount);
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -75,7 +75,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
     }
 
-    function pullAssets(address to, uint256 amount)
+    function transferAssets(address to, uint256 amount)
         external
         override
         notPaused
@@ -88,7 +88,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
 
         pool.withdraw(asset(), amount, to);
 
-        emit PullAssets(to, amount);
+        emit TransferAssets(to, amount);
     }
 
     /*//////////////////////////////////////////////////////////////

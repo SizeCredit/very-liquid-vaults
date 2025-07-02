@@ -46,7 +46,7 @@ contract CashStrategyVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
     }
 
-    function test_CashStrategyVault_deposit_pullAssets_does_not_change_balanceOf() public {
+    function test_CashStrategyVault_deposit_transferAssets_does_not_change_balanceOf() public {
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(cashStrategyVault), depositAmount);
@@ -57,14 +57,14 @@ contract CashStrategyVaultTest is BaseTest {
 
         uint256 pullAmount = 30e6;
         vm.prank(address(sizeVault));
-        cashStrategyVault.pullAssets(bob, pullAmount);
+        cashStrategyVault.transferAssets(bob, pullAmount);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
         assertEq(cashStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalance + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(bob), pullAmount);
     }
 
-    function test_CashStrategyVault_deposit_pullAssets_redeem() public {
+    function test_CashStrategyVault_deposit_transferAssets_redeem() public {
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(cashStrategyVault), depositAmount);
@@ -75,7 +75,7 @@ contract CashStrategyVaultTest is BaseTest {
 
         uint256 pullAmount = 30e6;
         vm.prank(address(sizeVault));
-        cashStrategyVault.pullAssets(bob, pullAmount);
+        cashStrategyVault.transferAssets(bob, pullAmount);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
         assertEq(cashStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalance + depositAmount - pullAmount);
