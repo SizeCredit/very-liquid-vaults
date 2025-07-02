@@ -114,7 +114,7 @@ jobs:
         run: npm install -g solhint
 
       - name: Run solhint
-        run: solhint .
+        run: solhint "src/**/*.sol" --max-warnings 0
 
   invariants:
     needs: [sizes, fmt, test, slither, solhint]
