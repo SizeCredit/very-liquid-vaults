@@ -5,4 +5,6 @@
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/
 @a16z/erc4626-tests/=lib/erc4626-tests/
 @crytic/properties/=lib/properties/
+@rv/ercx/=lib/ercx-tests/
+openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
 @aave/=lib/aave-v3-origin/src/
