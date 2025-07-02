@@ -31,7 +31,7 @@ jobs:
       - name: Contract sizes
         run: |
           forge --version
-          forge build --sizes --skip 'Crytic*'
+          forge build --sizes --skip test --skip script
         id: build
 
   fmt:
