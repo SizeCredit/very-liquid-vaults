@@ -3,9 +3,8 @@ pragma solidity 0.8.23;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SizeVault} from "@src/SizeVault.sol";
-import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {BaseVault} from "@src/BaseVault.sol";
+import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -13,7 +12,7 @@ import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 
 /// @title ERC4626StrategyVault
 /// @notice A strategy that invests assets in an ERC4626 vault
-contract ERC4626StrategyVault is BaseStrategyVault {
+contract ERC4626StrategyVault is BaseVault, IStrategy {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////

@@ -8,9 +8,6 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
-import {BaseStrategyVaultMock} from "@test/mocks/BaseStrategyVaultMock.t.sol";
-import {BaseStrategyVaultMockScript} from "@script/BaseStrategyVaultMock.s.sol";
-import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
@@ -37,7 +34,6 @@ contract BaseTest is Test, Setup {
         vm.label(address(auth), "Auth");
         vm.label(address(sizeVault), "SizeVault");
 
-        vm.label(address(baseStrategyVault), "BaseStrategyVault");
         vm.label(address(cashStrategyVault), "CashStrategyVault");
         vm.label(address(aaveStrategyVault), "AaveStrategyVault");
         vm.label(address(erc4626StrategyVault), "ERC4626StrategyVault");

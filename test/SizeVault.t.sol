@@ -9,7 +9,7 @@ contract SizeVaultTest is BaseTest {
         assertEq(sizeVault.name(), string.concat("Size ", erc20Asset.name(), " Vault"));
         assertEq(sizeVault.symbol(), string.concat("size", erc20Asset.symbol()));
         assertEq(sizeVault.decimals(), erc20Asset.decimals());
-        assertEq(sizeVault.totalSupply(), FIRST_DEPOSIT_AMOUNT);
+        assertEq(sizeVault.totalSupply(), sizeVault.strategiesCount() * FIRST_DEPOSIT_AMOUNT + 1);
         assertEq(sizeVault.balanceOf(address(this)), 0);
         assertEq(sizeVault.allowance(address(this), address(this)), 0);
         assertEq(sizeVault.decimals(), erc20Asset.decimals());

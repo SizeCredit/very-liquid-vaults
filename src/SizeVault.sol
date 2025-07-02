@@ -100,6 +100,11 @@ contract SizeVault is BaseVault {
     /// @notice Deposit assets to strategies in order
     /// @dev Reverts if not all assets can be deposited to strategies
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
+        if (_isInitializing()) {
+            // first deposit
+            shares = assets;
+        }
+
         super._deposit(caller, receiver, assets, shares);
 
         uint256 assetsToDeposit = assets;
@@ -223,6 +228,10 @@ contract SizeVault is BaseVault {
     /*//////////////////////////////////////////////////////////////
                               VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
+
+    function strategiesCount() external view returns (uint256) {
+        return strategies.length();
+    }
 
     function getStrategies() external view returns (address[] memory) {
         return strategies.values();

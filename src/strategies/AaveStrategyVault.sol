@@ -5,16 +5,17 @@ import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC2
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SizeVault} from "@src/SizeVault.sol";
-import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
+import {IStrategy} from "@src/strategies/IStrategy.sol";
 
 /// @title AaveStrategyVault
 /// @notice A strategy that invests assets in Aave
 /// @dev Reference https://github.com/superform-xyz/super-vaults/blob/8bc1d1bd1579f6fb9a047802256ed3a2bf15f602/src/aave-v3/AaveV3ERC4626Reinvest.sol
-contract AaveStrategyVault is BaseStrategyVault {
+contract AaveStrategyVault is BaseVault, IStrategy {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////
