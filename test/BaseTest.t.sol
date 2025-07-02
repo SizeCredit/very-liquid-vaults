@@ -20,6 +20,7 @@ import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
+import {Auth, STRATEGIST_ROLE, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 
 contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
@@ -28,6 +29,7 @@ contract BaseTest is Test, Setup {
     address internal bob = address(0x20000);
     address internal charlie = address(0x30000);
     address internal admin = address(0x40000);
+    address internal strategist = address(0x50000);
 
     function setUp() public virtual {
         deploy(admin);
@@ -53,9 +55,15 @@ contract BaseTest is Test, Setup {
         vm.label(address(bob), "bob");
         vm.label(address(charlie), "charlie");
         vm.label(address(admin), "admin");
+        vm.label(address(strategist), "strategist");
 
         vm.label(address(this), "Test");
         vm.label(address(0), "address(0)");
+
+        vm.prank(admin);
+        auth.grantRole(STRATEGIST_ROLE, strategist);
+        vm.prank(admin);
+        auth.grantRole(SIZE_VAULT_ROLE, address(sizeVault));
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {

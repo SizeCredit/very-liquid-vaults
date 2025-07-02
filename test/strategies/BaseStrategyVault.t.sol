@@ -35,9 +35,7 @@ contract BaseStrategyVaultTest is BaseTest {
     function test_BaseStrategyVault_initialize_invalidInitialization_reverts() public {
         BaseStrategyVaultMock newBaseStrategyVault = new BaseStrategyVaultMock();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        newBaseStrategyVault.initialize(
-            auth, SizeVault(address(0)), IERC20(address(0)), "Test", "TST", FIRST_DEPOSIT_AMOUNT
-        );
+        newBaseStrategyVault.initialize(auth, IERC20(address(0)), "Test", "TST", FIRST_DEPOSIT_AMOUNT);
     }
 
     function test_BaseStrategyVault_pause_success() public {

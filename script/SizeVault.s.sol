@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {Script, console} from "forge-std/Script.sol";
 import {SizeVault} from "@src/SizeVault.sol";
-import {BaseVault} from "@src/BaseVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -17,22 +16,24 @@ contract SizeVaultScript is Script {
     Auth auth;
     IERC20Metadata asset;
     uint256 firstDepositAmount;
+    address[] strategies;
 
     function setUp() public {
         auth = Auth(vm.envAddress("AUTH"));
         asset = IERC20Metadata(vm.envAddress("ASSET"));
         firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
+        strategies = vm.envAddress("STRATEGIES", ",");
     }
 
     function run() public {
         vm.startBroadcast();
 
-        deploy(auth, asset, firstDepositAmount);
+        deploy(auth, asset, firstDepositAmount, strategies);
 
         vm.stopBroadcast();
     }
 
-    function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_)
+    function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, address[] memory strategies_)
         public
         returns (SizeVault sizeVault)
     {
@@ -40,7 +41,7 @@ contract SizeVaultScript is Script {
         string memory symbol = string.concat("size", asset_.symbol());
         address implementation = address(new SizeVault());
         bytes memory initializationData =
-            abi.encodeCall(BaseVault.initialize, (auth_, IERC20(asset_), name, symbol, firstDepositAmount_));
+            abi.encodeCall(SizeVault.initialize, (auth_, asset_, name, symbol, firstDepositAmount_, strategies_));
         bytes memory creationCode =
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);

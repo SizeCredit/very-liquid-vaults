@@ -35,6 +35,7 @@ contract BaseVault is
     //////////////////////////////////////////////////////////////*/
 
     error NullAddress();
+    error NullAmount();
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -68,6 +69,9 @@ contract BaseVault is
 
         if (address(auth_) == address(0)) {
             revert NullAddress();
+        }
+        if (firstDepositAmount_ == 0) {
+            revert NullAmount();
         }
 
         auth = auth_;

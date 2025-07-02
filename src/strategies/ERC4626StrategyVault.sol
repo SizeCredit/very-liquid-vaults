@@ -9,7 +9,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {Auth} from "@src/Auth.sol";
+import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 
 /// @title ERC4626StrategyVault
 /// @notice A strategy that invests assets in an ERC4626 vault
@@ -34,7 +34,6 @@ contract ERC4626StrategyVault is BaseStrategyVault {
 
     function initialize(
         Auth auth_,
-        SizeVault sizeVault_,
         IERC20 asset_,
         string memory name_,
         string memory symbol_,
@@ -48,14 +47,20 @@ contract ERC4626StrategyVault is BaseStrategyVault {
         vault = vault_;
         emit VaultSet(address(0), address(vault_));
 
-        super.initialize(auth_, sizeVault_, asset_, name_, symbol_, firstDepositAmount);
+        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function pullAssets(address to, uint256 amount) external override notPaused onlySizeVault nonReentrant {
+    function pullAssets(address to, uint256 amount)
+        external
+        override
+        notPaused
+        onlyAuth(SIZE_VAULT_ROLE)
+        nonReentrant
+    {
         if (to == address(0)) {
             revert NullAddress();
         }

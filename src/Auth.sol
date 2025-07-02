@@ -8,6 +8,7 @@ import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/Mu
 
 bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
+bytes32 constant SIZE_VAULT_ROLE = keccak256("SIZE_VAULT_ROLE");
 bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
 contract Auth is UUPSUpgradeable, AccessControlUpgradeable, PausableUpgradeable, MulticallUpgradeable {

@@ -9,8 +9,7 @@ import {BaseStrategyVault} from "@src/strategies/BaseStrategyVault.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
-import {Auth} from "@src/Auth.sol";
-import {BaseVault} from "@src/BaseVault.sol";
+import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 
 /// @title AaveStrategyVault
 /// @notice A strategy that invests assets in Aave
@@ -49,9 +48,13 @@ contract AaveStrategyVault is BaseStrategyVault {
                               CONSTRUCTOR / INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(
         Auth auth_,
-        SizeVault sizeVault_,
         IERC20 asset_,
         string memory name_,
         string memory symbol_,
@@ -63,15 +66,21 @@ contract AaveStrategyVault is BaseStrategyVault {
         }
 
         pool = pool_;
-        aToken = IAToken(pool_.getReserveData(address(sizeVault_.asset())).aTokenAddress);
+        aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
 
         emit PoolSet(address(0), address(pool_));
         emit ATokenSet(address(0), address(aToken));
 
-        super.initialize(auth_, sizeVault_, asset_, name_, symbol_, firstDepositAmount);
+        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
     }
 
-    function pullAssets(address to, uint256 amount) external override notPaused onlySizeVault nonReentrant {
+    function pullAssets(address to, uint256 amount)
+        external
+        override
+        notPaused
+        onlyAuth(SIZE_VAULT_ROLE)
+        nonReentrant
+    {
         if (to == address(0)) {
             revert NullAddress();
         }

@@ -32,6 +32,7 @@ import {AuthScript} from "@script/Auth.s.sol";
 
 abstract contract Setup {
     uint256 internal FIRST_DEPOSIT_AMOUNT;
+    uint256 internal constant STRATEGIES_COUNT = 3;
 
     SizeVault internal sizeVault;
     CashStrategyVault internal cashStrategyVault;
@@ -137,8 +138,7 @@ abstract contract Setup {
         CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
         BaseStrategyVaultMockScript baseStrategyVaultScript
     ) internal {
-        address[8] memory scripts = [
-            address(sizeVaultScript),
+        address[7] memory scripts = [
             address(cashStrategyVaultScript),
             address(aaveStrategyVaultScript),
             address(erc4626StrategyVaultScript),
@@ -151,6 +151,8 @@ abstract contract Setup {
             vm.prank(admin);
             usdc.mint(scripts[i], FIRST_DEPOSIT_AMOUNT);
         }
+        vm.prank(admin);
+        usdc.mint(address(sizeVaultScript), STRATEGIES_COUNT * FIRST_DEPOSIT_AMOUNT + 1);
     }
 
     function _deployContracts(
@@ -170,15 +172,19 @@ abstract contract Setup {
         auth = authScript.deploy(admin);
         pool = poolMockScript.deploy(admin, erc20Asset);
         erc4626Vault = vaultMockScript.deploy(admin, erc20Asset, "Vault", "VAULT");
-        sizeVault = sizeVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
-        cashStrategyVault = cashStrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT);
-        aaveStrategyVault = aaveStrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT, pool);
-        erc4626StrategyVault = erc4626StrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
-        cryticCashStrategyVault = cryticCashStrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT);
-        cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT, pool);
+        cashStrategyVault = cashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
+        aaveStrategyVault = aaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
+        erc4626StrategyVault = erc4626StrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
+        cryticCashStrategyVault = cryticCashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
+        cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
         cryticERC4626StrategyVault =
-            cryticERC4626StrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
-        baseStrategyVault = baseStrategyVaultScript.deploy(auth, sizeVault, FIRST_DEPOSIT_AMOUNT);
+            cryticERC4626StrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
+        baseStrategyVault = baseStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
+        address[] memory strategies = new address[](3);
+        strategies[0] = address(cashStrategyVault);
+        strategies[1] = address(aaveStrategyVault);
+        strategies[2] = address(erc4626StrategyVault);
+        sizeVault = sizeVaultScript.deploy(auth, erc20Asset, STRATEGIES_COUNT * FIRST_DEPOSIT_AMOUNT + 1, strategies);
         aToken = IAToken(pool.getReserveData(address(erc20Asset)).aTokenAddress);
     }
 }
