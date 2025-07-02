@@ -229,15 +229,15 @@ contract SizeVault is BaseVault {
                               VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function strategiesCount() external view returns (uint256) {
+    function strategiesCount() public view returns (uint256) {
         return strategies.length();
     }
 
-    function getStrategies() external view returns (address[] memory) {
+    function getStrategies() public view returns (address[] memory) {
         return strategies.values();
     }
 
-    function getStrategy(uint256 index) external view returns (address) {
+    function getStrategy(uint256 index) public view returns (address) {
         return strategies.at(index);
     }
 }

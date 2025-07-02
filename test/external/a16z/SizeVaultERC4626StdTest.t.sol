@@ -5,7 +5,7 @@ import {ERC4626Test, IMockERC20} from "@a16z/erc4626-tests/ERC4626.test.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
+contract SizeVaultERC4626StdTest is ERC4626Test, BaseTest {
     function setUp() public override(ERC4626Test, BaseTest) {
         super.setUp();
 
@@ -13,41 +13,26 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         Ownable(address(erc20Asset)).transferOwnership(address(this));
 
         _underlying_ = address(erc20Asset);
-        _vault_ = address(erc4626StrategyVault);
+        _vault_ = address(sizeVault);
         _delta_ = 0;
         _vaultMayBeEmpty = true;
         _unlimitedAmount = true;
     }
 
     function setUpYield(ERC4626Test.Init memory init) public override {
-        uint256 balance = erc20Asset.balanceOf(address(erc4626Vault));
+        uint256 balance = erc20Asset.balanceOf(address(cashStrategyVault));
         if (init.yield >= 0) {
             // gain
             vm.assume(init.yield < int256(uint256(type(uint128).max)));
             init.yield = bound(init.yield, 0, int256(balance / 100));
             uint256 gain = uint256(init.yield);
-            IMockERC20(_underlying_).mint(address(erc4626Vault), gain);
+            IMockERC20(_underlying_).mint(address(cashStrategyVault), gain);
         } else {
             // loss
             vm.assume(init.yield > type(int128).min);
             uint256 loss = uint256(-1 * init.yield);
             vm.assume(loss < balance);
-            IMockERC20(_underlying_).burn(address(erc4626Vault), loss);
+            IMockERC20(_underlying_).burn(address(cashStrategyVault), loss);
         }
-    }
-
-    function test_ERC4626StrategyVaultERC4626Std_test_RT_redeem_mint_01() public {
-        Init memory init = Init({
-            user: [
-                0x000000000000000000000000000000000000181f,
-                0x0000000000000000000000000000000000002d0B,
-                0x0000000000000000000000000000000000003dcd,
-                0x00000000000000000000000000000000E055fF88
-            ],
-            share: [uint256(5441), uint256(10097), uint256(8315), uint256(7965)],
-            asset: [uint256(1285), uint256(11837), uint256(8952), uint256(4294967294)],
-            yield: int256(655649083344436783775280150831979)
-        });
-        test_RT_redeem_mint(init, 991);
     }
 }

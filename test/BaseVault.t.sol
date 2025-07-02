@@ -12,10 +12,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract BaseVaultTest is BaseTest {
     function test_BaseVault_initialize() public view {
-        assertEq(baseVaultMock.asset(), address(erc20Asset));
-        assertEq(baseVaultMock.name(), "Base USD Coin Mock");
-        assertEq(baseVaultMock.symbol(), "baseUSDCMOCK");
-        assertEq(baseVaultMock.decimals(), erc20Asset.decimals(), 6);
+        assertEq(baseVault.asset(), address(erc20Asset));
+        assertEq(baseVault.name(), "Base USD Coin Mock");
+        assertEq(baseVault.symbol(), "baseUSDCMOCK");
+        assertEq(baseVault.decimals(), erc20Asset.decimals(), 6);
     }
 
     function test_BaseVault_upgrade() public {
@@ -24,10 +24,10 @@ contract BaseVaultTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, DEFAULT_ADMIN_ROLE)
         );
-        UUPSUpgradeable(address(baseVaultMock)).upgradeToAndCall(address(newBaseVault), "");
+        UUPSUpgradeable(address(baseVault)).upgradeToAndCall(address(newBaseVault), "");
 
         vm.prank(admin);
-        UUPSUpgradeable(address(baseVaultMock)).upgradeToAndCall(address(newBaseVault), "");
+        UUPSUpgradeable(address(baseVault)).upgradeToAndCall(address(newBaseVault), "");
     }
 
     function test_BaseVault_initialize_invalidInitialization_reverts() public {
@@ -37,21 +37,21 @@ contract BaseVaultTest is BaseTest {
     }
 
     function test_BaseVault_pause_success() public {
-        assertFalse(baseVaultMock.paused());
+        assertFalse(baseVault.paused());
 
         vm.prank(admin);
         auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
-        baseVaultMock.pause();
+        baseVault.pause();
 
-        assertTrue(baseVaultMock.paused());
+        assertTrue(baseVault.paused());
     }
 
     function test_BaseVault_pause_unauthorized_reverts() public {
         vm.prank(alice);
         vm.expectRevert();
-        baseVaultMock.pause();
+        baseVault.pause();
     }
 
     function test_BaseVault_unpause_success() public {
@@ -59,13 +59,13 @@ contract BaseVaultTest is BaseTest {
         auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
-        baseVaultMock.pause();
-        assertTrue(baseVaultMock.paused());
+        baseVault.pause();
+        assertTrue(baseVault.paused());
 
         vm.prank(admin);
-        baseVaultMock.unpause();
+        baseVault.unpause();
 
-        assertFalse(baseVaultMock.paused());
+        assertFalse(baseVault.paused());
     }
 
     function test_BaseVault_unpause_unauthorized_reverts() public {
@@ -73,97 +73,97 @@ contract BaseVaultTest is BaseTest {
         auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
-        baseVaultMock.pause();
+        baseVault.pause();
 
         vm.prank(alice);
         vm.expectRevert();
-        baseVaultMock.unpause();
+        baseVault.unpause();
     }
 
     function test_BaseVault_deposit_whenPaused_reverts() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
-        _approve(alice, erc20Asset, address(baseVaultMock), amount);
+        _approve(alice, erc20Asset, address(baseVault), amount);
 
         vm.prank(admin);
         auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
-        baseVaultMock.pause();
+        baseVault.pause();
 
         vm.prank(alice);
         vm.expectRevert();
-        baseVaultMock.deposit(amount, alice);
+        baseVault.deposit(amount, alice);
     }
 
     function test_BaseVault_deposit_whenAuthPaused_reverts() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
-        _approve(alice, erc20Asset, address(baseVaultMock), amount);
+        _approve(alice, erc20Asset, address(baseVault), amount);
 
         vm.prank(admin);
         auth.pause();
 
         vm.prank(alice);
         vm.expectRevert();
-        baseVaultMock.deposit(amount, alice);
+        baseVault.deposit(amount, alice);
     }
 
     function test_BaseVault_transfer_whenPaused_reverts() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
-        _approve(alice, erc20Asset, address(baseVaultMock), amount);
+        _approve(alice, erc20Asset, address(baseVault), amount);
 
         vm.prank(alice);
-        baseVaultMock.deposit(amount, alice);
+        baseVault.deposit(amount, alice);
 
         vm.prank(admin);
         auth.grantRole(PAUSER_ROLE, admin);
 
         vm.prank(admin);
-        baseVaultMock.pause();
+        baseVault.pause();
 
         vm.prank(alice);
         vm.expectRevert();
-        baseVaultMock.transfer(bob, amount);
+        baseVault.transfer(bob, amount);
     }
 
     function test_BaseVault_transfer_whenAuthPaused_reverts() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
-        _approve(alice, erc20Asset, address(baseVaultMock), amount);
+        _approve(alice, erc20Asset, address(baseVault), amount);
 
         vm.prank(alice);
-        baseVaultMock.deposit(amount, alice);
+        baseVault.deposit(amount, alice);
 
         vm.prank(admin);
         auth.pause();
 
         vm.prank(alice);
         vm.expectRevert();
-        baseVaultMock.transfer(bob, amount);
+        baseVault.transfer(bob, amount);
     }
 
     function test_BaseVault_deposit_withdraw_basic() public {
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
-        _approve(alice, erc20Asset, address(baseVaultMock), depositAmount);
+        _approve(alice, erc20Asset, address(baseVault), depositAmount);
 
         vm.prank(alice);
-        baseVaultMock.deposit(depositAmount, alice);
+        baseVault.deposit(depositAmount, alice);
 
-        assertEq(baseVaultMock.balanceOf(alice), depositAmount);
-        assertEq(baseVaultMock.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount);
-        assertEq(erc20Asset.balanceOf(address(baseVaultMock)), FIRST_DEPOSIT_AMOUNT + depositAmount);
+        assertEq(baseVault.balanceOf(alice), depositAmount);
+        assertEq(baseVault.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount);
+        assertEq(erc20Asset.balanceOf(address(baseVault)), FIRST_DEPOSIT_AMOUNT + depositAmount);
         assertEq(erc20Asset.balanceOf(alice), 0);
 
         uint256 withdrawAmount = 30e6;
         vm.prank(alice);
-        baseVaultMock.withdraw(withdrawAmount, alice, alice);
+        baseVault.withdraw(withdrawAmount, alice, alice);
 
-        assertEq(baseVaultMock.balanceOf(alice), depositAmount - withdrawAmount);
-        assertEq(baseVaultMock.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
-        assertEq(erc20Asset.balanceOf(address(baseVaultMock)), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
+        assertEq(baseVault.balanceOf(alice), depositAmount - withdrawAmount);
+        assertEq(baseVault.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
+        assertEq(erc20Asset.balanceOf(address(baseVault)), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
         assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
     }
 }

@@ -28,6 +28,8 @@ import {Auth} from "@src/Auth.sol";
 import {AuthScript} from "@script/Auth.s.sol";
 import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {BaseVaultMockScript} from "@script/BaseVaultMock.s.sol";
+import {CryticSizeVaultMock} from "@test/mocks/CryticSizeVaultMock.t.sol";
+import {CryticSizeVaultMockScript} from "@script/CryticSizeVaultMock.s.sol";
 
 abstract contract Setup {
     uint256 internal FIRST_DEPOSIT_AMOUNT;
@@ -41,7 +43,8 @@ abstract contract Setup {
     CryticAaveStrategyVaultMock internal cryticAaveStrategyVault;
     ERC4626StrategyVault internal erc4626StrategyVault;
     CryticERC4626StrategyVaultMock internal cryticERC4626StrategyVault;
-    BaseVaultMock internal baseVaultMock;
+    BaseVaultMock internal baseVault;
+    CryticSizeVaultMock internal cryticSizeVault;
     IERC20Metadata internal erc20Asset;
     PoolMock internal pool;
     VaultMock internal erc4626Vault;
@@ -61,6 +64,7 @@ abstract contract Setup {
             CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
             CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
             BaseVaultMockScript baseVaultMockScript,
+            CryticSizeVaultMockScript cryticSizeVaultScript,
             PoolMockScript poolMockScript,
             VaultMockScript vaultMockScript
         ) = _deployScripts();
@@ -74,6 +78,7 @@ abstract contract Setup {
             cryticCashStrategyVaultScript,
             cryticAaveStrategyVaultScript,
             cryticERC4626StrategyVaultScript,
+            cryticSizeVaultScript,
             baseVaultMockScript
         );
         _deployContracts(
@@ -86,6 +91,7 @@ abstract contract Setup {
             cryticCashStrategyVaultScript,
             cryticAaveStrategyVaultScript,
             cryticERC4626StrategyVaultScript,
+            cryticSizeVaultScript,
             baseVaultMockScript,
             poolMockScript,
             vaultMockScript
@@ -109,6 +115,7 @@ abstract contract Setup {
             CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
             CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
             BaseVaultMockScript baseVaultMockScript,
+            CryticSizeVaultMockScript cryticSizeVaultScript,
             PoolMockScript poolMockScript,
             VaultMockScript vaultMockScript
         )
@@ -121,6 +128,7 @@ abstract contract Setup {
         cryticCashStrategyVaultScript = new CryticCashStrategyVaultMockScript();
         cryticAaveStrategyVaultScript = new CryticAaveStrategyVaultMockScript();
         cryticERC4626StrategyVaultScript = new CryticERC4626StrategyVaultMockScript();
+        cryticSizeVaultScript = new CryticSizeVaultMockScript();
         baseVaultMockScript = new BaseVaultMockScript();
         poolMockScript = new PoolMockScript();
         vaultMockScript = new VaultMockScript();
@@ -136,6 +144,7 @@ abstract contract Setup {
         CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
         CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
         CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
+        CryticSizeVaultMockScript cryticSizeVaultScript,
         BaseVaultMockScript baseVaultMockScript
     ) internal {
         address[7] memory scripts = [
@@ -153,6 +162,8 @@ abstract contract Setup {
         }
         vm.prank(admin);
         usdc.mint(address(sizeVaultScript), INITIAL_STRATEGIES_COUNT * FIRST_DEPOSIT_AMOUNT + 1);
+        vm.prank(admin);
+        usdc.mint(address(cryticSizeVaultScript), INITIAL_STRATEGIES_COUNT * FIRST_DEPOSIT_AMOUNT + 1);
     }
 
     function _deployContracts(
@@ -165,6 +176,7 @@ abstract contract Setup {
         CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
         CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
         CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
+        CryticSizeVaultMockScript cryticSizeVaultScript,
         BaseVaultMockScript baseVaultMockScript,
         PoolMockScript poolMockScript,
         VaultMockScript vaultMockScript
@@ -179,8 +191,14 @@ abstract contract Setup {
         cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
         cryticERC4626StrategyVault =
             cryticERC4626StrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
-        baseVaultMock = baseVaultMockScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
         address[] memory strategies = new address[](3);
+        strategies[0] = address(cryticCashStrategyVault);
+        strategies[1] = address(cryticAaveStrategyVault);
+        strategies[2] = address(cryticERC4626StrategyVault);
+        cryticSizeVault =
+            cryticSizeVaultScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
+        baseVault = baseVaultMockScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
+        strategies = new address[](3);
         strategies[0] = address(cashStrategyVault);
         strategies[1] = address(aaveStrategyVault);
         strategies[2] = address(erc4626StrategyVault);
