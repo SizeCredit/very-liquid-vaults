@@ -50,4 +50,24 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         });
         test_RT_redeem_mint(init, 991);
     }
+
+    function test_ERC4626StrategyVaultERC4626Std_test_RT_withdraw_deposit_01() public {
+        Init memory init = Init({
+            user: [
+                0x00000000000000000000000000000000000030b3,
+                0x0000000000000000000000000000000000002367,
+                0x0000000000000000000000000000000000001B08,
+                0x0000000000000000000000000000000000002D7E
+            ],
+            share: [uint256(987910862), uint256(587), uint256(13632), uint256(6506)],
+            asset: [
+                uint256(19744579944030316751180819),
+                uint256(1157379602576340765330575612727389539782114060851143049831365),
+                uint256(8645),
+                uint256(42393604518183400894871284368897910331008433330724914529002052670013337269162)
+            ],
+            yield: int256(11179)
+        });
+        test_RT_withdraw_deposit(init, 957625571);
+    }
 }
