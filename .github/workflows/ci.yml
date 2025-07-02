@@ -208,14 +208,12 @@ jobs:
         with:
           version: stable
 
-      - name: Setup git config
-        run: |
-          git config --local user.email "dev@size.cash"
-          git config --local user.name "Size"
-
       - name: Coverage
         run: |
-          make coverage
+          forge coverage --no-match-coverage "(script|test)" --report lcov
+
+      - name: Coveralls
+        uses: coverallsapp/github-action@v2
 
   upload-selectors:
     if: github.ref == 'refs/heads/main'
