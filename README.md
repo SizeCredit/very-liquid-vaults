@@ -33,14 +33,13 @@ This project implements ERC4626 property tests from [A16Z](https://github.com/a1
   * Aave (yield-bearing lowest risk venue)
   * Morpho/Euler (yield-bearing righer risk/return venues)
 * Liquidity is fungible: all users share average yield
-* Default deposit destination is **Cash** for instant liquidity
-* Governance-defined **deposit/withdrawal priority**
+* Default deposit destination is Cash for instant liquidity
+* Governance-defined deposit/withdrawal priority
 
 ### Rebalancing
 
-* Allocation is manually managed by a Strategist (off-chain logic)
-* Target allocations (example): 5% Cash, 50% Aave, 45% Euler
-* Drift tolerated; no onchain automation
+* Allocation is manually managed by a Strategist
+* Percentage allocations are defined off-chain, e.g., 5% Cash, 50% Aave, 45% Euler
 * Strategist uses e.g. `transferAssets` functions to move liquidity between strategies
 
 ### Extensibility
