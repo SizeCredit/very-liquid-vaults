@@ -1,4 +1,4 @@
-# Size Vault
+# Size Meta Vault
 
 A modular, upgradeable vault system built on ERC4626 that enables flexible asset management through multiple investment strategies.
 
