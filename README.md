@@ -4,7 +4,7 @@ A modular, upgradeable vault system built on ERC4626 that enables flexible asset
 
 ## Overview
 
-Size Meta Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management.
+Size Meta Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management. The design is heavily influenced by [yearn's yVaults v3](https://docs.yearn.fi/developers/v3/overview).
 
 ## Key Features
 
@@ -22,10 +22,9 @@ Size Meta Vault is a "meta vault" implementation that allows users to deposit as
 ### Liquidity Management
 
 * Supports allocation across:
-
   * Cash (gas-efficient, instant access)
-  * Aave (yield-bearing)
-  * Morpho/Euler (yield-bearing)
+  * Aave (yield-bearing lowest risk venue)
+  * Morpho/Euler (yield-bearing righer risk/return venues)
 * Liquidity is fungible: all users share average yield
 * Default deposit destination is **Cash** for instant liquidity
 * Governance-defined **deposit/withdrawal priority**
@@ -35,7 +34,7 @@ Size Meta Vault is a "meta vault" implementation that allows users to deposit as
 * Allocation is manually managed by a Strategist (off-chain logic)
 * Target allocations (example): 5% Cash, 50% Aave, 45% Euler
 * Drift tolerated; no onchain automation
-* Strategist uses e.g. `depositToX()` and `withdrawFromX()` functions to move liquidity
+* Strategist uses e.g. `transferAssets` functions to move liquidity between strategies
 
 ### Extensibility
 
@@ -100,10 +99,6 @@ uint256 assets = vault.convertToAssets(shares);
 
 ## Future Considerations
 
-* **Performance Fees**: Optional fee mechanism (initially not implemented)
+* **Performance Fees**: Optional fee mechanism
 * **Async Withdrawals**: Not supported at launch; can be added later via ERC-7540
 * **Venue Flexibility**: Architecture supports delayed withdrawal venues in future
-
-## License
-
-MIT
