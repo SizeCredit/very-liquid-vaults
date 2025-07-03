@@ -49,11 +49,6 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                               CONSTRUCTOR / INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
     function initialize(
         Auth auth_,
         IERC20 asset_,
@@ -75,6 +70,10 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
     }
 
+    /*//////////////////////////////////////////////////////////////
+                              SIZE VAULT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
     function transferAssets(address to, uint256 amount)
         external
         override
@@ -82,13 +81,19 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         onlyAuth(SIZE_VAULT_ROLE)
         nonReentrant
     {
-        if (to == address(0)) {
-            revert NullAddress();
-        }
-
         pool.withdraw(asset(), amount, to);
-
         emit TransferAssets(to, amount);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function skim() external override notPaused onlyAuth(SIZE_VAULT_ROLE) nonReentrant {
+        uint256 assets = IERC20(asset()).balanceOf(address(this));
+        IERC20(asset()).forceApprove(address(pool), assets);
+        pool.supply(asset(), assets, address(this), 0);
+        emit Skim();
     }
 
     /*//////////////////////////////////////////////////////////////

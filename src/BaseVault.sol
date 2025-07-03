@@ -28,7 +28,8 @@ abstract contract BaseVault is
     //////////////////////////////////////////////////////////////*/
 
     Auth public auth;
-    uint256[49] private __gap;
+    uint256 public deadAssets;
+    uint256[48] private __gap;
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -42,6 +43,7 @@ abstract contract BaseVault is
     //////////////////////////////////////////////////////////////*/
 
     event AuthSet(address indexed authBefore, address indexed authAfter);
+    event DeadAssetsSet(uint256 deadAssets);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -76,6 +78,9 @@ abstract contract BaseVault is
 
         auth = auth_;
         emit AuthSet(address(0), address(auth_));
+
+        deadAssets = firstDepositAmount_;
+        emit DeadAssetsSet(firstDepositAmount_);
 
         deposit(firstDepositAmount_, address(this));
     }

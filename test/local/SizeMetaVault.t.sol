@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 
 contract SizeMetaVaultTest is BaseTest {
@@ -14,5 +15,27 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(sizeMetaVault.allowance(address(this), address(this)), 0);
         assertEq(sizeMetaVault.decimals(), erc20Asset.decimals());
         assertEq(sizeMetaVault.decimals(), erc20Asset.decimals());
+    }
+
+    function test_SizeMetaVault_rebalance() public {
+        uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
+        uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
+        uint256 cashStrategyDeadAssets = cashStrategyVault.deadAssets();
+
+        uint256 amount = 50e6;
+        assertLt(cashAssetsBefore, amount);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SizeMetaVault.InsufficientAssets.selector, cashAssetsBefore, cashStrategyDeadAssets, amount
+            )
+        );
+        vm.prank(strategist);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount);
+
+        vm.prank(strategist);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, 5e6);
+        assertEq(cashStrategyVault.totalAssets(), cashAssetsBefore - 5e6);
+        assertEq(erc4626StrategyVault.totalAssets(), erc4626AssetsBefore + 5e6);
     }
 }

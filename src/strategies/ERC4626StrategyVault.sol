@@ -28,7 +28,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
     event VaultSet(address indexed vaultBefore, address indexed vaultAfter);
 
     /*//////////////////////////////////////////////////////////////
-                              CONSTRUCTOR / INITIALIZER
+                              INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
     function initialize(
@@ -50,22 +50,29 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              EXTERNAL FUNCTIONS
+                              SIZE VAULT FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    function transferAssets(address to, uint256 amount)
+    function transferAssets(address to, uint256 assets)
         external
         override
         notPaused
         onlyAuth(SIZE_VAULT_ROLE)
         nonReentrant
     {
-        if (to == address(0)) {
-            revert NullAddress();
-        }
+        vault.withdraw(assets, to, address(this));
+        emit TransferAssets(to, assets);
+    }
 
-        vault.withdraw(amount, to, address(this));
-        emit TransferAssets(to, amount);
+    /*//////////////////////////////////////////////////////////////
+                              EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function skim() external override notPaused onlyAuth(SIZE_VAULT_ROLE) nonReentrant {
+        uint256 assets = IERC20(asset()).balanceOf(address(this));
+        IERC20(asset()).forceApprove(address(vault), assets);
+        vault.deposit(assets, address(this));
+        emit Skim();
     }
 
     /*//////////////////////////////////////////////////////////////

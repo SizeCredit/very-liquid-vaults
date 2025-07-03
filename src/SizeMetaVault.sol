@@ -36,6 +36,7 @@ contract SizeMetaVault is BaseVault {
     error InvalidStrategy(address strategy);
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
+    error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -194,8 +195,13 @@ contract SizeMetaVault is BaseVault {
         if (!strategies.contains(address(strategyTo))) {
             revert InvalidStrategy(address(strategyTo));
         }
+        if (amount + BaseVault(address(strategyFrom)).deadAssets() > strategyFrom.totalAssets()) {
+            revert InsufficientAssets(strategyFrom.totalAssets(), BaseVault(address(strategyFrom)).deadAssets(), amount);
+        }
 
         strategyFrom.transferAssets(address(strategyTo), amount);
+        strategyTo.skim();
+
         emit Rebalance(address(strategyFrom), address(strategyTo), amount);
     }
 

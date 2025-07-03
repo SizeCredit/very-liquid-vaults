@@ -12,18 +12,26 @@ import {SIZE_VAULT_ROLE} from "@src/Auth.sol";
 contract CashStrategyVault is BaseVault, IStrategy {
     using SafeERC20 for IERC20;
 
-    function transferAssets(address to, uint256 amount)
+    /*//////////////////////////////////////////////////////////////
+                              SIZE VAULT FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function transferAssets(address to, uint256 assets)
         external
         override
         notPaused
         onlyAuth(SIZE_VAULT_ROLE)
         nonReentrant
     {
-        if (to == address(0)) {
-            revert NullAddress();
-        }
+        IERC20(asset()).safeTransfer(to, assets);
+        emit TransferAssets(to, assets);
+    }
 
-        IERC20(asset()).safeTransfer(to, amount);
-        emit TransferAssets(to, amount);
+    /*//////////////////////////////////////////////////////////////
+                              EXTERNAL FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    function skim() external override notPaused nonReentrant {
+        emit Skim();
     }
 }
