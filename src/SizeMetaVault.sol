@@ -162,7 +162,7 @@ contract SizeMetaVault is BaseVault {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              EXTERNAL FUNCTIONS
+                              STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     function setStrategies(address[] calldata strategies_) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
