@@ -11,6 +11,11 @@ import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC2
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @title SizeMetaVault
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice Meta vault that distributes assets across multiple strategies
+/// @dev Extends BaseVault to manage multiple strategy vaults for asset allocation
 contract SizeMetaVault is BaseVault {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -47,6 +52,8 @@ contract SizeMetaVault is BaseVault {
         _disableInitializers();
     }
 
+    /// @notice Initializes the SizeMetaVault with strategies
+    /// @dev Adds all provided strategies and calls parent initialization
     function initialize(
         Auth auth_,
         IERC20 asset_,
@@ -66,6 +73,7 @@ contract SizeMetaVault is BaseVault {
                               ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Returns the maximum amount that can be deposited
     function maxDeposit(address) public view override returns (uint256) {
         uint256 length = strategies.length();
         uint256 max = 0;
@@ -77,19 +85,28 @@ contract SizeMetaVault is BaseVault {
         return max;
     }
 
+    /// @notice Returns the maximum number of shares that can be minted
+    /// @dev Converts the max deposit amount to shares
     function maxMint(address receiver) public view override returns (uint256) {
         uint256 maxDepositAmount = maxDeposit(receiver);
         return maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
     }
 
+    /// @notice Returns the maximum amount that can be withdrawn by an owner
+    /// @dev Limited by both owner's balance and total withdrawable assets
     function maxWithdraw(address owner) public view override returns (uint256) {
         return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), _maxWithdraw());
     }
 
+    /// @notice Returns the maximum number of shares that can be redeemed
+    /// @dev Limited by both owner's balance and total withdrawable assets
     function maxRedeem(address owner) public view override returns (uint256) {
         return Math.min(balanceOf(owner), _convertToShares(_maxWithdraw(), Math.Rounding.Floor));
     }
 
+    /// @notice Returns the total assets managed by the vault
+    /// @dev Sums the total assets across all strategies
+    /// @return The total assets under management
     function totalAssets() public view virtual override returns (uint256) {
         uint256 length = strategies.length();
         uint256 total = 0;
@@ -100,8 +117,8 @@ contract SizeMetaVault is BaseVault {
         return total;
     }
 
-    /// @notice Deposit assets to strategies in order
-    /// @dev Reverts if not all assets can be deposited to strategies
+    /// @notice Deposits assets to strategies in order
+    /// @dev Tries to deposit to strategies sequentially, reverts if not all assets can be deposited
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         if (_isInitializing()) {
             // first deposit
@@ -134,6 +151,8 @@ contract SizeMetaVault is BaseVault {
         }
     }
 
+    /// @notice Withdraws assets from strategies in order
+    /// @dev Tries to withdraw from strategies sequentially, reverts if not enough assets available
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
@@ -166,6 +185,8 @@ contract SizeMetaVault is BaseVault {
                               STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Replaces all current strategies with new ones
+    /// @dev Removes all existing strategies and adds the new ones
     function setStrategies(address[] calldata strategies_) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
         uint256 length = strategies.length();
         for (uint256 i = 0; i < length; i++) {
@@ -176,14 +197,20 @@ contract SizeMetaVault is BaseVault {
         }
     }
 
+    /// @notice Adds a new strategy to the vault
+    /// @dev Only callable by addresses with STRATEGIST_ROLE
     function addStrategy(address strategy) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
         _addStrategy(strategy);
     }
 
+    /// @notice Removes a strategy from the vault
+    /// @dev Only callable by addresses with STRATEGIST_ROLE
     function removeStrategy(address strategy) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
         _removeStrategy(strategy);
     }
 
+    /// @notice Rebalances assets between two strategies
+    /// @dev Transfers assets from one strategy to another and skims the destination
     function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount)
         external
         whenNotPaused
@@ -209,6 +236,8 @@ contract SizeMetaVault is BaseVault {
                               INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Internal function to add a strategy
+    /// @dev Emits StrategyAdded event if the strategy was successfully added
     function _addStrategy(address strategy) private {
         bool added = strategies.add(strategy);
         if (added) {
@@ -216,6 +245,8 @@ contract SizeMetaVault is BaseVault {
         }
     }
 
+    /// @notice Internal function to remove a strategy
+    /// @dev Emits StrategyRemoved event if the strategy was successfully removed
     function _removeStrategy(address strategy) private {
         bool removed = strategies.remove(strategy);
         if (removed) {
@@ -223,6 +254,9 @@ contract SizeMetaVault is BaseVault {
         }
     }
 
+    /// @notice Internal function to calculate maximum withdrawable amount
+    /// @dev Sums the max withdraw amounts across all strategies
+    /// @return The total maximum withdrawable amount
     function _maxWithdraw() private view returns (uint256) {
         uint256 length = strategies.length();
         uint256 max = 0;
@@ -238,14 +272,20 @@ contract SizeMetaVault is BaseVault {
                               VIEW FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Returns the number of strategies in the vault
+    /// @return The count of active strategies
     function strategiesCount() public view returns (uint256) {
         return strategies.length();
     }
 
+    /// @notice Returns all strategy addresses
+    /// @return Array of all strategy addresses
     function getStrategies() public view returns (address[] memory) {
         return strategies.values();
     }
 
+    /// @notice Returns the strategy address at a specific index
+    /// @return The strategy address at the given index
     function getStrategy(uint256 index) public view returns (address) {
         return strategies.at(index);
     }

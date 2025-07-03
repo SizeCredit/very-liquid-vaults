@@ -13,7 +13,10 @@ import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 
 /// @title AaveStrategyVault
-/// @notice A strategy that invests assets in Aave
+/// @custom:security-contact security@size.credit
+/// @author Size (https://size.credit/)
+/// @notice A strategy that invests assets in Aave v3 lending pools
+/// @dev Implements IStrategy interface for Aave v3 integration within the Size Meta Vault system
 /// @dev Reference https://github.com/superform-xyz/super-vaults/blob/8bc1d1bd1579f6fb9a047802256ed3a2bf15f602/src/aave-v3/AaveV3ERC4626Reinvest.sol
 contract AaveStrategyVault is BaseVault, IStrategy {
     using SafeERC20 for IERC20;
@@ -49,6 +52,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                               CONSTRUCTOR / INITIALIZER
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Initializes the AaveStrategyVault with an Aave pool
+    /// @dev Sets the Aave pool and retrieves the corresponding aToken address
     function initialize(
         Auth auth_,
         IERC20 asset_,
@@ -74,6 +79,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                               SIZE VAULT FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Transfers assets from this strategy to another address
+    /// @dev Withdraws from Aave pool and transfers to the recipient
     function transferAssets(address to, uint256 amount)
         external
         override
@@ -89,6 +96,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Invests any idle assets sitting in this contract
+    /// @dev Supplies any assets held by this contract to the Aave pool
     function skim() external override notPaused onlyAuth(SIZE_VAULT_ROLE) nonReentrant {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         IERC20(asset()).forceApprove(address(pool), assets);
@@ -100,6 +109,9 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                               ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Returns the maximum amount that can be deposited
+    /// @dev Checks Aave reserve configuration and supply cap to determine max deposit
+    /// @return The maximum deposit amount allowed by Aave
     function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
         uint256 configData = pool.getReserveData(asset()).configuration.data;
@@ -119,10 +131,14 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         return supplyCap - aToken.totalSupply();
     }
 
+    /// @notice Returns the maximum number of shares that can be minted
+    /// @dev Converts the max deposit amount to shares
     function maxMint(address receiver) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         return convertToShares(maxDeposit(receiver));
     }
 
+    /// @notice Returns the maximum amount that can be withdrawn by an owner
+    /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
         uint256 configData = pool.getReserveData(asset()).configuration.data;
@@ -135,6 +151,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         return cash < assetsBalance ? cash : assetsBalance;
     }
 
+    /// @notice Returns the maximum number of shares that can be redeemed
+    /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
         uint256 configData = pool.getReserveData(asset()).configuration.data;
@@ -148,17 +166,23 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         return cashInShares < shareBalance ? cashInShares : shareBalance;
     }
 
+    /// @notice Returns the total assets managed by this strategy
+    /// @dev Returns the aToken balance since aTokens represent the underlying asset with accrued interest
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         /// @notice aTokens use rebasing to accrue interest, so the total assets is just the aToken balance
         return aToken.balanceOf(address(this));
     }
 
+    /// @notice Internal deposit function that supplies assets to Aave
+    /// @dev Calls parent deposit then supplies the assets to the Aave pool
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         super._deposit(caller, receiver, assets, shares);
         IERC20(asset()).forceApprove(address(pool), assets);
         pool.supply(asset(), assets, address(this), 0);
     }
 
+    /// @notice Internal withdraw function that withdraws from Aave
+    /// @dev Withdraws from the Aave pool then calls parent withdraw
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
@@ -171,22 +195,32 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                       INTERNAL HELPERS
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Extracts the decimals from Aave reserve configuration data
+    /// @dev Uses bit manipulation to extract decimals from the configuration
     function _getDecimals(uint256 configData) internal pure returns (uint8) {
         return uint8((configData & ~DECIMALS_MASK) >> RESERVE_DECIMALS_START_BIT_POSITION);
     }
 
+    /// @notice Checks if the Aave reserve is active
+    /// @dev Uses bit manipulation to check the active flag
     function _getActive(uint256 configData) internal pure returns (bool) {
         return configData & ~ACTIVE_MASK != 0;
     }
 
+    /// @notice Checks if the Aave reserve is frozen
+    /// @dev Uses bit manipulation to check the frozen flag
     function _getFrozen(uint256 configData) internal pure returns (bool) {
         return configData & ~FROZEN_MASK != 0;
     }
 
+    /// @notice Checks if the Aave reserve is paused
+    /// @dev Uses bit manipulation to check the paused flag
     function _getPaused(uint256 configData) internal pure returns (bool) {
         return configData & ~PAUSED_MASK != 0;
     }
 
+    /// @notice Extracts the supply cap from Aave reserve configuration data
+    /// @dev Uses bit manipulation to extract the supply cap value
     function _getSupplyCap(uint256 configData) internal pure returns (uint256) {
         return (configData & ~SUPPLY_CAP_MASK) >> SUPPLY_CAP_START_BIT_POSITION;
     }
