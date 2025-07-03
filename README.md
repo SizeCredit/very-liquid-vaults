@@ -6,6 +6,13 @@ A modular, upgradeable vault system built on ERC4626 that enables flexible asset
 
 Size Meta Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management. The design is heavily influenced by [yearn's yVaults v3](https://docs.yearn.fi/developers/v3/overview).
 
+## Security
+
+This project implements ERC4626 property tests from [A16Z](https://github.com/a16z/erc4626-tests), [Trail of Bits' Crytic](https://github.com/crytic/properties), and [Runtime Verification](https://github.com/runtimeverification/ercx-tests). In addition, several security-focused remediations for common vault attacks were introduced:
+
+- OpenZeppelin's implementation with decimals offset ([A Novel Defense Against ERC4626 Inflation Attacks](https://blog.openzeppelin.com/a-novel-defense-against-erc4626-inflation-attacks))
+- First deposit during deployment with dead shares, pioneered by the [Morpho Optimizer](https://github.com/morpho-org/morpho-optimizers-vaults/blob/a74846774afe4f74a75a0470c2984c7d8ea41f35/scripts/aave-v2/eth-mainnet/Deploy.s.sol#L85-L120)
+
 ## Key Features
 
 * **ERC4626 Compliance**: Standard vault interface for seamless DeFi integration
