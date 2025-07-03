@@ -57,7 +57,7 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
 
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeVault));
+        vm.prank(address(sizeMetaVault));
         aaveStrategyVault.transferAssets(bob, pullAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
@@ -75,7 +75,7 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
 
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeVault));
+        vm.prank(address(sizeMetaVault));
         aaveStrategyVault.transferAssets(bob, pullAmount);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);

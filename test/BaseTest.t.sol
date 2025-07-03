@@ -2,8 +2,8 @@
 pragma solidity 0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
-import {SizeVault} from "@src/SizeVault.sol";
-import {SizeVaultScript} from "@script/SizeVault.s.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
@@ -32,7 +32,7 @@ contract BaseTest is Test, Setup {
         deploy(admin);
 
         vm.label(address(auth), "Auth");
-        vm.label(address(sizeVault), "SizeVault");
+        vm.label(address(sizeMetaVault), "SizeMetaVault");
 
         vm.label(address(cashStrategyVault), "CashStrategyVault");
         vm.label(address(aaveStrategyVault), "AaveStrategyVault");
@@ -59,7 +59,7 @@ contract BaseTest is Test, Setup {
         vm.prank(admin);
         auth.grantRole(STRATEGIST_ROLE, strategist);
         vm.prank(admin);
-        auth.grantRole(SIZE_VAULT_ROLE, address(sizeVault));
+        auth.grantRole(SIZE_VAULT_ROLE, address(sizeMetaVault));
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {

@@ -4,7 +4,7 @@ A modular, upgradeable vault system built on ERC4626 that enables flexible asset
 
 ## Overview
 
-Size Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management.
+Size Meta Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management.
 
 ## Key Features
 
@@ -48,7 +48,7 @@ Size Vault is a "meta vault" implementation that allows users to deposit assets 
 
 ### Core Components
 
-* **`SizeVault`**: Main vault contract that manages user deposits and strategy allocation
+* **`SizeMetaVault`**: Main vault contract that manages user deposits and strategy allocation
 * **`BaseVault`**: Base implementation providing core ERC4626 functionality
 * **`BaseStrategyVault`**: Abstract base contract for all investment strategies
 * **`Auth`**: Role-based access control system

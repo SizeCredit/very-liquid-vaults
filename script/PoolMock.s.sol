@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Script, console} from "forge-std/Script.sol";
-import {SizeVault} from "@src/SizeVault.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";

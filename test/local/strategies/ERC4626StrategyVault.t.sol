@@ -56,7 +56,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
 
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeVault));
+        vm.prank(address(sizeMetaVault));
         erc4626StrategyVault.transferAssets(bob, pullAmount);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(erc4626StrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
@@ -74,7 +74,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
 
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeVault));
+        vm.prank(address(sizeMetaVault));
         erc4626StrategyVault.transferAssets(bob, pullAmount);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(erc4626StrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);

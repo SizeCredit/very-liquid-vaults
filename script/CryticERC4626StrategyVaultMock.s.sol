@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Script, console} from "forge-std/Script.sol";
-import {SizeVault} from "@src/SizeVault.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";

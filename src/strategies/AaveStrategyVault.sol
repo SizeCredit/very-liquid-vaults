@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {SizeVault} from "@src/SizeVault.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";

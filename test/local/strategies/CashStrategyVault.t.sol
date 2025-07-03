@@ -56,7 +56,7 @@ contract CashStrategyVaultTest is BaseTest {
         assertEq(cashStrategyVault.balanceOf(alice), shares);
 
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeVault));
+        vm.prank(address(sizeMetaVault));
         cashStrategyVault.transferAssets(bob, pullAmount);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
         assertEq(cashStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
@@ -74,7 +74,7 @@ contract CashStrategyVaultTest is BaseTest {
         assertEq(cashStrategyVault.balanceOf(alice), shares);
 
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeVault));
+        vm.prank(address(sizeMetaVault));
         cashStrategyVault.transferAssets(bob, pullAmount);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
         assertEq(cashStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
