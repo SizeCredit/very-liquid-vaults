@@ -1,4 +1,4 @@
-# Size Meta Vault
+# size-meta-vault [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-meta-vault/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-meta-vault?branch=main) [![CI](https://github.com/SizeCredit/size-meta-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-meta-vault/actions/workflows/ci.yml)
 
 A modular, upgradeable vault system built on ERC4626 that enables flexible asset management through multiple investment strategies.
 
