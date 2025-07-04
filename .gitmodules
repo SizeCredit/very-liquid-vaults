@@ -18,4 +18,4 @@
 	url = https://github.com/aave-dao/aave-v3-origin
 [submodule "lib/ercx-tests"]
 	path = lib/ercx-tests
-	url = https://github.com/aviggiano/ercx-tests
+	url = https://github.com/runtimeverification/ercx-tests
