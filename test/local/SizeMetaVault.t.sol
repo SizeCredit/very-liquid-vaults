@@ -30,12 +30,6 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.removeStrategy(address(0));
     }
 
-    function test_SizeMetaVault_RebalanceZeroAmount() public {
-        vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_AMOUNT.selector));
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, 0);
-    }
-
     function test_SizeMetaVault_RebalanceValidation() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
@@ -54,8 +48,8 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.rebalance(cashStrategyVault, IStrategy(address(1)), amount);
 
         // validate amount 0
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_AMOUNT.selector));
         vm.prank(strategist);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_AMOUNT.selector));
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, 0);
 
         // validate amount > balance
