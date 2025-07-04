@@ -10,11 +10,26 @@ contract AaveStrategyVaultRVTest is ERC4626Test, Setup {
         ERC4626Test.init(address(aaveStrategyVault));
     }
 
-    // NOTE: these tests fail because AToken.burn/AToken.mint disallows 0 amounts
-    // ignore testDepositZeroAmountIsPossible
-    // ignore testMintZeroAmountIsPossible
-    // ignore testRedeemZeroAmountIsPossible
-    // ignore testWithdrawZeroAmountIsPossible
+    // NOTE: this test fails because AToken.mint cannot go as near to type(uint256).max because of WadRayMath
+    function testDepositZeroAmountIsPossible() public override {
+        // ignore
+    }
+
+    // NOTE: this test fails because AToken.mint cannot go as near to type(uint256).max because of WadRayMath
+    function testMintZeroAmountIsPossible() public override {
+        // ignore
+    }
+
+    // NOTE: this test fails because AToken.burn cannot go as near to type(uint256).max because of WadRayMath
+    function testRedeemZeroAmountIsPossible() public override {
+        // ignore
+    }
+
+    // NOTE: this test fails because AToken.burn cannot go as near to type(uint256).max because of WadRayMath
+    function testWithdrawZeroAmountIsPossible() public override {
+        // ignore
+    }
+
     // NOTE: these tests fail because the implementation of ERC4626Test uses `asset()` to issue approvals
     // ignore testDepositSupportsEIP20ApproveTransferFromAssets
     // ignore testMintSupportsEIP20ApproveTransferFromAssets
