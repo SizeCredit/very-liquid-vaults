@@ -30,6 +30,16 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.removeStrategy(address(0));
     }
 
+    function test_SizeMetaVault_SetStrategiesValidation() public {
+        address[] memory strategiesWithZero = new address[](2);
+        strategiesWithZero[0] = address(0);
+        strategiesWithZero[1] = address(0xDEAD);
+
+        vm.prank(strategist);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_ADDRESS.selector));
+        sizeMetaVault.setStrategies(strategiesWithZero);
+    }
+
     function test_SizeMetaVault_RebalanceValidation() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
