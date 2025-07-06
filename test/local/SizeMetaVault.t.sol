@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
-import "forge-std/console.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     function test_SizeMetaVault_initialize() public view {
