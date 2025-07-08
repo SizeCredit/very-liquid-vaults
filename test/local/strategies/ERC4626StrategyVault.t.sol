@@ -223,6 +223,9 @@ contract ERC4626StrategyVaultTest is BaseTest {
                     )
                 )
             )
+        );
+    }
+
     function test_ERC4626StrategyVault_maxDeposit() public {
         address dummy = makeAddr("dummy");
         uint256 depositAmount = 100e6;

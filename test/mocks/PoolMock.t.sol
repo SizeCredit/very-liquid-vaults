@@ -66,7 +66,7 @@ contract PoolMock is IPool, Ownable {
         }
         data.reserveIndex = index;
         data.configuration =
-            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (uint8(IERC20Metadata(reserve).decimals()) << 48)});
+            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (uint8(IERC20Metadata(asset).decimals()) << 48)});
     }
 
     function mintUnbacked(address, uint256, address, uint16) external pure {
