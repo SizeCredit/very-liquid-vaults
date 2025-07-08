@@ -3,6 +3,12 @@ pragma solidity 0.8.23;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
+import {VaultMock} from "@test/mocks/VaultMock.t.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
+import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 
 contract ERC4626StrategyVaultTest is BaseTest {
     uint256 initialBalance;
@@ -135,5 +141,87 @@ contract ERC4626StrategyVaultTest is BaseTest {
         erc4626StrategyVault.redeem(shares, alice, alice);
         assertEq(erc4626StrategyVault.balanceOf(alice), 0);
         assertEq(erc20Asset.balanceOf(alice), previewRedeemAssets);
+    }
+
+    /// Test for improper initailizaton ///
+
+    function test_DeployErc4626StrategyVault_with_zero_address_auth_must_revert() public {
+        VaultMock vaultMock = new VaultMock(alice, erc20Asset, "VAULTMOCK", "VM");
+        _mint(erc20Asset, alice, FIRST_DEPOSIT_AMOUNT);
+
+        address ERC4626StrategyVaultImplementation = address(new ERC4626StrategyVault());
+
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
+        vm.prank(alice);
+        ERC4626StrategyVault(
+            payable(
+                new ERC1967Proxy(
+                    ERC4626StrategyVaultImplementation,
+                    abi.encodeWithSelector(
+                        ERC4626StrategyVault.initialize.selector,
+                        Auth(address(0)),
+                        erc20Asset,
+                        "VAULT",
+                        "VAULT",
+                        FIRST_DEPOSIT_AMOUNT,
+                        vaultMock
+                    )
+                )
+            )
+        );
+    }
+
+    function test_DeployErc4626StrategyVault_with_zero_first_amount_to_deposit_must_revert() public {
+        VaultMock vaultMock = new VaultMock(alice, erc20Asset, "VAULTMOCK", "VM");
+
+        address AuthImplementation = address(new Auth());
+        Auth auth =
+            Auth(payable(new ERC1967Proxy(AuthImplementation, abi.encodeWithSelector(Auth.initialize.selector, bob))));
+
+        address ERC4626StrategyVaultImplementation = address(new ERC4626StrategyVault());
+
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAmount.selector));
+        vm.prank(alice);
+        ERC4626StrategyVault(
+            payable(
+                new ERC1967Proxy(
+                    ERC4626StrategyVaultImplementation,
+                    abi.encodeWithSelector(
+                        ERC4626StrategyVault.initialize.selector, auth, erc20Asset, "VAULT", "VAULT", 0, vaultMock
+                    )
+                )
+            )
+        );
+    }
+
+    function test_DeployErc4626StrategyVault_with_zero_address_vault_must_revert() public {
+        _mint(erc20Asset, alice, FIRST_DEPOSIT_AMOUNT);
+
+        address AuthImplementation = address(new Auth());
+        Auth auth =
+            Auth(payable(new ERC1967Proxy(AuthImplementation, abi.encodeWithSelector(Auth.initialize.selector, bob))));
+
+        _mint(erc20Asset, alice, FIRST_DEPOSIT_AMOUNT);
+
+        address ERC4626StrategyVaultImplementation = address(new ERC4626StrategyVault());
+
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
+        vm.prank(alice);
+        ERC4626StrategyVault(
+            payable(
+                new ERC1967Proxy(
+                    ERC4626StrategyVaultImplementation,
+                    abi.encodeWithSelector(
+                        ERC4626StrategyVault.initialize.selector,
+                        auth,
+                        erc20Asset,
+                        "VAULT",
+                        "VAULT",
+                        FIRST_DEPOSIT_AMOUNT,
+                        VaultMock(address(0))
+                    )
+                )
+            )
+        );
     }
 }
