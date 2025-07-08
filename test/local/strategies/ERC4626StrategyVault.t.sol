@@ -9,6 +9,7 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
+import "forge-std/console.sol";
 
 contract ERC4626StrategyVaultTest is BaseTest {
     uint256 initialBalance;
@@ -222,6 +223,145 @@ contract ERC4626StrategyVaultTest is BaseTest {
                     )
                 )
             )
+    function test_ERC4626StrategyVault_maxDeposit() public {
+        address dummy = makeAddr("dummy");
+        uint256 depositAmount = 100e6;
+        _mint(erc20Asset, alice, depositAmount);
+        _approve(alice, erc20Asset, address(erc4626StrategyVault), depositAmount);
+        vm.prank(alice);
+        erc4626StrategyVault.deposit(depositAmount, alice);
+        uint256 shares = erc4626StrategyVault.balanceOf(alice);
+        assertEq(erc4626StrategyVault.balanceOf(alice), shares);
+
+        assertEq(
+            erc4626StrategyVault.vault().maxDeposit(address(erc4626StrategyVault)),
+            erc4626StrategyVault.maxDeposit(dummy)
+        );
+
+        uint256 donation = 30e6;
+        _mint(erc20Asset, bob, donation);
+        vm.prank(bob);
+        erc20Asset.transfer(address(erc4626Vault), donation);
+        assertEq(erc4626StrategyVault.balanceOf(alice), shares);
+        assertEq(erc4626StrategyVault.balanceOf(bob), 0);
+
+        assertEq(
+            erc4626StrategyVault.vault().maxDeposit(address(erc4626StrategyVault)),
+            erc4626StrategyVault.maxDeposit(dummy)
+        );
+    }
+
+    function test_ERC4626StrategyVault_maxMint() public {
+        address dummy = makeAddr("dummy");
+        uint256 depositAmount = 100e6;
+        _mint(erc20Asset, alice, depositAmount);
+        _approve(alice, erc20Asset, address(erc4626StrategyVault), depositAmount);
+        vm.prank(alice);
+        erc4626StrategyVault.deposit(depositAmount, alice);
+        uint256 shares = erc4626StrategyVault.balanceOf(alice);
+        assertEq(erc4626StrategyVault.balanceOf(alice), shares);
+
+        assertEq(
+            erc4626StrategyVault.vault().maxMint(address(erc4626StrategyVault)), erc4626StrategyVault.maxMint(dummy)
+        );
+
+        uint256 donation = 30e6;
+        _mint(erc20Asset, bob, donation);
+        vm.prank(bob);
+        erc20Asset.transfer(address(erc4626Vault), donation);
+        assertEq(erc4626StrategyVault.balanceOf(alice), shares);
+        assertEq(erc4626StrategyVault.balanceOf(bob), 0);
+
+        assertEq(
+            erc4626StrategyVault.vault().maxMint(address(erc4626StrategyVault)), erc4626StrategyVault.maxMint(dummy)
+        );
+    }
+
+    function test_ERC4626StrategyVault_maxWithdraw() public {
+        uint256 depositAmount = 100e6;
+        _mint(erc20Asset, alice, depositAmount);
+        _approve(alice, erc20Asset, address(erc4626StrategyVault), depositAmount);
+        vm.prank(alice);
+        erc4626StrategyVault.deposit(depositAmount, alice);
+        uint256 shares = erc4626StrategyVault.balanceOf(alice);
+        assertEq(erc4626StrategyVault.balanceOf(alice), shares);
+
+        assertEq(erc4626StrategyVault.convertToAssets(shares), erc4626StrategyVault.maxWithdraw(alice));
+
+        uint256 depositAmount2 = 50e6;
+        _mint(erc20Asset, bob, depositAmount2);
+        _approve(bob, erc20Asset, address(erc4626StrategyVault), depositAmount2);
+        vm.prank(bob);
+        erc4626StrategyVault.deposit(depositAmount2, bob);
+        uint256 shares2 = erc4626StrategyVault.balanceOf(bob);
+        assertEq(erc4626StrategyVault.balanceOf(bob), shares2);
+
+        assertEq(erc4626StrategyVault.convertToAssets(shares2), erc4626StrategyVault.maxWithdraw(bob));
+
+        assertEq(
+            erc4626StrategyVault.maxWithdraw(bob) + erc4626StrategyVault.maxWithdraw(alice)
+                + erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
+            erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault))
+        );
+
+        uint256 burnAmount = (depositAmount + depositAmount2) / 2;
+        _burn(erc20Asset, address(erc4626StrategyVault.vault()), burnAmount);
+
+        assertEq(erc4626StrategyVault.convertToAssets(shares), erc4626StrategyVault.maxWithdraw(alice));
+        assertEq(erc4626StrategyVault.convertToAssets(shares2), erc4626StrategyVault.maxWithdraw(bob));
+
+        // console.log(
+        //     erc4626StrategyVault.maxWithdraw(bob),
+        //     erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(bob))
+        // );
+        // console.log(
+        //     erc4626StrategyVault.maxWithdraw(alice),
+        //     erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(alice))
+        // );
+        // console.log(
+        //     erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
+        //     erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(address(erc4626StrategyVault)))
+        // );
+        // console.log(
+        //     erc4626StrategyVault.maxWithdraw(bob) + erc4626StrategyVault.maxWithdraw(alice)
+        //         + erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
+        //     erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault))
+        // );
+
+        // BUG: add donation
+    }
+
+    function test_ERC4626StrategyVault_maxRedeem() public {
+        uint256 depositAmount = 100e6;
+        _mint(erc20Asset, alice, depositAmount);
+        _approve(alice, erc20Asset, address(erc4626StrategyVault), depositAmount);
+        vm.prank(alice);
+        erc4626StrategyVault.deposit(depositAmount, alice);
+        uint256 shares = erc4626StrategyVault.balanceOf(alice);
+        assertEq(erc4626StrategyVault.balanceOf(alice), shares);
+
+        assertEq(erc4626StrategyVault.balanceOf(alice), erc4626StrategyVault.maxRedeem(alice));
+
+        uint256 depositAmount2 = 50e6;
+        _mint(erc20Asset, bob, depositAmount2);
+        _approve(bob, erc20Asset, address(erc4626StrategyVault), depositAmount2);
+        vm.prank(bob);
+        erc4626StrategyVault.deposit(depositAmount2, bob);
+        uint256 shares2 = erc4626StrategyVault.balanceOf(bob);
+        assertEq(erc4626StrategyVault.balanceOf(bob), shares2);
+
+        assertEq(erc4626StrategyVault.balanceOf(bob), erc4626StrategyVault.maxRedeem(bob));
+
+        uint256 burnAmount = (depositAmount + depositAmount2) / 2;
+        _burn(erc20Asset, address(erc4626StrategyVault.vault()), burnAmount);
+
+        assertEq(erc4626StrategyVault.balanceOf(alice), erc4626StrategyVault.maxRedeem(alice));
+        assertEq(erc4626StrategyVault.balanceOf(bob), erc4626StrategyVault.maxRedeem(bob));
+
+        assertEq(
+            erc4626StrategyVault.maxRedeem(bob) + erc4626StrategyVault.maxRedeem(alice)
+                + erc4626StrategyVault.maxRedeem(address(erc4626StrategyVault)),
+            erc4626StrategyVault.vault().maxRedeem(address(erc4626StrategyVault))
         );
     }
 }
