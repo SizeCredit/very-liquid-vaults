@@ -9,8 +9,6 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
-import "forge-std/console.sol";
-
 contract ERC4626StrategyVaultTest is BaseTest {
     uint256 initialBalance;
     uint256 initialTotalAssets;

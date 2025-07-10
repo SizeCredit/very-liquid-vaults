@@ -14,8 +14,6 @@ import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 
-import "forge-std/console.sol";
-
 contract AaveStrategyVaultForkTest is ForkTest {
     using SafeERC20 for IERC20Metadata;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
