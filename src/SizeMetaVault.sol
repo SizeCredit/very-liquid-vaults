@@ -190,7 +190,11 @@ contract SizeMetaVault is BaseVault {
     function setStrategies(address[] calldata strategies_) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
         uint256 length = strategies.length();
         for (uint256 i = 0; i < length; i++) {
-            _removeStrategy(strategies.at(i));
+               // uint256 length = strategies.length();
+        // for (uint256 i = 0; i < length; i++) {
+        //     _removeStrategy(strategies.at(i));
+        // }
+        strategies.clear();
         }
         for (uint256 i = 0; i < strategies_.length; i++) {
             _addStrategy(strategies_[i]);
