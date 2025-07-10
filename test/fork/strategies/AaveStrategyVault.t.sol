@@ -23,7 +23,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
         IPoolConfigurator(address(0x5731a04B1E775f0fdd454Bf70f3335886e9A96be));
     address public aavePoolAdmin = 0x9390B1735def18560c509E2d0bc090E9d6BA257a;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         super.setUp();
 
         // can choose a better value
