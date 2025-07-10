@@ -12,6 +12,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 
 import "forge-std/console.sol";
 
@@ -27,8 +28,11 @@ contract AaveStrategyVaultForkTest is ForkTest {
     function setUp() public override {
         super.setUp();
 
+        // can choose a better value
+        FIRST_DEPOSIT_AMOUNT = 10e6;
+
         aavePool = IPool(address(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5));
-        _mint(asset, address(this), firstDepositAmount);
+        _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
 
         address implementation = address(new AaveStrategyVault());
         bytes memory initializationData = abi.encodeCall(
@@ -38,7 +42,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
                 IERC20(address(asset)),
                 string.concat("Aave ", asset.name(), " Strategy"),
                 string.concat("aave", asset.symbol()),
-                firstDepositAmount,
+                FIRST_DEPOSIT_AMOUNT,
                 aavePool
             )
         );
@@ -46,7 +50,8 @@ contract AaveStrategyVaultForkTest is ForkTest {
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
         aaveStrategyVault = AaveStrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
-        asset.forceApprove(address(aaveStrategyVault), firstDepositAmount);
+        console.log("first deposit amount", FIRST_DEPOSIT_AMOUNT);
+        asset.forceApprove(address(aaveStrategyVault), FIRST_DEPOSIT_AMOUNT);
         Create2.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
@@ -59,5 +64,75 @@ contract AaveStrategyVaultForkTest is ForkTest {
         aavePoolConfigurator.setReserveFreeze(address(asset), true);
 
         console.log(aavePool.getConfiguration(address(asset)).getFrozen());
+    }
+
+    function test_AaveStrategyVault_initialize_with_zero_address_pool_must_revert() public {
+        _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
+
+        address implementation = address(new AaveStrategyVault());
+        bytes memory initializationData = abi.encodeCall(
+            AaveStrategyVault.initialize,
+            (
+                auth,
+                IERC20(address(asset)),
+                string.concat("Aave ", asset.name(), " Strategy"),
+                string.concat("aave", asset.symbol()),
+                FIRST_DEPOSIT_AMOUNT,
+                IPool(address(0))
+            )
+        );
+        bytes memory creationCode =
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
+        bytes32 salt = keccak256(initializationData);
+        aaveStrategyVault = AaveStrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
+        asset.forceApprove(address(aaveStrategyVault), FIRST_DEPOSIT_AMOUNT);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
+        Create2.deploy(
+            0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
+        );
+    }
+
+    // function test_AaveStrategyVault_maxDeposit_getActive_false_must_return_zero()
+    //     public
+    // {
+    //     vm.prank(aavePoolAdmin);
+    //     aavePoolConfigurator.setReserveActive(address(asset), false);
+
+    //     uint256 returnValue = aaveStrategyVault.maxDeposit(address(this));
+    //     console.log(returnValue);
+
+    //     assertEq(returnValue, 0);
+    // }
+
+    function test_AaveStrategyVault_maxDeposit_if_frozen_must_return_zero() public {
+        vm.prank(aavePoolAdmin);
+        aavePoolConfigurator.setReserveFreeze(address(asset), true);
+
+        uint256 returnValue = aaveStrategyVault.maxDeposit(address(this));
+
+        assertEq(returnValue, 0);
+        assertEq(aavePool.getConfiguration(address(asset)).getFrozen(), true);
+    }
+
+    function test_AaveStrategyVault_maxDeposit_maxWithdraw_maxRedeen_if_posed_must_return_zero() public {
+        vm.prank(aavePoolAdmin);
+        aavePoolConfigurator.setReservePause(address(asset), true);
+
+        uint256 maxDepositReturnValue = aaveStrategyVault.maxDeposit(address(this));
+        uint256 maxWithdrawReturnValue = aaveStrategyVault.maxWithdraw(address(this));
+        uint256 maxRedeemReturnValue = aaveStrategyVault.maxRedeem(address(this));
+
+        assertEq(maxDepositReturnValue, 0);
+        assertEq(maxWithdrawReturnValue, 0);
+        assertEq(maxRedeemReturnValue, 0);
+    }
+
+    function test_AaveStrategyVault_maxDeposit_if_no_supplyCap_returns_max_uint256() public {
+        vm.prank(aavePoolAdmin);
+        aavePoolConfigurator.setSupplyCap(address(asset), 0);
+
+        uint256 maxDepositReturnValue = aaveStrategyVault.maxDeposit(address(this));
+
+        assertEq(maxDepositReturnValue, type(uint256).max);
     }
 }
