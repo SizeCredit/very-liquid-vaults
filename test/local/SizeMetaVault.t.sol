@@ -289,7 +289,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_deposit_revert_if_all_assets_cannot_be_deposited() public {
-        ERC4626StrategyVault newERC4626StrategyVault = _helper_deploy_new_ERC4626StrategyVault(true);
+        _helper_deploy_new_ERC4626StrategyVault(true);
 
         // now, only on strategy with customized maxDeposit that is not type(uint256).max
 

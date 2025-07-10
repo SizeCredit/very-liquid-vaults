@@ -13,7 +13,7 @@ contract VaultMockRevertOnDeposit is ERC4626, Ownable {
         Ownable(_owner)
     {}
 
-    function maxDeposit(address) public view override returns (uint256) {
+    function maxDeposit(address) public pure override returns (uint256) {
         return type(uint64).max;
     }
 

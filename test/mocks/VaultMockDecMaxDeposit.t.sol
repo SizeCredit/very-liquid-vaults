@@ -15,7 +15,7 @@ contract VaultMockDecMaxDeposit is ERC4626, Ownable {
         Ownable(_owner)
     {}
 
-    function maxWithdraw(address owner) public view override returns (uint256) {
+    function maxWithdraw(address) public pure override returns (uint256) {
         return type(uint256).max;
     }
 }
