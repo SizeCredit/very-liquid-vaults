@@ -309,28 +309,23 @@ contract ERC4626StrategyVaultTest is BaseTest {
         uint256 burnAmount = (depositAmount + depositAmount2) / 2;
         _burn(erc20Asset, address(erc4626StrategyVault.vault()), burnAmount);
 
-        assertEq(erc4626StrategyVault.convertToAssets(shares), erc4626StrategyVault.maxWithdraw(alice));
-        assertEq(erc4626StrategyVault.convertToAssets(shares2), erc4626StrategyVault.maxWithdraw(bob));
+        uint256 prevAliceMaxWithdraw = erc4626StrategyVault.maxWithdraw(alice);
+        uint256 prevBobMaxWithdraw = erc4626StrategyVault.maxWithdraw(bob);
 
-        // console.log(
-        //     erc4626StrategyVault.maxWithdraw(bob),
-        //     erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(bob))
-        // );
-        // console.log(
-        //     erc4626StrategyVault.maxWithdraw(alice),
-        //     erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(alice))
-        // );
-        // console.log(
-        //     erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
-        //     erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(address(erc4626StrategyVault)))
-        // );
-        // console.log(
-        //     erc4626StrategyVault.maxWithdraw(bob) + erc4626StrategyVault.maxWithdraw(alice)
-        //         + erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
-        //     erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault))
-        // );
+        assertEq(erc4626StrategyVault.convertToAssets(shares), prevAliceMaxWithdraw);
+        assertEq(erc4626StrategyVault.convertToAssets(shares2), prevBobMaxWithdraw);
 
-        // BUG: add donation
+        _mint(erc20Asset, address(erc4626Vault), depositAmount);
+
+        assertGt(erc4626StrategyVault.maxWithdraw(alice), prevAliceMaxWithdraw);
+        assertGt(erc4626StrategyVault.maxWithdraw(bob), prevBobMaxWithdraw);
+
+        assertApproxEqAbs(
+            erc4626StrategyVault.maxWithdraw(alice) + erc4626StrategyVault.maxWithdraw(bob)
+                + erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
+            erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault)),
+            10
+        );
     }
 
     function test_ERC4626StrategyVault_maxRedeem() public {
