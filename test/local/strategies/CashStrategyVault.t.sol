@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
-import {console} from "forge-std/console.sol";
 
 contract CashStrategyVaultTest is BaseTest {
     uint256 initialBalance;

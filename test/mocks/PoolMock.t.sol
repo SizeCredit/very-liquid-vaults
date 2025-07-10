@@ -22,7 +22,6 @@ contract PoolMock is IPool, Ownable {
         AToken aToken;
         VariableDebtToken debtToken;
         uint256 reserveIndex;
-        DataTypes.ReserveConfigurationMap configuration;
     }
 
     PoolAddressesProvider private immutable addressesProvider;
@@ -65,8 +64,6 @@ contract PoolMock is IPool, Ownable {
             );
         }
         data.reserveIndex = index;
-        data.configuration =
-            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (uint8(IERC20Metadata(asset).decimals()) << 48)});
     }
 
     function mintUnbacked(address, uint256, address, uint16) external pure {
@@ -162,12 +159,12 @@ contract PoolMock is IPool, Ownable {
         revert NotImplemented();
     }
 
-    function setConfiguration(address asset, DataTypes.ReserveConfigurationMap calldata config) external {
-        datas[asset].configuration = config;
+    function setConfiguration(address, DataTypes.ReserveConfigurationMap calldata) external pure {
+        revert NotImplemented();
     }
 
-    function getConfiguration(address asset) external view returns (DataTypes.ReserveConfigurationMap memory) {
-        return datas[asset].configuration;
+    function getConfiguration(address) external pure returns (DataTypes.ReserveConfigurationMap memory) {
+        revert NotImplemented();
     }
 
     function getUserConfiguration(address) external pure returns (DataTypes.UserConfigurationMap memory) {
@@ -185,7 +182,9 @@ contract PoolMock is IPool, Ownable {
     function getReserveData(address reserve) external view returns (DataTypes.ReserveDataLegacy memory data) {
         data.aTokenAddress = address(datas[reserve].aToken);
         data.liquidityIndex = uint128(datas[reserve].reserveIndex);
-        data.configuration = datas[reserve].configuration;
+        // Bit 56 = 1 (active), Bit 57 = 0 (not frozen), Bit 60 = 0 (not paused), Bits 48-55 = decimals
+        data.configuration =
+            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (uint8(IERC20Metadata(reserve).decimals()) << 48)});
     }
 
     function getVirtualUnderlyingBalance(address) external pure returns (uint128) {

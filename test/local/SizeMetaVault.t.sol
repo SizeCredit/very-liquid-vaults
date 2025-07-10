@@ -10,8 +10,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
 import {VaultMockRevertOnDeposit} from "@test/mocks/VaultMockRevertOnDeposit.t.sol";
 import {VaultMockDecMaxDeposit} from "@test/mocks/VaultMockDecMaxDeposit.t.sol";
-
-import {console} from "forge-std/console.sol";
+import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     function test_SizeMetaVault_initialize() public view {
@@ -230,7 +229,6 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(alice), firstDepositAmount + secondDepositAmount - 1);
     }
 
-    //
     function test_SizeMetaVault_deposit_redeem() public {
         uint256 initialTotalAssets = sizeMetaVault.totalAssets();
 
@@ -255,11 +253,12 @@ contract SizeMetaVaultTest is BaseTest {
     // Customized Vault for ERC4626StrategyVault was used to hit specific edge cases
     ///////////////////////////////////////////
 
-    function _helper_deploy_new_ERC4626StrategyVault(bool _isRevertingOnDeposit)
+    function _helper_deploy_new_ERC4626StrategyVault(bool _isRevertingOnDeposit, bool _isRevertingOnWithdraw)
         public
         returns (ERC4626StrategyVault)
     {
-        VaultMockRevertOnDeposit vault_revert;
+        VaultMockRevertOnDeposit vault_revertDeposit;
+        VaultMockRevertOnWithdraw vault_revertWithdraw;
         VaultMockDecMaxDeposit vault_decDeposit;
         ERC4626StrategyVault newERC4626StrategyVault;
 
@@ -274,8 +273,11 @@ contract SizeMetaVaultTest is BaseTest {
         _mint(erc20Asset, address(deployer), FIRST_DEPOSIT_AMOUNT);
 
         if (_isRevertingOnDeposit) {
-            vault_revert = new VaultMockRevertOnDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
-            newERC4626StrategyVault = deployer.deploy(auth_, asset_, FIRST_DEPOSIT_AMOUNT, vault_revert);
+            vault_revertDeposit = new VaultMockRevertOnDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
+            newERC4626StrategyVault = deployer.deploy(auth_, asset_, FIRST_DEPOSIT_AMOUNT, vault_revertDeposit);
+        } else if (_isRevertingOnWithdraw) {
+            vault_revertWithdraw = new VaultMockRevertOnWithdraw(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
+            newERC4626StrategyVault = deployer.deploy(auth_, asset_, FIRST_DEPOSIT_AMOUNT, vault_revertWithdraw);
         } else {
             vault_decDeposit = new VaultMockDecMaxDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
             newERC4626StrategyVault = deployer.deploy(auth_, asset_, FIRST_DEPOSIT_AMOUNT, vault_decDeposit);
@@ -289,7 +291,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_deposit_revert_if_all_assets_cannot_be_deposited() public {
-        _helper_deploy_new_ERC4626StrategyVault(true);
+        _helper_deploy_new_ERC4626StrategyVault(true, false);
 
         // now, only on strategy with customized maxDeposit that is not type(uint256).max
 
@@ -298,39 +300,35 @@ contract SizeMetaVaultTest is BaseTest {
 
         uint256 shares = sizeMetaVault.previewDeposit(type(uint32).max);
 
+        vm.prank(alice);
         vm.expectRevert(
             abi.encodeWithSelector(
                 SizeMetaVault.CannotDepositToStrategies.selector, type(uint32).max, shares, type(uint32).max
             )
         );
-        vm.prank(alice);
         sizeMetaVault.deposit(type(uint32).max, alice);
     }
 
-    // function test_SizeMetaVault_deposit_revert_if_all_assets_cannot_be_withdrawn()
-    //     public
-    // {
-    //     ERC4626StrategyVault newERC4626StrategyVault = _helper_deploy_new_ERC4626StrategyVault(
-    //             false
-    //         );
+    function test_SizeMetaVault_withdraw_revert_if_all_assets_cannot_be_withdrawn() public {
+        _helper_deploy_new_ERC4626StrategyVault(false, true);
 
-    //     _mint(erc20Asset, alice, type(uint256).max);
-    //     _approve(alice, erc20Asset, address(sizeMetaVault), type(uint256).max);
+        uint256 amount = 100e6;
 
-    //     vm.prank(alice);
-    //     sizeMetaVault.deposit(type(uint64).max, alice);
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(sizeMetaVault), amount);
 
-    //     uint256 shares = sizeMetaVault.previewDeposit(type(uint64).max);
+        vm.prank(alice);
+        sizeMetaVault.deposit(amount, alice);
 
-    //     vm.expectRevert(
-    //         abi.encodeWithSelector(
-    //             SizeMetaVault.CannotWithdrawFromStrategies.selector,
-    //             type(uint64).max,
-    //             shares,
-    //             (type(uint64).max - type(uint32).max)
-    //         )
-    //     );
-    //     vm.prank(alice);
-    //     sizeMetaVault.withdraw(type(uint64).max, alice, alice);
-    // }
+        uint256 withdrawableAssets = sizeMetaVault.maxWithdraw(alice);
+        uint256 shares = sizeMetaVault.previewWithdraw(withdrawableAssets);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                SizeMetaVault.CannotWithdrawFromStrategies.selector, withdrawableAssets, shares, withdrawableAssets
+            )
+        );
+        sizeMetaVault.withdraw(withdrawableAssets, alice, alice);
+    }
 }

@@ -18,7 +18,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
     using SafeERC20 for IERC20Metadata;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
-    IPool public aavePool;
+    IPool public aavePool = IPool(address(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5));
     IPoolConfigurator public aavePoolConfigurator =
         IPoolConfigurator(address(0x5731a04B1E775f0fdd454Bf70f3335886e9A96be));
     address public aavePoolAdmin = 0x9390B1735def18560c509E2d0bc090E9d6BA257a;
@@ -29,7 +29,6 @@ contract AaveStrategyVaultForkTest is ForkTest {
         // can choose a better value
         FIRST_DEPOSIT_AMOUNT = 10e6;
 
-        aavePool = IPool(address(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5));
         _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
 
         address implementation = address(new AaveStrategyVault());
@@ -48,20 +47,10 @@ contract AaveStrategyVaultForkTest is ForkTest {
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
         aaveStrategyVault = AaveStrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
-        console.log("first deposit amount", FIRST_DEPOSIT_AMOUNT);
         asset.forceApprove(address(aaveStrategyVault), FIRST_DEPOSIT_AMOUNT);
         Create2.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
-    }
-
-    function test_fork() public {
-        console.log(aavePool.getConfiguration(address(asset)).getFrozen());
-
-        vm.prank(aavePoolAdmin);
-        aavePoolConfigurator.setReserveFreeze(address(asset), true);
-
-        console.log(aavePool.getConfiguration(address(asset)).getFrozen());
     }
 
     function test_AaveStrategyVault_initialize_with_zero_address_pool_must_revert() public {
@@ -90,31 +79,25 @@ contract AaveStrategyVaultForkTest is ForkTest {
         );
     }
 
-    // function test_AaveStrategyVault_maxDeposit_getActive_false_must_return_zero()
-    //     public
-    // {
-    //     vm.prank(aavePoolAdmin);
-    //     aavePoolConfigurator.setReserveActive(address(asset), false);
-
-    //     uint256 returnValue = aaveStrategyVault.maxDeposit(address(this));
-    //     console.log(returnValue);
-
-    //     assertEq(returnValue, 0);
-    // }
+    // skip test_AaveStrategyVault_maxDeposit_getActive_false_must_return_zero, as we need to have no suppliers
+    // check https://github.com/aave/aave-v3-core/blob/master/contracts/protocol/pool/PoolConfigurator.sol#L199
 
     function test_AaveStrategyVault_maxDeposit_if_frozen_must_return_zero() public {
         vm.prank(aavePoolAdmin);
         aavePoolConfigurator.setReserveFreeze(address(asset), true);
 
+        assertEq(aavePool.getConfiguration(address(asset)).getFrozen(), true);
+
         uint256 returnValue = aaveStrategyVault.maxDeposit(address(this));
 
         assertEq(returnValue, 0);
-        assertEq(aavePool.getConfiguration(address(asset)).getFrozen(), true);
     }
 
     function test_AaveStrategyVault_maxDeposit_maxWithdraw_maxRedeen_if_posed_must_return_zero() public {
         vm.prank(aavePoolAdmin);
         aavePoolConfigurator.setReservePause(address(asset), true);
+
+        assertEq(aavePool.getConfiguration(address(asset)).getPaused(), true);
 
         uint256 maxDepositReturnValue = aaveStrategyVault.maxDeposit(address(this));
         uint256 maxWithdrawReturnValue = aaveStrategyVault.maxWithdraw(address(this));
@@ -129,8 +112,27 @@ contract AaveStrategyVaultForkTest is ForkTest {
         vm.prank(aavePoolAdmin);
         aavePoolConfigurator.setSupplyCap(address(asset), 0);
 
+        assertEq(aavePool.getConfiguration(address(asset)).getSupplyCap(), 0);
+
         uint256 maxDepositReturnValue = aaveStrategyVault.maxDeposit(address(this));
 
         assertEq(maxDepositReturnValue, type(uint256).max);
+    }
+
+    function test_AaveStrategyVault_increase_assets_after_some_time() public {
+        uint256 amount = 10 * 10 ** asset.decimals();
+
+        _mint(asset, alice, amount);
+        _approve(alice, asset, address(aaveStrategyVault), amount);
+
+        vm.startPrank(alice);
+
+        aaveStrategyVault.deposit(amount, alice);
+
+        vm.warp(block.timestamp + 1 weeks);
+
+        uint256 redeemedAssets = aaveStrategyVault.redeem(aaveStrategyVault.balanceOf(alice), alice, alice);
+
+        assertGt(redeemedAssets, amount);
     }
 }
