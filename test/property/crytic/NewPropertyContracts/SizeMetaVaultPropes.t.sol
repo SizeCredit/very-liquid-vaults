@@ -35,7 +35,7 @@ contract SizeMetaVaultPropes is SizeMetaVaultHelper {
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(sizeMetaVault), depositAmount);
 
-        vm.prank(alice);
+        hevm.prank(alice);
         sizeMetaVault.deposit(depositAmount, alice);
 
         uint256 assetStrategyFromBefore = strategyFrom.totalAssets();
@@ -48,7 +48,7 @@ contract SizeMetaVaultPropes is SizeMetaVaultHelper {
                 BaseVault(address(strategyFrom)).deadAssets()
         );
 
-        vm.prank(strategist);
+        hevm.prank(strategist);
         sizeMetaVault.rebalance(strategyFrom, strategyTo, rebalanceAmount);
         assertEq(
             strategyFrom.totalAssets(),

@@ -4,12 +4,15 @@ pragma solidity 0.8.23;
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {BaseVault} from "@src/BaseVault.sol";
+import {IHevm} from "@crytic/properties/contracts/util/Hevm.sol";
 
 contract SizeMetaVaultHelper is BaseTest {
     mapping(uint256 => address) indexToStrategy;
 
+    IHevm constant hevm = IHevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+
     constructor() {
-        deploy(address(this));
+        setUp();
         _setStrategyMapping();
     }
 
@@ -45,7 +48,7 @@ contract SizeMetaVaultHelper is BaseTest {
         newStrategies[0] = strategyFrom;
         newStrategies[1] = strategyTo;
 
-        vm.prank(strategist);
+        hevm.prank(strategist);
         sizeMetaVault.setStrategies(newStrategies);
 
         return (strategyFrom, strategyTo);
