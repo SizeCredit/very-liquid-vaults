@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23; 
-  
+pragma solidity 0.8.23;
+
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {Setup} from "@test/Setup.t.sol";
 import {CryticERC4626PropertyBase} from "@crytic/properties/contracts/ERC4626/util/ERC4626PropertyTestBase.sol";
 
-import {User} from "@crytic/properties/contracts/util/User.sol"; 
+import {User} from "@crytic/properties/contracts/util/User.sol";
 
 contract SizeMetaVaultHelper is Setup, CryticERC4626PropertyBase {
     mapping(uint256 => address) indexToStrategy;
@@ -15,8 +15,8 @@ contract SizeMetaVaultHelper is Setup, CryticERC4626PropertyBase {
     bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
     bytes32 constant SIZE_VAULT_ROLE = keccak256("SIZE_VAULT_ROLE");
 
-    User user; 
-    User strategist;  
+    User user;
+    User strategist;
 
     constructor() {
         deploy(address(this));
@@ -51,10 +51,10 @@ contract SizeMetaVaultHelper is Setup, CryticERC4626PropertyBase {
     // which strategy is going to be the receiver bcz based on the deploy
     // CashVaultStratey will always be the first one so rebalnce will only take place from
     // cash into other vault strategies
-    function _setTwoStrategiesInOrder(
-        uint256 indexFrom,
-        uint256 indexTo
-    ) internal returns (address strategyFrom, address strategyTo) {
+    function _setTwoStrategiesInOrder(uint256 indexFrom, uint256 indexTo)
+        internal
+        returns (address strategyFrom, address strategyTo)
+    {
         strategyFrom = indexToStrategy[indexFrom];
         strategyTo = indexToStrategy[indexTo];
 
@@ -62,17 +62,15 @@ contract SizeMetaVaultHelper is Setup, CryticERC4626PropertyBase {
         newStrategies[0] = strategyFrom;
         newStrategies[1] = strategyTo;
 
-        strategist.proxy(address(sizeMetaVault), abi.encodeWithSelector(SizeMetaVault.setStrategies.selector, newStrategies));
+        strategist.proxy(
+            address(sizeMetaVault), abi.encodeWithSelector(SizeMetaVault.setStrategies.selector, newStrategies)
+        );
         sizeMetaVault.setStrategies(newStrategies);
 
         return (strategyFrom, strategyTo);
     }
 
-    function _between(
-        uint256 val,
-        uint256 lower,
-        uint256 upper
-    ) internal pure returns (uint256) {
+    function _between(uint256 val, uint256 lower, uint256 upper) internal pure returns (uint256) {
         return lower + (val % (upper - lower + 1));
     }
 }

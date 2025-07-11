@@ -7,7 +7,6 @@ import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
-
 contract SizeMetaVaultPropes is SizeMetaVaultHelper {
     function test_SizeMetaVault_rebalance_property_testing(
         uint256 depositAmount,
@@ -23,49 +22,38 @@ contract SizeMetaVaultPropes is SizeMetaVaultHelper {
             counter++;
         }
 
-        (
-            address strategyFromAddress,
-            address strategyToAddress 
-        ) = _setTwoStrategiesInOrder(indexFrom, indexTo);
+        (address strategyFromAddress, address strategyToAddress) = _setTwoStrategiesInOrder(indexFrom, indexTo);
 
         assertEq(sizeMetaVault.strategiesCount(), 2, "failed to set only two strategies");
 
         IStrategy strategyFrom = IStrategy(strategyFromAddress);
         IStrategy strategyTo = IStrategy(strategyToAddress);
 
-        depositAmount = _between(depositAmount, 0, type(uint256).max - 1 );
+        depositAmount = _between(depositAmount, 0, type(uint256).max - 1);
 
         uint256 balanceOfUserBefore = asset.balanceOf(address(user));
         asset.mint(address(user), depositAmount);
         asset.approve(address(sizeMetaVault), depositAmount);
 
-        assert(asset.balanceOf(address(user)) ==( depositAmount + balanceOfUserBefore));
+        assert(asset.balanceOf(address(user)) == (depositAmount + balanceOfUserBefore));
 
-        user.proxy(address(sizeMetaVault), abi.encodeWithSelector(ERC4626Upgradeable.deposit.selector, depositAmount, address(user)));
-
+        user.proxy(
+            address(sizeMetaVault),
+            abi.encodeWithSelector(ERC4626Upgradeable.deposit.selector, depositAmount, address(user))
+        );
 
         uint256 assetStrategyFromBefore = strategyFrom.totalAssets();
         uint256 assetStrategyToBefore = strategyTo.totalAssets();
 
-        rebalanceAmount = _between(
-            rebalanceAmount,
-            0,
-            strategyFrom.totalAssets() -
-                BaseVault(address(strategyFrom)).deadAssets()
+        rebalanceAmount =
+            _between(rebalanceAmount, 0, strategyFrom.totalAssets() - BaseVault(address(strategyFrom)).deadAssets());
+
+        strategist.proxy(
+            address(sizeMetaVault),
+            abi.encodeWithSelector(SizeMetaVault.rebalance.selector, strategyFrom, strategyTo, rebalanceAmount)
         );
 
-        strategist.proxy(address(sizeMetaVault), abi.encodeWithSelector(SizeMetaVault.rebalance.selector, strategyFrom, strategyTo, rebalanceAmount));
-
-
-        assertEq(
-            strategyFrom.totalAssets(),
-            assetStrategyFromBefore - rebalanceAmount,
-            "check rebalance fucntion"
-        );
-        assertEq(
-            strategyTo.totalAssets(),
-            assetStrategyToBefore + rebalanceAmount,
-            "check rebalance fucntion"
-        );
+        assertEq(strategyFrom.totalAssets(), assetStrategyFromBefore - rebalanceAmount, "check rebalance fucntion");
+        assertEq(strategyTo.totalAssets(), assetStrategyToBefore + rebalanceAmount, "check rebalance fucntion");
     }
 }
