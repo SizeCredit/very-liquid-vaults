@@ -33,12 +33,13 @@ contract SizeMetaVaultPropes is SizeMetaVaultHelper {
         IStrategy strategyFrom = IStrategy(strategyFromAddress);
         IStrategy strategyTo = IStrategy(strategyToAddress);
 
-        depositAmount = _between(depositAmount, 0, type(uint256).max -1 );
+        depositAmount = _between(depositAmount, 0, type(uint256).max - 1 );
 
+        uint256 balanceOfUserBefore = asset.balanceOf(address(user));
         asset.mint(address(user), depositAmount);
         asset.approve(address(sizeMetaVault), depositAmount);
 
-        assert(asset.balanceOf(address(user)) == depositAmount);
+        assert(asset.balanceOf(address(user)) ==( depositAmount + balanceOfUserBefore));
 
         user.proxy(address(sizeMetaVault), abi.encodeWithSelector(ERC4626Upgradeable.deposit.selector, depositAmount, address(user)));
 
