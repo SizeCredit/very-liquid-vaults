@@ -1,19 +1,33 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
-
-import {BaseTest} from "@test/BaseTest.t.sol";
+pragma solidity 0.8.23; 
+  
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {BaseVault} from "@src/BaseVault.sol";
-import {IHevm} from "@crytic/properties/contracts/util/Hevm.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {Setup} from "@test/Setup.t.sol";
+import {CryticERC4626PropertyBase} from "@crytic/properties/contracts/ERC4626/util/ERC4626PropertyTestBase.sol";
 
-contract SizeMetaVaultHelper is BaseTest {
+import {User} from "@crytic/properties/contracts/util/User.sol"; 
+
+contract SizeMetaVaultHelper is Setup, CryticERC4626PropertyBase {
     mapping(uint256 => address) indexToStrategy;
 
-    IHevm constant hevm = IHevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
+    bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
+    bytes32 constant SIZE_VAULT_ROLE = keccak256("SIZE_VAULT_ROLE");
+
+    User user; 
+    User strategist;  
 
     constructor() {
-        setUp();
+        deploy(address(this));
+        initialize(address(sizeMetaVault), address(erc20Asset), false);
         _setStrategyMapping();
+
+        user = new User();
+        strategist = new User();
+
+        auth.grantRole(STRATEGIST_ROLE, address(strategist));
+        auth.grantRole(SIZE_VAULT_ROLE, address(sizeMetaVault));
     }
 
     // remove all strategies a stragtegies
@@ -48,7 +62,7 @@ contract SizeMetaVaultHelper is BaseTest {
         newStrategies[0] = strategyFrom;
         newStrategies[1] = strategyTo;
 
-        hevm.prank(strategist);
+        strategist.proxy(address(sizeMetaVault), abi.encodeWithSelector(SizeMetaVault.setStrategies.selector, newStrategies));
         sizeMetaVault.setStrategies(newStrategies);
 
         return (strategyFrom, strategyTo);

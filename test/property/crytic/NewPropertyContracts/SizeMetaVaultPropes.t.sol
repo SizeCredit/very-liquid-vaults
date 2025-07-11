@@ -4,9 +4,12 @@ pragma solidity 0.8.23;
 import {BaseVault} from "@src/BaseVault.sol";
 import {SizeMetaVaultHelper} from "@test/property/crytic/NewPropertyContracts/SizeMetaVaultHelper.t.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
+
 
 contract SizeMetaVaultPropes is SizeMetaVaultHelper {
-    function test_SizeMetaVault_rebalance_propperty_testing(
+    function test_SizeMetaVault_rebalance_property_testing(
         uint256 depositAmount,
         uint256 rebalanceAmount,
         uint256 indexFrom,
@@ -22,21 +25,23 @@ contract SizeMetaVaultPropes is SizeMetaVaultHelper {
 
         (
             address strategyFromAddress,
-            address strategyToAddress
+            address strategyToAddress 
         ) = _setTwoStrategiesInOrder(indexFrom, indexTo);
 
-        assertEq(sizeMetaVault.strategiesCount(), 2);
+        assertEq(sizeMetaVault.strategiesCount(), 2, "failed to set only two strategies");
 
         IStrategy strategyFrom = IStrategy(strategyFromAddress);
         IStrategy strategyTo = IStrategy(strategyToAddress);
 
-        depositAmount = _between(depositAmount, 0, type(uint32).max);
+        depositAmount = _between(depositAmount, 0, type(uint256).max -1 );
 
-        _mint(erc20Asset, alice, depositAmount);
-        _approve(alice, erc20Asset, address(sizeMetaVault), depositAmount);
+        asset.mint(address(user), depositAmount);
+        asset.approve(address(sizeMetaVault), depositAmount);
 
-        hevm.prank(alice);
-        sizeMetaVault.deposit(depositAmount, alice);
+        assert(asset.balanceOf(address(user)) == depositAmount);
+
+        user.proxy(address(sizeMetaVault), abi.encodeWithSelector(ERC4626Upgradeable.deposit.selector, depositAmount, address(user)));
+
 
         uint256 assetStrategyFromBefore = strategyFrom.totalAssets();
         uint256 assetStrategyToBefore = strategyTo.totalAssets();
@@ -48,15 +53,18 @@ contract SizeMetaVaultPropes is SizeMetaVaultHelper {
                 BaseVault(address(strategyFrom)).deadAssets()
         );
 
-        hevm.prank(strategist);
-        sizeMetaVault.rebalance(strategyFrom, strategyTo, rebalanceAmount);
+        strategist.proxy(address(sizeMetaVault), abi.encodeWithSelector(SizeMetaVault.rebalance.selector, strategyFrom, strategyTo, rebalanceAmount));
+
+
         assertEq(
             strategyFrom.totalAssets(),
-            assetStrategyFromBefore - rebalanceAmount
+            assetStrategyFromBefore - rebalanceAmount,
+            "check rebalance fucntion"
         );
         assertEq(
             strategyTo.totalAssets(),
-            assetStrategyToBefore + rebalanceAmount
+            assetStrategyToBefore + rebalanceAmount,
+            "check rebalance fucntion"
         );
     }
 }
