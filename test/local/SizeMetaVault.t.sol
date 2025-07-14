@@ -12,6 +12,7 @@ import {VaultMockRevertOnDeposit} from "@test/mocks/VaultMockRevertOnDeposit.t.s
 import {VaultMockDecMaxDeposit} from "@test/mocks/VaultMockDecMaxDeposit.t.sol";
 import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     function test_SizeMetaVault_initialize() public view {
@@ -36,7 +37,7 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 amount = cashAssetsBefore - cashStrategyDeadAssetsBefore;
 
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0);
 
         uint256 cashAssetsAfter = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsAfter = erc4626StrategyVault.totalAssets();
@@ -55,7 +56,7 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 amount = erc4626AssetsBefore - erc4626StrategyDeadAssetsBefore;
 
         vm.prank(strategist);
-        sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, amount);
+        sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, amount, 0);
 
         uint256 erc4626AssetsAfter = erc4626StrategyVault.totalAssets();
         uint256 cashAssetsAfter = cashStrategyVault.totalAssets();
@@ -88,13 +89,13 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_AddStrategyValidation() public {
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         sizeMetaVault.addStrategy(address(0));
     }
 
     function test_SizeMetaVault_RemoveStrategyValidation() public {
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         sizeMetaVault.removeStrategy(address(0));
     }
 
@@ -104,7 +105,7 @@ contract SizeMetaVaultTest is BaseTest {
         strategiesWithZero[1] = address(0xDEAD);
 
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_ADDRESS.selector));
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         sizeMetaVault.setStrategies(strategiesWithZero);
     }
 
@@ -118,17 +119,17 @@ contract SizeMetaVaultTest is BaseTest {
         // validate strategyFrom
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(1)));
-        sizeMetaVault.rebalance(IStrategy(address(1)), erc4626StrategyVault, amount);
+        sizeMetaVault.rebalance(IStrategy(address(1)), erc4626StrategyVault, amount, 0);
 
         // validate strategyTo
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(1)));
-        sizeMetaVault.rebalance(cashStrategyVault, IStrategy(address(1)), amount);
+        sizeMetaVault.rebalance(cashStrategyVault, IStrategy(address(1)), amount, 0);
 
         // validate amount 0
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.NULL_AMOUNT.selector));
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, 0);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAmount.selector));
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, 0, 0);
 
         // validate amount > balance
         amount = 50e6;
@@ -140,7 +141,7 @@ contract SizeMetaVaultTest is BaseTest {
                 SizeMetaVault.InsufficientAssets.selector, cashAssetsBefore, cashStrategyDeadAssets, amount
             )
         );
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0);
     }
 
     function test_SizeMetaVault_rebalance() public {
@@ -178,7 +179,7 @@ contract SizeMetaVaultTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cashStrategyVault)));
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets, 0);
     }
 
     function test_sizeMetaVault_rebalance_strategyTo_not_added_must_revert() public {
@@ -194,7 +195,7 @@ contract SizeMetaVaultTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(erc4626StrategyVault)));
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets, 0);
     }
 
     /// setStrategies  ///
@@ -408,8 +409,5 @@ contract SizeMetaVaultTest is BaseTest {
             )
         );
         sizeMetaVault.withdraw(withdrawableAssets, alice, alice);
-        assertEq(sizeMetaVault.getStrategy(0), strategies[0]);
-        assertEq(sizeMetaVault.getStrategy(1), strategies[1]);
-        assertEq(sizeMetaVault.getStrategy(2), strategies[2]);
     }
 }

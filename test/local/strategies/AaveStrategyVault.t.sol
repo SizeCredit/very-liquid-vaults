@@ -37,7 +37,7 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(amount, rebalanceAmount);
 
         vm.prank(strategist);
-        sizeMetaVault.rebalance(aaveStrategyVault, cashStrategyVault, rebalanceAmount);
+        sizeMetaVault.rebalance(aaveStrategyVault, cashStrategyVault, rebalanceAmount, 0);
 
         uint256 assetsAaveStrategyAfter = aaveStrategyVault.totalAssets();
         uint256 assetsCashStrategyAfter = cashStrategyVault.totalAssets();
@@ -64,7 +64,7 @@ contract AaveStrategyVaultTest is BaseTest {
         uint256 assetsATokenBeforeRebalance = erc20Asset.balanceOf(aTokenAddress);
 
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, amount);
+        sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, amount, 0);
 
         uint256 assetsATokenAfter = erc20Asset.balanceOf(aTokenAddress);
         uint256 assetsAaveStrategyVaultAfterReblance = erc20Asset.balanceOf(address(aaveStrategyVault));

@@ -43,8 +43,6 @@ contract SizeMetaVault is BaseVault {
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
     error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
     error TransferedAmountLessThanMin(uint256 transferred, uint256 minAmount);
-    error NullAddress();
-    error NullAmount();
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
