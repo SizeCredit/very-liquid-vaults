@@ -143,12 +143,10 @@ contract CashStrategyVaultTest is BaseTest {
         assertGe(erc20Asset.balanceOf(alice), depositAmount);
     }
 
-    /// New Tests ///
-
-    // if user redeems shares when the vault has no assets
-    // the user will be allowed to to this
-    // user will burn 100% of shares for zero assets
     function test_CashStrategyVault_deposit_transferAssets_all_redeem() public {
+        // if user redeems shares when the vault has no assets
+        // the user will be allowed to to this
+        // user will burn 100% of shares for zero assets
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(cashStrategyVault), depositAmount);
@@ -174,10 +172,10 @@ contract CashStrategyVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(alice), 0);
     }
 
-    // if user try to withdraw instead of redeeming then the vault asset balance
-    // will be taken into consideration and the user shares will no be bruned
-    // for nothing
     function test_CashStrategyVault_deposit_transferAssets_all_withdraw() public {
+        // if user try to withdraw instead of redeeming then the vault asset balance
+        // will be taken into consideration and the user shares will no be bruned
+        // for nothing
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(cashStrategyVault), depositAmount);

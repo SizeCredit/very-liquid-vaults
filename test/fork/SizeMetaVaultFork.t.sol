@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
-import {AaveStrategyVaultForkTest} from "@test/fork/strategies/AaveStrategyVault.t.sol";
+import {AaveStrategyVaultForkTest} from "@test/fork/strategies/AaveStrategyVaultFork.t.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
@@ -41,7 +41,7 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
         );
     }
 
-    function test_SizeMetaVault_Fork_deposit_withdraw_with_interest() public {
+    function testFork_SizeMetaVault_deposit_withdraw_with_interest() public {
         uint256 amount = 10 * 10 ** asset.decimals();
 
         _mint(asset, alice, amount);

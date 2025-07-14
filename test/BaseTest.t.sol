@@ -19,6 +19,7 @@ import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 import {Auth, STRATEGIST_ROLE, SIZE_VAULT_ROLE} from "@src/Auth.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 contract BaseTest is Test, Setup {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
@@ -75,6 +76,13 @@ contract BaseTest is Test, Setup {
     function _approve(address _user, IERC20Metadata _asset, address _spender, uint256 _amount) internal {
         vm.prank(_user);
         _asset.approve(_spender, _amount);
+    }
+
+    function _deposit(IERC4626 _vault, address _user, uint256 _amount) internal {
+        _mint(IERC20Metadata(address(_vault.asset())), _user, _amount);
+        _approve(_user, IERC20Metadata(address(_vault.asset())), address(_vault), _amount);
+        vm.prank(_user);
+        _vault.deposit(_amount, _user);
     }
 
     function assertEq(uint256 _a, uint256 _b, uint256 _c) internal pure {

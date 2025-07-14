@@ -53,7 +53,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
         );
     }
 
-    function test_AaveStrategyVault_initialize_with_zero_address_pool_must_revert() public {
+    function testFork_AaveStrategyVault_initialize_with_zero_address_pool_must_revert() public {
         _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
 
         address implementation = address(new AaveStrategyVault());
@@ -82,7 +82,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
     // skip test_AaveStrategyVault_maxDeposit_getActive_false_must_return_zero, as we need to have no suppliers
     // check https://github.com/aave/aave-v3-core/blob/master/contracts/protocol/pool/PoolConfigurator.sol#L199
 
-    function test_AaveStrategyVault_maxDeposit_if_frozen_must_return_zero() public {
+    function testFork_AaveStrategyVault_maxDeposit_if_frozen_must_return_zero() public {
         vm.prank(aavePoolAdmin);
         aavePoolConfigurator.setReserveFreeze(address(asset), true);
 
@@ -93,7 +93,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
         assertEq(returnValue, 0);
     }
 
-    function test_AaveStrategyVault_maxDeposit_maxWithdraw_maxRedeen_if_posed_must_return_zero() public {
+    function testFork_AaveStrategyVault_maxDeposit_maxWithdraw_maxRedeen_if_posed_must_return_zero() public {
         vm.prank(aavePoolAdmin);
         aavePoolConfigurator.setReservePause(address(asset), true);
 
@@ -108,7 +108,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
         assertEq(maxRedeemReturnValue, 0);
     }
 
-    function test_AaveStrategyVault_maxDeposit_if_no_supplyCap_returns_max_uint256() public {
+    function testFork_AaveStrategyVault_maxDeposit_if_no_supplyCap_returns_max_uint256() public {
         vm.prank(aavePoolAdmin);
         aavePoolConfigurator.setSupplyCap(address(asset), 0);
 
@@ -119,7 +119,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
         assertEq(maxDepositReturnValue, type(uint256).max);
     }
 
-    function test_AaveStrategyVault_increase_assets_after_some_time() public {
+    function testFork_AaveStrategyVault_increase_assets_after_some_time() public {
         uint256 amount = 10 * 10 ** asset.decimals();
 
         _mint(asset, alice, amount);

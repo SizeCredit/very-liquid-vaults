@@ -20,8 +20,6 @@ contract AaveStrategyVaultTest is BaseTest {
         initialBalance = erc20Asset.balanceOf(address(aToken));
     }
 
-    /// transferAssets ///
-
     function test_AaveStrategyVault_transferAssets() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
@@ -48,8 +46,6 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(deadAssetsAaveStrategyVaultBefore, deadAssetsAaveStrategyVaultAfter);
     }
 
-    /// skim ///
-
     function test_AaveStrategyVault_skim() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
@@ -74,8 +70,6 @@ contract AaveStrategyVaultTest is BaseTest {
         assertEq(assetsAaveStrategyVaultAfterReblance, 0);
         assertEq(assetsCashStrategyVaultAfterRebalance, assetsCashStrategyVaultBeforeRebalance - amount);
     }
-
-    /// Mult-fucntion Call tests
 
     function test_AaveStrategyVault_deposit_balanceOf_totalAssets() public {
         uint256 amount = 100e6;
@@ -207,8 +201,6 @@ contract AaveStrategyVaultTest is BaseTest {
         assertGe(aaveStrategyVault.totalAssets(), initialTotalAssets);
         assertGe(erc20Asset.balanceOf(address(aToken)), initialBalance);
     }
-
-    /// Branches and Edge Cases ///
 
     function test_AaveStrategyVault_initialize_wiht_address_zero_pool_must_revert() public {
         _mint(erc20Asset, alice, FIRST_DEPOSIT_AMOUNT);

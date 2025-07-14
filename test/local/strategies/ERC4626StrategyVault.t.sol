@@ -143,8 +143,6 @@ contract ERC4626StrategyVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(alice), previewRedeemAssets);
     }
 
-    /// Test for improper initailizaton ///
-
     function test_DeployErc4626StrategyVault_with_zero_address_auth_must_revert() public {
         VaultMock vaultMock = new VaultMock(alice, erc20Asset, "VAULTMOCK", "VM");
         _mint(erc20Asset, alice, FIRST_DEPOSIT_AMOUNT);

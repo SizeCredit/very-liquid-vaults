@@ -27,8 +27,6 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(sizeMetaVault.decimals(), erc20Asset.decimals());
     }
 
-    /// rebalance ///
-
     function test_SizeMetaVault_rebalance_cashStrategy_to_erc4626() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
@@ -49,6 +47,8 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_rebalance_erc4626_to_cashStrategy() public {
+        _deposit(erc4626StrategyVault, alice, 100e6);
+
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626StrategyDeadAssetsBefore = cashStrategyVault.deadAssets();
@@ -67,7 +67,7 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(cashAssetsAfter, cashAssetsBefore + amount);
     }
 
-    function test_SizeMetaVault_rebalanceSlippageValidation() public {
+    function test_SizeMetaVault_rebalance_slippage_validation() public {
         uint256 amount = 30e6;
         uint256 minAmount = 31e6;
 
@@ -78,7 +78,7 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, minAmount);
     }
 
-    function test_SizeMetaVault_rebalanceWithSlippage() public {
+    function test_SizeMetaVault_rebalance_with_slippage() public {
         uint256 amount = 30e6;
 
         _mint(erc20Asset, address(cashStrategyVault), amount * 2);
@@ -87,19 +87,19 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, amount);
     }
 
-    function test_SizeMetaVault_AddStrategyValidation() public {
+    function test_SizeMetaVault_addStrategy_validation() public {
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         sizeMetaVault.addStrategy(address(0));
     }
 
-    function test_SizeMetaVault_RemoveStrategyValidation() public {
+    function test_SizeMetaVault_removeStrategy_validation() public {
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         sizeMetaVault.removeStrategy(address(0));
     }
 
-    function test_SizeMetaVault_SetStrategiesValidation() public {
+    function test_SizeMetaVault_setStrategies_validation() public {
         address[] memory strategiesWithZero = new address[](2);
         strategiesWithZero[0] = address(0);
         strategiesWithZero[1] = address(0xDEAD);
@@ -109,7 +109,7 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.setStrategies(strategiesWithZero);
     }
 
-    function test_SizeMetaVault_RebalanceValidation() public {
+    function test_SizeMetaVault_rebalance_validation() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
         uint256 cashStrategyDeadAssets = cashStrategyVault.deadAssets();
@@ -198,8 +198,6 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets, 0);
     }
 
-    /// setStrategies  ///
-
     function test_SizeMetaVault_setStrategies() public {
         address firstStrategy = makeAddr("firstStrategy");
         address secondStrategy = makeAddr("secondStrategy");
@@ -218,8 +216,6 @@ contract SizeMetaVaultTest is BaseTest {
         vm.assertEq(sizeMetaVault.getStrategy(2), thirdStrategy);
     }
 
-    /// addStrategy  ///
-
     function test_SizeMetaVault_addStrategy() public {
         address oneStrategy = makeAddr("oneStrategy");
 
@@ -237,21 +233,19 @@ contract SizeMetaVaultTest is BaseTest {
         vm.assertEq(oneStrategy, lastStrategyAdded);
     }
 
-    // function test_SizeMetaVault_addStrategy_address_zero_must_revert() public {
-    //     address addressZero = address(0);
+    function test_SizeMetaVault_addStrategy_address_zero_must_revert() public {
+        address addressZero = address(0);
 
-    //     uint256 lengthBefore = sizeMetaVault.strategiesCount();
+        uint256 lengthBefore = sizeMetaVault.strategiesCount();
 
-    //     vm.expectRevert();
-    //     vm.prank(strategist);
-    //     sizeMetaVault.addStrategy(addressZero);
+        vm.expectRevert();
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(addressZero);
 
-    //     uint256 lengthAfter = sizeMetaVault.strategiesCount();
+        uint256 lengthAfter = sizeMetaVault.strategiesCount();
 
-    //     assertEq(lengthBefore, lengthAfter);
-    // }
-
-    /// removeStrategy  ///
+        assertEq(lengthBefore, lengthAfter);
+    }
 
     function test_SizeMetaVault_removeStrategy_one_after_another() public {
         uint256 length = sizeMetaVault.strategiesCount();
@@ -264,8 +258,6 @@ contract SizeMetaVaultTest is BaseTest {
         }
         vm.stopPrank();
     }
-
-    /// Multi-Function Tests //
 
     function test_SizeMetaVault_deposit_withdraw() public {
         uint256 initialTotalAssets = sizeMetaVault.totalAssets();
