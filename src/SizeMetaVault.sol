@@ -43,6 +43,8 @@ contract SizeMetaVault is BaseVault {
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
     error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
     error TransferedAmountLessThanMin(uint256 transferred, uint256 minAmount);
+    error NullAddress();
+    error NullAmount();
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -75,6 +77,7 @@ contract SizeMetaVault is BaseVault {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the maximum amount that can be deposited
+    // slither-disable-next-line calls-loop
     function maxDeposit(address) public view override returns (uint256) {
         uint256 length = strategies.length();
         uint256 max = 0;
@@ -108,6 +111,7 @@ contract SizeMetaVault is BaseVault {
     /// @notice Returns the total assets managed by the vault
     /// @dev Sums the total assets across all strategies
     /// @return The total assets under management
+    // slither-disable-next-line calls-loop
     function totalAssets() public view virtual override returns (uint256) {
         uint256 length = strategies.length();
         uint256 total = 0;
@@ -120,6 +124,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Deposits assets to strategies in order
     /// @dev Tries to deposit to strategies sequentially, reverts if not all assets can be deposited
+    // slither-disable-next-line calls-loop
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         if (_isInitializing()) {
             // first deposit
@@ -137,6 +142,7 @@ contract SizeMetaVault is BaseVault {
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
             IERC20(asset()).forceApprove(address(strategy), depositAmount);
+            // slither-disable-next-line unused-return
             try strategy.deposit(depositAmount, address(this)) {
                 assetsToDeposit -= depositAmount;
             } catch {
@@ -154,6 +160,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Withdraws assets from strategies in order
     /// @dev Tries to withdraw from strategies sequentially, reverts if not enough assets available
+    // slither-disable-next-line calls-loop
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
@@ -167,6 +174,7 @@ contract SizeMetaVault is BaseVault {
 
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
             uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
+            // slither-disable-next-line unused-return
             try strategy.withdraw(withdrawAmount, address(this), address(this)) {
                 assetsToWithdraw -= withdrawAmount;
             } catch {}
@@ -223,6 +231,9 @@ contract SizeMetaVault is BaseVault {
         if (!strategies.contains(address(strategyTo))) {
             revert InvalidStrategy(address(strategyTo));
         }
+        if (amount == 0) {
+            revert NullAmount();
+        }
         if (amount + BaseVault(address(strategyFrom)).deadAssets() > strategyFrom.totalAssets()) {
             revert InsufficientAssets(strategyFrom.totalAssets(), BaseVault(address(strategyFrom)).deadAssets(), amount);
         }
@@ -247,6 +258,9 @@ contract SizeMetaVault is BaseVault {
     /// @notice Internal function to add a strategy
     /// @dev Emits StrategyAdded event if the strategy was successfully added
     function _addStrategy(address strategy) private {
+        if (address(strategy) == address(0)) {
+            revert NullAddress();
+        }
         bool added = strategies.add(strategy);
         if (added) {
             emit StrategyAdded(strategy);
@@ -256,6 +270,9 @@ contract SizeMetaVault is BaseVault {
     /// @notice Internal function to remove a strategy
     /// @dev Emits StrategyRemoved event if the strategy was successfully removed
     function _removeStrategy(address strategy) private {
+        if (address(strategy) == address(0)) {
+            revert NullAddress();
+        }
         bool removed = strategies.remove(strategy);
         if (removed) {
             emit StrategyRemoved(strategy);
@@ -265,6 +282,7 @@ contract SizeMetaVault is BaseVault {
     /// @notice Internal function to calculate maximum withdrawable amount
     /// @dev Sums the max withdraw amounts across all strategies
     /// @return The total maximum withdrawable amount
+    // slither-disable-next-line calls-loop
     function _maxWithdraw() private view returns (uint256) {
         uint256 length = strategies.length();
         uint256 max = 0;
