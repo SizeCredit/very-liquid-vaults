@@ -22,6 +22,7 @@ contract PoolMock is IPool, Ownable {
         AToken aToken;
         VariableDebtToken debtToken;
         uint256 reserveIndex;
+        DataTypes.ReserveConfigurationMap configuration;
     }
 
     PoolAddressesProvider private immutable addressesProvider;
@@ -62,6 +63,8 @@ contract PoolMock is IPool, Ownable {
                 string.concat("d", symbol),
                 ""
             );
+            // Bit 56 = 1 (active), Bit 57 = 0 (not frozen), Bit 60 = 0 (not paused), Bits 48-55 = decimals
+            data.configuration = DataTypes.ReserveConfigurationMap({data: (1 << 56) | (decimals << 48)});
         }
         data.reserveIndex = index;
     }
@@ -159,8 +162,8 @@ contract PoolMock is IPool, Ownable {
         revert NotImplemented();
     }
 
-    function setConfiguration(address, DataTypes.ReserveConfigurationMap calldata) external pure {
-        revert NotImplemented();
+    function setConfiguration(address asset, DataTypes.ReserveConfigurationMap calldata config) external onlyOwner {
+        datas[asset].configuration = config;
     }
 
     function getConfiguration(address) external pure returns (DataTypes.ReserveConfigurationMap memory) {
@@ -182,9 +185,7 @@ contract PoolMock is IPool, Ownable {
     function getReserveData(address reserve) external view returns (DataTypes.ReserveDataLegacy memory data) {
         data.aTokenAddress = address(datas[reserve].aToken);
         data.liquidityIndex = uint128(datas[reserve].reserveIndex);
-        // Bit 56 = 1 (active), Bit 57 = 0 (not frozen), Bit 60 = 0 (not paused), Bits 48-55 = decimals
-        data.configuration =
-            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (uint8(IERC20Metadata(reserve).decimals()) << 48)});
+        data.configuration = datas[reserve].configuration;
     }
 
     function getVirtualUnderlyingBalance(address) external pure returns (uint128) {

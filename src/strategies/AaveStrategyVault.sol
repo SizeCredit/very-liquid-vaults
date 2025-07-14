@@ -115,6 +115,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
 
     /// @notice Returns the maximum amount that can be deposited
     /// @dev Checks Aave reserve configuration and supply cap to determine max deposit
+    /// @dev Updates Superform implementation to comply with https://github.com/aave-dao/aave-v3-origin/blob/v3.4.0/src/contracts/protocol/libraries/logic/ValidationLogic.sol#L79-L85
     /// @return The maximum deposit amount allowed by Aave
     function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused

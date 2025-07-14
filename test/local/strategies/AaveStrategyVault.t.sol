@@ -9,6 +9,7 @@ import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {BaseVault} from "@src/BaseVault.sol";
+import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
 
 contract AaveStrategyVaultTest is BaseTest {
     uint256 initialBalance;
@@ -231,5 +232,42 @@ contract AaveStrategyVaultTest is BaseTest {
                 )
             )
         );
+    }
+
+    function test_AaveStrategyVault_maxDeposit_no_config() public {
+        vm.prank(admin);
+        pool.setConfiguration(address(erc20Asset), DataTypes.ReserveConfigurationMap({data: 0}));
+
+        assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), 0);
+        assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), 0);
+        assertEq(aaveStrategyVault.maxWithdraw(address(erc20Asset)), 0);
+        assertEq(aaveStrategyVault.maxRedeem(address(erc20Asset)), 0);
+    }
+
+    function test_AaveStrategyVault_maxDeposit_supply_cap() public {
+        uint8 decimals = erc20Asset.decimals();
+        uint256 supplyCap = 42;
+
+        vm.prank(admin);
+        pool.setConfiguration(
+            address(erc20Asset),
+            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (decimals << 48) | (supplyCap << 116)})
+        );
+
+        assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), 0);
+        assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), 0);
+
+        supplyCap = 100e6;
+
+        vm.prank(admin);
+        pool.setConfiguration(
+            address(erc20Asset),
+            DataTypes.ReserveConfigurationMap({data: (1 << 56) | (decimals << 48) | (supplyCap << 116)})
+        );
+
+        uint256 totalSupply = aToken.totalSupply();
+
+        assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), supplyCap - totalSupply);
+        assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), supplyCap - totalSupply);
     }
 }

@@ -110,11 +110,8 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install dependencies
-        run: npm install -g solhint
-
       - name: Run solhint
-        run: solhint "src/**/*.sol" --max-warnings 0
+        run: npx solhint "src/**/*.sol" --max-warnings 0
 
   invariants:
     needs: [sizes, fmt, test, slither, solhint]
