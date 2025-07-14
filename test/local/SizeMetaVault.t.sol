@@ -15,6 +15,8 @@ import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 
 contract SizeMetaVaultTest is BaseTest {
+    bool public expectRevert = false;
+
     function test_SizeMetaVault_initialize() public view {
         assertEq(address(sizeMetaVault.asset()), address(erc20Asset));
         assertEq(sizeMetaVault.name(), string.concat("Size ", erc20Asset.name(), " Vault"));
@@ -67,15 +69,29 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(cashAssetsAfter, cashAssetsBefore + amount);
     }
 
-    function test_SizeMetaVault_rebalance_slippage_validation() public {
-        uint256 amount = 30e6;
-        uint256 minAmount = 31e6;
+    function testFuzz_SizeMetaVault_rebalance_slippage_validation(uint256 amount, uint256 index) public {
+        IStrategy strategyFrom = cashStrategyVault;
+        IStrategy strategyTo = aaveStrategyVault;
 
-        _mint(erc20Asset, address(cashStrategyVault), amount * 2);
+        amount = bound(amount, strategyFrom.deadAssets(), 100e6);
+        index = bound(index, 1e27, 1.3e27);
+
+        _mint(erc20Asset, address(strategyFrom), amount * 2);
+        _setLiquidityIndex(erc20Asset, index);
 
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.TransferredAmountLessThanMin.selector, amount, minAmount));
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, minAmount);
+        try sizeMetaVault.rebalance(strategyFrom, strategyTo, amount, amount) {
+            assertEq(expectRevert, false);
+        } catch (bytes memory err) {
+            assertEq(
+                err, abi.encodeWithSelector(SizeMetaVault.TransferredAmountLessThanMin.selector, amount - 1, amount)
+            );
+        }
+    }
+
+    function test_SizeMetaVault_rebalance_slippage_validation_concrete() public {
+        expectRevert = true;
+        testFuzz_SizeMetaVault_rebalance_slippage_validation(1309, 1042386157714299620775450811);
     }
 
     function test_SizeMetaVault_rebalance_with_slippage() public {

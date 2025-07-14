@@ -85,6 +85,11 @@ contract BaseTest is Test, Setup {
         _vault.deposit(_amount, _user);
     }
 
+    function _setLiquidityIndex(IERC20Metadata _asset, uint256 _index) internal {
+        vm.prank(admin);
+        pool.setLiquidityIndex(address(_asset), _index);
+    }
+
     function assertEq(uint256 _a, uint256 _b, uint256 _c) internal pure {
         assertEq(_a, _b);
         assertEq(_a, _c);
