@@ -74,7 +74,7 @@ contract SizeMetaVaultTest is BaseTest {
         _mint(erc20Asset, address(cashStrategyVault), amount * 2);
 
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.TransferedAmountLessThanMin.selector, amount, minAmount));
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.TransferredAmountLessThanMin.selector, amount, minAmount));
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, minAmount);
     }
 
@@ -111,7 +111,6 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_rebalance_validation() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
-        uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
         uint256 cashStrategyDeadAssets = cashStrategyVault.deadAssets();
 
         uint256 amount = 5e6;

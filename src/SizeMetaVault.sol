@@ -42,7 +42,7 @@ contract SizeMetaVault is BaseVault {
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
     error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
-    error TransferedAmountLessThanMin(uint256 transferred, uint256 minAmount);
+    error TransferredAmountLessThanMin(uint256 transferred, uint256 minAmount);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -76,7 +76,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Returns the maximum amount that can be deposited
     // slither-disable-next-line calls-loop
-    function maxDeposit(address) public view override returns (uint256) {
+    function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         uint256 length = strategies.length();
         uint256 max = 0;
         for (uint256 i = 0; i < length; i++) {
@@ -89,20 +89,20 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Returns the maximum number of shares that can be minted
     /// @dev Converts the max deposit amount to shares
-    function maxMint(address receiver) public view override returns (uint256) {
+    function maxMint(address receiver) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         uint256 maxDepositAmount = maxDeposit(receiver);
         return maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     /// @dev Limited by both owner's balance and total withdrawable assets
-    function maxWithdraw(address owner) public view override returns (uint256) {
+    function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), _maxWithdraw());
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
     /// @dev Limited by both owner's balance and total withdrawable assets
-    function maxRedeem(address owner) public view override returns (uint256) {
+    function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         return Math.min(balanceOf(owner), _convertToShares(_maxWithdraw(), Math.Rounding.Floor));
     }
 
@@ -110,7 +110,7 @@ contract SizeMetaVault is BaseVault {
     /// @dev Sums the total assets across all strategies
     /// @return The total assets under management
     // slither-disable-next-line calls-loop
-    function totalAssets() public view virtual override returns (uint256) {
+    function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         uint256 length = strategies.length();
         uint256 total = 0;
         for (uint256 i = 0; i < length; i++) {
@@ -232,8 +232,8 @@ contract SizeMetaVault is BaseVault {
         if (amount == 0) {
             revert NullAmount();
         }
-        if (amount + BaseVault(address(strategyFrom)).deadAssets() > strategyFrom.totalAssets()) {
-            revert InsufficientAssets(strategyFrom.totalAssets(), BaseVault(address(strategyFrom)).deadAssets(), amount);
+        if (amount + strategyFrom.deadAssets() > strategyFrom.totalAssets()) {
+            revert InsufficientAssets(strategyFrom.totalAssets(), strategyFrom.deadAssets(), amount);
         }
 
         uint256 totalAssetBefore = strategyTo.totalAssets();
@@ -243,7 +243,7 @@ contract SizeMetaVault is BaseVault {
 
         uint256 transferredAmount = strategyTo.totalAssets() - totalAssetBefore;
         if (transferredAmount < minAmount) {
-            revert TransferedAmountLessThanMin(transferredAmount, minAmount);
+            revert TransferredAmountLessThanMin(transferredAmount, minAmount);
         }
 
         emit Rebalance(address(strategyFrom), address(strategyTo), amount);

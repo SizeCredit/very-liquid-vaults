@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 
 /// @title IStrategy
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Interface for vault strategies that can be used by the SizeMetaVault
-/// @dev Extends IERC4626 to provide additional strategy-specific functionality
-interface IStrategy is IERC4626 {
+/// @dev Extends IBaseVault to provide additional strategy-specific functionality
+interface IStrategy is IBaseVault {
     /// @notice Emitted when assets are transferred from this strategy to another address
     /// @param to The recipient address of the transferred assets
     /// @param amount The amount of assets transferred

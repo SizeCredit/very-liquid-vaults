@@ -14,6 +14,7 @@ import {Auth} from "@src/Auth.sol";
 import {DEFAULT_ADMIN_ROLE, PAUSER_ROLE} from "@src/Auth.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 
 /// @title BaseVault
 /// @custom:security-contact security@size.credit
@@ -21,6 +22,7 @@ import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/
 /// @notice Abstract base contract for all vaults in the Size Meta Vault system
 /// @dev Provides common functionality including ERC4626 compliance, access control, and upgradeability
 abstract contract BaseVault is
+    IBaseVault,
     ERC4626Upgradeable,
     ERC20PermitUpgradeable,
     ReentrancyGuardUpgradeable,
@@ -135,7 +137,13 @@ abstract contract BaseVault is
     /// @notice Returns the number of decimals for the vault token
     /// @dev Overrides both ERC20 and ERC4626 decimals functions
     /// @return The number of decimals (matches the underlying asset)
-    function decimals() public view virtual override(ERC20Upgradeable, ERC4626Upgradeable) returns (uint8) {
+    function decimals()
+        public
+        view
+        virtual
+        override(ERC20Upgradeable, ERC4626Upgradeable, IERC20Metadata)
+        returns (uint8)
+    {
         return super.decimals();
     }
 
