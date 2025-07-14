@@ -6,7 +6,7 @@
 		"testLimit": 0,
 		"shrinkLimit": 5000,
 		"callSequenceLength": 100,
-		"corpusDirectory": "medusa-corpus-cash-strategy-vault",
+		"corpusDirectory": "medusa-corpus",
 		"coverageEnabled": true,
 		"coverageFormats": [
 			"html",

@@ -118,7 +118,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        mode: [echidna, medusa]
+        fuzzer: [echidna, medusa]
 
     name: Invariants
     runs-on: ubuntu-latest
@@ -140,16 +140,16 @@ jobs:
         run: |
           pip install slither-analyzer
 
-      - name: Install Fuzzer (${{ matrix.mode }})
+      - name: Install Fuzzer (${{ matrix.fuzzer }})
         run: |
-          if [[ "${{ matrix.mode }}" == "echidna" ]]; then
+          if [[ "${{ matrix.fuzzer }}" == "echidna" ]]; then
             TOOL="echidna"
             URL="https://github.com/crytic/echidna/releases/download/v2.2.6/echidna-2.2.6-x86_64-linux.tar.gz"
-          elif [[ "${{ matrix.mode }}" == "medusa" ]]; then
+          elif [[ "${{ matrix.fuzzer }}" == "medusa" ]]; then
             TOOL="medusa"
             URL="https://github.com/crytic/medusa/releases/download/v1.2.1/medusa-linux-x64.tar.gz"
           else
-            echo "Unsupported mode: ${{ matrix.mode }}"
+            echo "Unsupported fuzzer: ${{ matrix.fuzzer }}"
             exit 1
           fi
 
@@ -158,9 +158,9 @@ jobs:
           rm "$TOOL.tar.gz"
           ./$TOOL --version
 
-      - name: Run Fuzzer (${{ matrix.mode }})
+      - name: Run Fuzzer (${{ matrix.fuzzer }})
         run: |
-          make ${{ matrix.mode }}
+          make ${{ matrix.fuzzer }}
 
   coverage:
     strategy:
