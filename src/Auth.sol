@@ -16,6 +16,8 @@ bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 /// @author Size (https://size.credit/)
 /// @notice Authority acccess control contract with global pause functionality for the Size Meta Vault system
 contract Auth is UUPSUpgradeable, AccessControlUpgradeable, PausableUpgradeable, MulticallUpgradeable {
+    error NullAddress();
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -24,6 +26,10 @@ contract Auth is UUPSUpgradeable, AccessControlUpgradeable, PausableUpgradeable,
     /// @notice Initializes the Auth contract with an admin address
     /// @dev Grants all necessary roles to the admin address
     function initialize(address admin_) public initializer {
+        if (admin_ == address(0)) {
+            revert NullAddress();
+        }
+
         __AccessControl_init();
         __Pausable_init();
         __Multicall_init();

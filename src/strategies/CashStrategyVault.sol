@@ -24,9 +24,9 @@ contract CashStrategyVault is BaseVault, IStrategy {
     function transferAssets(address to, uint256 assets)
         external
         override
+        nonReentrant
         notPaused
         onlyAuth(SIZE_VAULT_ROLE)
-        nonReentrant
     {
         IERC20(asset()).safeTransfer(to, assets);
         emit TransferAssets(to, assets);
@@ -38,7 +38,7 @@ contract CashStrategyVault is BaseVault, IStrategy {
 
     /// @notice Skims idle assets (no-op for cash strategy)
     /// @dev Since this is a cash strategy, there are no assets to invest, so this just emits an event
-    function skim() external override notPaused nonReentrant {
+    function skim() external override nonReentrant notPaused {
         emit Skim();
     }
 }

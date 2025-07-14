@@ -15,12 +15,10 @@ contract ERC4626StrategyVaultScript is Script {
     using SafeERC20 for IERC20Metadata;
 
     Auth auth;
-    IERC20Metadata asset;
     uint256 firstDepositAmount;
     IERC4626 vault;
 
     function setUp() public {
-        asset = IERC20Metadata(vm.envAddress("ASSET"));
         auth = Auth(vm.envAddress("AUTH"));
         firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
         vault = IERC4626(vm.envAddress("VAULT"));
@@ -29,25 +27,25 @@ contract ERC4626StrategyVaultScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        deploy(auth, asset, firstDepositAmount, vault);
+        deploy(auth, firstDepositAmount, vault);
 
         vm.stopBroadcast();
     }
 
-    function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, IERC4626 vault_)
+    function deploy(Auth auth_, uint256 firstDepositAmount_, IERC4626 vault_)
         public
         returns (ERC4626StrategyVault erc4626StrategyVault)
     {
-        string memory name = string.concat("ERC4626 ", asset_.name(), " Strategy");
-        string memory symbol = string.concat("erc4626", asset_.symbol());
+        string memory name = string.concat("ERC4626 ", IERC20Metadata(address(vault_.asset())).name(), " Strategy");
+        string memory symbol = string.concat("erc4626", IERC20Metadata(address(vault_.asset())).symbol());
         address implementation = address(new ERC4626StrategyVault());
         bytes memory initializationData =
-            abi.encodeCall(ERC4626StrategyVault.initialize, (auth_, asset_, name, symbol, firstDepositAmount_, vault_));
+            abi.encodeCall(ERC4626StrategyVault.initialize, (auth_, name, symbol, firstDepositAmount_, vault_));
         bytes memory creationCode =
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
         erc4626StrategyVault = ERC4626StrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
-        asset_.forceApprove(address(erc4626StrategyVault), firstDepositAmount_);
+        IERC20Metadata(address(vault_.asset())).forceApprove(address(erc4626StrategyVault), firstDepositAmount_);
         Create2.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );

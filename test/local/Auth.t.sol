@@ -4,8 +4,16 @@ pragma solidity 0.8.23;
 import {Auth} from "@src/Auth.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract AuthTest is BaseTest {
+contract AuthTest is BaseTest, Initializable {
+    function test_Auth_initialize_null_address() public {
+        Auth newAuth = new Auth();
+        vm.store(address(newAuth), _initializableStorageSlot(), bytes32(uint256(0)));
+        vm.expectRevert(abi.encodeWithSelector(Auth.NullAddress.selector));
+        newAuth.initialize(address(0));
+    }
+
     function test_Auth_upgrade() public {
         Auth newAuth = new Auth();
         vm.prank(alice);

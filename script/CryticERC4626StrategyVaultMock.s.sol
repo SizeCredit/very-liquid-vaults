@@ -16,13 +16,11 @@ contract CryticERC4626StrategyVaultMockScript is Script {
     using SafeERC20 for IERC20Metadata;
 
     Auth auth;
-    IERC20Metadata asset;
     uint256 firstDepositAmount;
     VaultMock vault;
 
     function setUp() public {
         auth = Auth(vm.envAddress("AUTH"));
-        asset = IERC20Metadata(vm.envAddress("ASSET"));
         firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
         vault = VaultMock(vm.envAddress("VAULT"));
     }
@@ -30,26 +28,29 @@ contract CryticERC4626StrategyVaultMockScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        deploy(auth, asset, firstDepositAmount, vault);
+        deploy(auth, firstDepositAmount, vault);
 
         vm.stopBroadcast();
     }
 
-    function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, VaultMock vault_)
+    function deploy(Auth auth_, uint256 firstDepositAmount_, VaultMock vault_)
         public
         returns (CryticERC4626StrategyVaultMock cryticERC4626StrategyVaultMock)
     {
-        string memory name = string.concat("Crytic ERC4626 ", asset_.name(), " Strategy Mock");
-        string memory symbol = string.concat("cryticERC4626", asset_.symbol(), "MOCK");
+        string memory name =
+            string.concat("Crytic ERC4626 ", IERC20Metadata(address(vault_.asset())).name(), " Strategy Mock");
+        string memory symbol = string.concat("cryticERC4626", IERC20Metadata(address(vault_.asset())).symbol(), "MOCK");
         address implementation = address(new CryticERC4626StrategyVaultMock());
         bytes memory initializationData =
-            abi.encodeCall(ERC4626StrategyVault.initialize, (auth_, asset_, name, symbol, firstDepositAmount_, vault_));
+            abi.encodeCall(ERC4626StrategyVault.initialize, (auth_, name, symbol, firstDepositAmount_, vault_));
         bytes memory creationCode =
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
         cryticERC4626StrategyVaultMock =
             CryticERC4626StrategyVaultMock(Create2.computeAddress(salt, keccak256(creationCode)));
-        asset_.forceApprove(address(cryticERC4626StrategyVaultMock), firstDepositAmount_);
+        IERC20Metadata(address(vault_.asset())).forceApprove(
+            address(cryticERC4626StrategyVaultMock), firstDepositAmount_
+        );
         Create2.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );

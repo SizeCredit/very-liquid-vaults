@@ -99,8 +99,8 @@ uint256 assets = vault.convertToAssets(shares);
 
 ## Roles and Permissions
 
-* **`DEFAULT_ADMIN_ROLE`**
-* **`STRATEGIST_ROLE`**: Rebalance across strategies
+* **`DEFAULT_ADMIN_ROLE`**: Admin (multisig)
+* **`STRATEGIST_ROLE`**: Rebalance across strategies, configure strategies (timelock)
 * **`PAUSER_ROLE`**: Emergency pause functionality: per vault or whole protocol
 
 ## Future Considerations

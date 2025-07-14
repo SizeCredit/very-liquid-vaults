@@ -10,8 +10,10 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract AaveStrategyVaultTest is BaseTest {
+contract AaveStrategyVaultTest is BaseTest, Initializable {
     uint256 initialBalance;
     uint256 initialTotalAssets;
 
@@ -19,6 +21,13 @@ contract AaveStrategyVaultTest is BaseTest {
         super.setUp();
         initialTotalAssets = aaveStrategyVault.totalAssets();
         initialBalance = erc20Asset.balanceOf(address(aToken));
+    }
+
+    function test_AaveStrategyVault_initialize_invalid_asset() public {
+        vm.store(address(aaveStrategyVault), _initializableStorageSlot(), bytes32(uint256(0)));
+        vm.prank(admin);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(weth)));
+        aaveStrategyVault.initialize(auth, IERC20(address(weth)), "VAULT", "VAULT", FIRST_DEPOSIT_AMOUNT, pool);
     }
 
     function test_AaveStrategyVault_transferAssets() public {
@@ -237,6 +246,16 @@ contract AaveStrategyVaultTest is BaseTest {
     function test_AaveStrategyVault_maxDeposit_no_config() public {
         vm.prank(admin);
         pool.setConfiguration(address(erc20Asset), DataTypes.ReserveConfigurationMap({data: 0}));
+
+        assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), 0);
+        assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), 0);
+        assertEq(aaveStrategyVault.maxWithdraw(address(erc20Asset)), 0);
+        assertEq(aaveStrategyVault.maxRedeem(address(erc20Asset)), 0);
+    }
+
+    function test_AaveStrategyVault_maxDeposit_paused() public {
+        vm.prank(admin);
+        pool.setConfiguration(address(erc20Asset), DataTypes.ReserveConfigurationMap({data: 1 << 60}));
 
         assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), 0);
         assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), 0);

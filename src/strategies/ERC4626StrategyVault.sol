@@ -38,7 +38,6 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
     /// @dev Sets the external vault and calls parent initialization
     function initialize(
         Auth auth_,
-        IERC20 asset_,
         string memory name_,
         string memory symbol_,
         uint256 firstDepositAmount,
@@ -51,7 +50,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
         vault = vault_;
         emit VaultSet(address(0), address(vault_));
 
-        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
+        super.initialize(auth_, IERC20(address(vault_.asset())), name_, symbol_, firstDepositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -63,9 +62,9 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
     function transferAssets(address to, uint256 assets)
         external
         override
+        nonReentrant
         notPaused
         onlyAuth(SIZE_VAULT_ROLE)
-        nonReentrant
     {
         // slither-disable-next-line unused-return
         vault.withdraw(assets, to, address(this));
@@ -78,7 +77,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
 
     /// @notice Invests any idle assets sitting in this contract
     /// @dev Deposits any assets held by this contract into the external vault
-    function skim() external override notPaused onlyAuth(SIZE_VAULT_ROLE) nonReentrant {
+    function skim() external override nonReentrant notPaused onlyAuth(SIZE_VAULT_ROLE) {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         IERC20(asset()).forceApprove(address(vault), assets);
         // slither-disable-next-line unused-return

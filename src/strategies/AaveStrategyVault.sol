@@ -56,6 +56,9 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         if (address(pool_) == address(0)) {
             revert NullAddress();
         }
+        if (address(pool_.getReserveData(address(asset_)).aTokenAddress) == address(0)) {
+            revert InvalidAsset(address(asset_));
+        }
 
         pool = pool_;
         aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
@@ -75,9 +78,9 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     function transferAssets(address to, uint256 amount)
         external
         override
+        nonReentrant
         notPaused
         onlyAuth(SIZE_VAULT_ROLE)
-        nonReentrant
     {
         // slither-disable-next-line unused-return
         pool.withdraw(asset(), amount, to);
@@ -90,7 +93,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
 
     /// @notice Invests any idle assets sitting in this contract
     /// @dev Supplies any assets held by this contract to the Aave pool
-    function skim() external override notPaused onlyAuth(SIZE_VAULT_ROLE) nonReentrant {
+    function skim() external override nonReentrant notPaused onlyAuth(SIZE_VAULT_ROLE) {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         IERC20(asset()).forceApprove(address(pool), assets);
         pool.supply(asset(), assets, address(this), 0);
@@ -108,7 +111,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
-        if (!config.getActive() && !config.getFrozen() && !config.getPaused()) {
+        if (!(config.getActive() && !config.getFrozen() && !config.getPaused())) {
             return 0;
         }
 
@@ -139,7 +142,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
-        if (!config.getActive() && !config.getPaused()) {
+        if (!(config.getActive() && !config.getPaused())) {
             return 0;
         }
 
@@ -153,7 +156,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
-        if (!config.getActive() && !config.getPaused()) {
+        if (!(config.getActive() && !config.getPaused())) {
             return 0;
         }
 

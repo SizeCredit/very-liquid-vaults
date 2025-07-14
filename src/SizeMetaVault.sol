@@ -42,7 +42,6 @@ contract SizeMetaVault is BaseVault {
                               ERRORS
     //////////////////////////////////////////////////////////////*/
 
-    error InvalidAsset(address asset);
     error InvalidStrategy(address strategy);
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
@@ -273,6 +272,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Internal function to add a strategy
     /// @dev Emits StrategyAdded event if the strategy was successfully added
+    /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
     // slither-disable-next-line calls-loop
     function _addStrategy(address strategy, address asset) private {
         if (strategy == address(0)) {
@@ -292,6 +292,8 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Internal function to remove a strategy
     /// @dev Emits StrategyRemoved event if the strategy was successfully removed
+    /// @dev Removing a strategy without first withdrawing the assets held in those strategies will no longer include
+    ///        that strategy in its calculations, effectively locking any assets still deposited in the removed strategy
     function _removeStrategy(address strategy) private {
         if (address(strategy) == address(0)) {
             revert NullAddress();

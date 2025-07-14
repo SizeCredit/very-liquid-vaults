@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
@@ -9,8 +10,9 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
+import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
 
-contract ERC4626StrategyVaultTest is BaseTest {
+contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 initialBalance;
     uint256 initialTotalAssets;
 
@@ -143,7 +145,7 @@ contract ERC4626StrategyVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(alice), previewRedeemAssets);
     }
 
-    function test_DeployErc4626StrategyVault_with_zero_address_auth_must_revert() public {
+    function test_ERC4626StrategyVault_initialize_with_zero_address_auth_must_revert() public {
         VaultMock vaultMock = new VaultMock(alice, erc20Asset, "VAULTMOCK", "VM");
         _mint(erc20Asset, alice, FIRST_DEPOSIT_AMOUNT);
 
@@ -155,21 +157,16 @@ contract ERC4626StrategyVaultTest is BaseTest {
             payable(
                 new ERC1967Proxy(
                     ERC4626StrategyVaultImplementation,
-                    abi.encodeWithSelector(
-                        ERC4626StrategyVault.initialize.selector,
-                        Auth(address(0)),
-                        erc20Asset,
-                        "VAULT",
-                        "VAULT",
-                        FIRST_DEPOSIT_AMOUNT,
-                        vaultMock
+                    abi.encodeCall(
+                        ERC4626StrategyVault.initialize,
+                        (Auth(address(0)), "VAULT", "VAULT", FIRST_DEPOSIT_AMOUNT, vaultMock)
                     )
                 )
             )
         );
     }
 
-    function test_DeployErc4626StrategyVault_with_zero_first_amount_to_deposit_must_revert() public {
+    function test_ERC4626StrategyVault_initialize_with_zero_first_amount_to_deposit_must_revert() public {
         VaultMock vaultMock = new VaultMock(alice, erc20Asset, "VAULTMOCK", "VM");
 
         address AuthImplementation = address(new Auth());
@@ -184,15 +181,13 @@ contract ERC4626StrategyVaultTest is BaseTest {
             payable(
                 new ERC1967Proxy(
                     ERC4626StrategyVaultImplementation,
-                    abi.encodeWithSelector(
-                        ERC4626StrategyVault.initialize.selector, auth, erc20Asset, "VAULT", "VAULT", 0, vaultMock
-                    )
+                    abi.encodeCall(ERC4626StrategyVault.initialize, (auth, "VAULT", "VAULT", 0, vaultMock))
                 )
             )
         );
     }
 
-    function test_DeployErc4626StrategyVault_with_zero_address_vault_must_revert() public {
+    function test_ERC4626StrategyVault_initialize_with_zero_address_vault_must_revert() public {
         _mint(erc20Asset, alice, FIRST_DEPOSIT_AMOUNT);
 
         address AuthImplementation = address(new Auth());
@@ -209,14 +204,9 @@ contract ERC4626StrategyVaultTest is BaseTest {
             payable(
                 new ERC1967Proxy(
                     ERC4626StrategyVaultImplementation,
-                    abi.encodeWithSelector(
-                        ERC4626StrategyVault.initialize.selector,
-                        auth,
-                        erc20Asset,
-                        "VAULT",
-                        "VAULT",
-                        FIRST_DEPOSIT_AMOUNT,
-                        VaultMock(address(0))
+                    abi.encodeCall(
+                        ERC4626StrategyVault.initialize,
+                        (auth, "VAULT", "VAULT", FIRST_DEPOSIT_AMOUNT, VaultMock(address(0)))
                     )
                 )
             )

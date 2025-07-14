@@ -250,7 +250,7 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_addStrategy_invalid_asset_must_revert() public {
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidAsset.selector, address(weth)));
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(weth)));
         sizeMetaVault.addStrategy(address(cashStrategyVaultWETH));
     }
 
@@ -358,21 +358,19 @@ contract SizeMetaVaultTest is BaseTest {
         Auth auth_ =
             Auth(payable(new ERC1967Proxy(AuthImplementation, abi.encodeWithSelector(Auth.initialize.selector, bob))));
 
-        IERC20Metadata asset_ = IERC20Metadata(address(erc20Asset));
-
         ERC4626StrategyVaultScript deployer = new ERC4626StrategyVaultScript();
 
         _mint(erc20Asset, address(deployer), FIRST_DEPOSIT_AMOUNT);
 
         if (_isRevertingOnDeposit) {
             vault_revertDeposit = new VaultMockRevertOnDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
-            newERC4626StrategyVault = deployer.deploy(auth_, asset_, FIRST_DEPOSIT_AMOUNT, vault_revertDeposit);
+            newERC4626StrategyVault = deployer.deploy(auth_, FIRST_DEPOSIT_AMOUNT, vault_revertDeposit);
         } else if (_isRevertingOnWithdraw) {
             vault_revertWithdraw = new VaultMockRevertOnWithdraw(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
-            newERC4626StrategyVault = deployer.deploy(auth_, asset_, FIRST_DEPOSIT_AMOUNT, vault_revertWithdraw);
+            newERC4626StrategyVault = deployer.deploy(auth_, FIRST_DEPOSIT_AMOUNT, vault_revertWithdraw);
         } else {
             vault_decDeposit = new VaultMockDecMaxDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
-            newERC4626StrategyVault = deployer.deploy(auth_, asset_, FIRST_DEPOSIT_AMOUNT, vault_decDeposit);
+            newERC4626StrategyVault = deployer.deploy(auth_, FIRST_DEPOSIT_AMOUNT, vault_decDeposit);
         }
         address[] memory newStrategiesAddresses = new address[](1);
         newStrategiesAddresses[0] = address(newERC4626StrategyVault);

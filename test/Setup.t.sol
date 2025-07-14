@@ -202,11 +202,10 @@ abstract contract Setup {
         cashStrategyVaultWETH =
             cashStrategyVaultScriptWETH.deploy(auth, IERC20Metadata(address(weth)), WETH_DEPOSIT_AMOUNT);
         aaveStrategyVault = aaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
-        erc4626StrategyVault = erc4626StrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
+        erc4626StrategyVault = erc4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
         cryticCashStrategyVault = cryticCashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
         cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
-        cryticERC4626StrategyVault =
-            cryticERC4626StrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
+        cryticERC4626StrategyVault = cryticERC4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
         address[] memory strategies = new address[](3);
         strategies[0] = address(cryticCashStrategyVault);
         strategies[1] = address(cryticAaveStrategyVault);
