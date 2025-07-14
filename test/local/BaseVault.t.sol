@@ -9,6 +9,7 @@ import {BaseVault} from "@src/BaseVault.sol";
 import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {PAUSER_ROLE, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 
 contract BaseVaultTest is BaseTest {
     function test_BaseVault_initialize() public view {
@@ -50,7 +51,9 @@ contract BaseVaultTest is BaseTest {
 
     function test_BaseVault_pause_unauthorized_reverts() public {
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, PAUSER_ROLE)
+        );
         baseVault.pause();
     }
 
@@ -76,7 +79,9 @@ contract BaseVaultTest is BaseTest {
         baseVault.pause();
 
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, PAUSER_ROLE)
+        );
         baseVault.unpause();
     }
 
@@ -92,7 +97,7 @@ contract BaseVaultTest is BaseTest {
         baseVault.pause();
 
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
         baseVault.deposit(amount, alice);
     }
 
@@ -105,8 +110,15 @@ contract BaseVaultTest is BaseTest {
         auth.pause();
 
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
         baseVault.deposit(amount, alice);
+
+        vm.prank(admin);
+        auth.unpause();
+
+        vm.prank(alice);
+        baseVault.deposit(amount, alice);
+        assertEq(baseVault.balanceOf(alice), amount);
     }
 
     function test_BaseVault_transfer_whenPaused_reverts() public {
@@ -124,7 +136,7 @@ contract BaseVaultTest is BaseTest {
         baseVault.pause();
 
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
         baseVault.transfer(bob, amount);
     }
 
@@ -140,7 +152,7 @@ contract BaseVaultTest is BaseTest {
         auth.pause();
 
         vm.prank(alice);
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
         baseVault.transfer(bob, amount);
     }
 

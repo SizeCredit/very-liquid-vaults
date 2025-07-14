@@ -253,7 +253,7 @@ contract SizeMetaVaultTest is BaseTest {
 
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
 
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         vm.prank(strategist);
         sizeMetaVault.addStrategy(addressZero);
 
