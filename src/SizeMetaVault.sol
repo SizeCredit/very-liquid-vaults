@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {BaseVault} from "@src/BaseVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {Auth, STRATEGIST_ROLE} from "@src/Auth.sol";
+import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
@@ -20,16 +20,20 @@ contract SizeMetaVault is BaseVault {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    uint256 public constant DEFAULT_MAX_STRATEGIES = 10;
+
     /*//////////////////////////////////////////////////////////////
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
+    uint256 public maxStrategies;
     EnumerableSet.AddressSet internal strategies;
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
+    event MaxStrategiesSet(uint256 indexed maxStrategiesBefore, uint256 indexed maxStrategiesAfter);
     event StrategyAdded(address indexed strategy);
     event StrategyRemoved(address indexed strategy);
     event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 amount);
@@ -38,11 +42,13 @@ contract SizeMetaVault is BaseVault {
                               ERRORS
     //////////////////////////////////////////////////////////////*/
 
+    error InvalidAsset(address asset);
     error InvalidStrategy(address strategy);
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
     error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
     error TransferredAmountLessThanMin(uint256 transferred, uint256 minAmount);
+    error MaxStrategiesExceeded(uint256 strategiesCount, uint256 maxStrategies);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -63,8 +69,10 @@ contract SizeMetaVault is BaseVault {
         uint256 firstDepositAmount,
         address[] memory strategies_
     ) public virtual initializer {
+        _setMaxStrategies(DEFAULT_MAX_STRATEGIES);
+
         for (uint256 i = 0; i < strategies_.length; i++) {
-            _addStrategy(strategies_[i]);
+            _addStrategy(strategies_[i], address(asset_));
         }
 
         super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
@@ -189,25 +197,35 @@ contract SizeMetaVault is BaseVault {
     }
 
     /*//////////////////////////////////////////////////////////////
+                              ADMIN FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Sets the maximum number of strategies
+    /// @dev Updating the max strategies does not change the existing strategies
+    function setMaxStrategies(uint256 maxStrategies_) external whenNotPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
+        _setMaxStrategies(maxStrategies_);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Replaces all current strategies with new ones
     /// @dev Removes all existing strategies and adds the new ones
     function setStrategies(address[] calldata strategies_) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
-        uint256 length = strategies.length();
-        for (uint256 i = 0; i < length; i++) {
+        uint256 oldLength = strategies.length();
+        for (uint256 i = 0; i < oldLength; i++) {
             _removeStrategy(strategies.at(0));
         }
         for (uint256 i = 0; i < strategies_.length; i++) {
-            _addStrategy(strategies_[i]);
+            _addStrategy(strategies_[i], asset());
         }
     }
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     function addStrategy(address strategy) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
-        _addStrategy(strategy);
+        _addStrategy(strategy, asset());
     }
 
     /// @notice Removes a strategy from the vault
@@ -255,13 +273,19 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Internal function to add a strategy
     /// @dev Emits StrategyAdded event if the strategy was successfully added
-    function _addStrategy(address strategy) private {
-        if (address(strategy) == address(0)) {
+    function _addStrategy(address strategy, address asset) private {
+        if (strategy == address(0)) {
             revert NullAddress();
+        }
+        if (IStrategy(strategy).asset() != asset) {
+            revert InvalidAsset(IStrategy(strategy).asset());
         }
         bool added = strategies.add(strategy);
         if (added) {
             emit StrategyAdded(strategy);
+        }
+        if (strategies.length() > maxStrategies) {
+            revert MaxStrategiesExceeded(strategies.length(), maxStrategies);
         }
     }
 
@@ -290,6 +314,13 @@ contract SizeMetaVault is BaseVault {
             max = Math.saturatingAdd(max, strategyMaxWithdraw);
         }
         return max;
+    }
+
+    /// @notice Internal function to set the maximum number of strategies
+    function _setMaxStrategies(uint256 maxStrategies_) private {
+        uint256 oldMaxStrategies = maxStrategies;
+        maxStrategies = maxStrategies_;
+        emit MaxStrategiesSet(oldMaxStrategies, maxStrategies);
     }
 
     /*//////////////////////////////////////////////////////////////

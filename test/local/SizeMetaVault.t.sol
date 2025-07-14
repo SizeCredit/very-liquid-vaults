@@ -214,9 +214,9 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_setStrategies() public {
-        address firstStrategy = makeAddr("firstStrategy");
-        address secondStrategy = makeAddr("secondStrategy");
-        address thirdStrategy = makeAddr("thirdStrategy");
+        address firstStrategy = address(aaveStrategyVault);
+        address secondStrategy = address(erc4626StrategyVault);
+        address thirdStrategy = address(cashStrategyVault);
 
         address[] memory strategies = new address[](3);
         strategies[0] = firstStrategy;
@@ -232,7 +232,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_addStrategy() public {
-        address oneStrategy = makeAddr("oneStrategy");
+        address oneStrategy = address(cryticCashStrategyVault);
 
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
 
@@ -416,5 +416,21 @@ contract SizeMetaVaultTest is BaseTest {
             )
         );
         sizeMetaVault.withdraw(withdrawableAssets, alice, alice);
+    }
+
+    function test_SizeMetaVault_setMaxStrategies() public {
+        vm.prank(admin);
+        sizeMetaVault.setMaxStrategies(3);
+        assertEq(sizeMetaVault.maxStrategies(), 3);
+
+        address[] memory strategies = new address[](4);
+        strategies[0] = address(cashStrategyVault);
+        strategies[1] = address(erc4626StrategyVault);
+        strategies[2] = address(aaveStrategyVault);
+        strategies[3] = address(cryticCashStrategyVault);
+
+        vm.prank(strategist);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.MaxStrategiesExceeded.selector, 4, 3));
+        sizeMetaVault.setStrategies(strategies);
     }
 }
