@@ -78,7 +78,7 @@ vault.removeStrategy(strategyAddress);
 // Rebalance between strategies
 vault.rebalance(fromStrategy, toStrategy, amount);
 
-// Set multiple strategies at once
+// Set strategies list at once
 address[] memory strategies = [strategy1, strategy2];
 vault.setStrategies(strategies);
 ```
