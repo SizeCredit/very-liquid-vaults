@@ -273,6 +273,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Internal function to add a strategy
     /// @dev Emits StrategyAdded event if the strategy was successfully added
+    // slither-disable-next-line calls-loop
     function _addStrategy(address strategy, address asset) private {
         if (strategy == address(0)) {
             revert NullAddress();
