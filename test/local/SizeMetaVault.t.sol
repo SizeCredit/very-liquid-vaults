@@ -248,6 +248,12 @@ contract SizeMetaVaultTest is BaseTest {
         vm.assertEq(oneStrategy, lastStrategyAdded);
     }
 
+    function test_SizeMetaVault_addStrategy_invalid_asset_must_revert() public {
+        vm.prank(strategist);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidAsset.selector, address(weth)));
+        sizeMetaVault.addStrategy(address(cashStrategyVaultWETH));
+    }
+
     function test_SizeMetaVault_addStrategy_address_zero_must_revert() public {
         address addressZero = address(0);
 
