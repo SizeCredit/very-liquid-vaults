@@ -42,8 +42,9 @@ contract SizeMetaVault is BaseVault {
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
     error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
-    error NULL_ADDRESS();
-    error NULL_AMOUNT();
+    error TransferedAmountLessThanMin(uint256 transferred, uint256 minAmount);
+    error NullAddress();
+    error NullAmount();
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -219,7 +220,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Rebalances assets between two strategies
     /// @dev Transfers assets from one strategy to another and skims the destination
-    function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount)
+    function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount, uint256 minAmount)
         external
         whenNotPaused
         onlyAuth(STRATEGIST_ROLE)
@@ -231,14 +232,21 @@ contract SizeMetaVault is BaseVault {
             revert InvalidStrategy(address(strategyTo));
         }
         if (amount == 0) {
-            revert NULL_AMOUNT();
+            revert NullAmount();
         }
         if (amount + BaseVault(address(strategyFrom)).deadAssets() > strategyFrom.totalAssets()) {
             revert InsufficientAssets(strategyFrom.totalAssets(), BaseVault(address(strategyFrom)).deadAssets(), amount);
         }
 
+        uint256 totalAssetBefore = strategyTo.totalAssets();
+
         strategyFrom.transferAssets(address(strategyTo), amount);
         strategyTo.skim();
+
+        uint256 transferredAmount = strategyTo.totalAssets() - totalAssetBefore;
+        if (transferredAmount < minAmount) {
+            revert TransferedAmountLessThanMin(transferredAmount, minAmount);
+        }
 
         emit Rebalance(address(strategyFrom), address(strategyTo), amount);
     }
@@ -251,7 +259,7 @@ contract SizeMetaVault is BaseVault {
     /// @dev Emits StrategyAdded event if the strategy was successfully added
     function _addStrategy(address strategy) private {
         if (address(strategy) == address(0)) {
-            revert NULL_ADDRESS();
+            revert NullAddress();
         }
         bool added = strategies.add(strategy);
         if (added) {
@@ -263,7 +271,7 @@ contract SizeMetaVault is BaseVault {
     /// @dev Emits StrategyRemoved event if the strategy was successfully removed
     function _removeStrategy(address strategy) private {
         if (address(strategy) == address(0)) {
-            revert NULL_ADDRESS();
+            revert NullAddress();
         }
         bool removed = strategies.remove(strategy);
         if (removed) {
