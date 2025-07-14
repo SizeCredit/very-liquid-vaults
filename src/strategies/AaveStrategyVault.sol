@@ -13,6 +13,7 @@ import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
 import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
+import {ReserveConfiguration} from "@aave/contracts/protocol/libraries/configuration/ReserveConfiguration.sol";
 
 /// @title AaveStrategyVault
 /// @custom:security-contact security@size.credit
@@ -23,6 +24,7 @@ import {IStrategy} from "@src/strategies/IStrategy.sol";
 contract AaveStrategyVault is BaseVault, IStrategy {
     using SafeERC20 for IERC20;
     using WadRayMath for uint256;
+    using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     /*//////////////////////////////////////////////////////////////
                               STORAGE
@@ -30,19 +32,6 @@ contract AaveStrategyVault is BaseVault, IStrategy {
 
     IPool public pool;
     IAToken public aToken;
-
-    /*//////////////////////////////////////////////////////////////
-                            CONSTANTS
-    //////////////////////////////////////////////////////////////*/
-
-    uint256 internal constant DECIMALS_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFFFFFFFF;
-    uint256 internal constant ACTIVE_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFF;
-    uint256 internal constant FROZEN_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFDFFFFFFFFFFFFFF;
-    uint256 internal constant PAUSED_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFFFFFFFFFFF;
-    uint256 internal constant SUPPLY_CAP_MASK = 0xFFFFFFFFFFFFFFFFFFFFFFFFFF000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
-
-    uint256 internal constant SUPPLY_CAP_START_BIT_POSITION = 116;
-    uint256 internal constant RESERVE_DECIMALS_START_BIT_POSITION = 48;
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -119,18 +108,18 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     /// @return The maximum deposit amount allowed by Aave
     function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
-        uint256 configData = pool.getReserveData(asset()).configuration.data;
-        if (!(_getActive(configData) && !_getFrozen(configData) && !_getPaused(configData))) {
+        DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
+        if (!config.getActive() && !config.getFrozen() && !config.getPaused()) {
             return 0;
         }
 
         // handle supply cap
-        uint256 supplyCapInWholeTokens = _getSupplyCap(configData);
+        uint256 supplyCapInWholeTokens = config.getSupplyCap();
         if (supplyCapInWholeTokens == 0) {
             return type(uint256).max;
         }
 
-        uint8 tokenDecimals = _getDecimals(configData);
+        uint256 tokenDecimals = config.getDecimals();
         uint256 supplyCap = supplyCapInWholeTokens * 10 ** tokenDecimals;
         DataTypes.ReserveDataLegacy memory reserve = pool.getReserveData(asset());
         uint256 usedSupply =
@@ -150,8 +139,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
-        uint256 configData = pool.getReserveData(asset()).configuration.data;
-        if (!(_getActive(configData) && !_getPaused(configData))) {
+        DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
+        if (!config.getActive() && !config.getPaused()) {
             return 0;
         }
 
@@ -164,8 +153,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         // check if asset is paused
-        uint256 configData = pool.getReserveData(asset()).configuration.data;
-        if (!(_getActive(configData) && !_getPaused(configData))) {
+        DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
+        if (!config.getActive() && !config.getPaused()) {
             return 0;
         }
 
@@ -199,39 +188,5 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         // slither-disable-next-line unused-return
         pool.withdraw(asset(), assets, address(this));
         super._withdraw(caller, receiver, owner, assets, shares);
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                      INTERNAL HELPERS
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Extracts the decimals from Aave reserve configuration data
-    /// @dev Uses bit manipulation to extract decimals from the configuration
-    function _getDecimals(uint256 configData) internal pure returns (uint8) {
-        return uint8((configData & ~DECIMALS_MASK) >> RESERVE_DECIMALS_START_BIT_POSITION);
-    }
-
-    /// @notice Checks if the Aave reserve is active
-    /// @dev Uses bit manipulation to check the active flag
-    function _getActive(uint256 configData) internal pure returns (bool) {
-        return configData & ~ACTIVE_MASK != 0;
-    }
-
-    /// @notice Checks if the Aave reserve is frozen
-    /// @dev Uses bit manipulation to check the frozen flag
-    function _getFrozen(uint256 configData) internal pure returns (bool) {
-        return configData & ~FROZEN_MASK != 0;
-    }
-
-    /// @notice Checks if the Aave reserve is paused
-    /// @dev Uses bit manipulation to check the paused flag
-    function _getPaused(uint256 configData) internal pure returns (bool) {
-        return configData & ~PAUSED_MASK != 0;
-    }
-
-    /// @notice Extracts the supply cap from Aave reserve configuration data
-    /// @dev Uses bit manipulation to extract the supply cap value
-    function _getSupplyCap(uint256 configData) internal pure returns (uint256) {
-        return (configData & ~SUPPLY_CAP_MASK) >> SUPPLY_CAP_START_BIT_POSITION;
     }
 }
