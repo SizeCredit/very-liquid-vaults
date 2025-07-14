@@ -17,10 +17,6 @@ interface IStrategy is IBaseVault {
     /// @notice Emitted when the strategy skims idle assets and invests them
     event Skim();
 
-    /// @notice Thrown when an invalid asset is provided to the strategy
-    /// @param asset The invalid asset address
-    error InvalidAsset(address asset);
-
     /// @notice Transfers assets from this strategy to another address
     /// @dev Can only be called by SizeMetaVault
     /// @param to The recipient address for the transferred assets
