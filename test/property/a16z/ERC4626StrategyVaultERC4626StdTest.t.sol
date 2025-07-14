@@ -71,11 +71,34 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         test_RT_withdraw_deposit(init, 957625571);
     }
 
+    function test_ERC4626StrategyVaultERC4626Std_test_RT_withdraw_mint_01() public {
+        Init memory init = Init({
+            user: [
+                0x00000000000000000000000000000000000045B1,
+                0x00000000000000000000000000000000000004C7,
+                0x0000000000000000000000000000000000000dD3,
+                0x000000000000000000000000000000000000102C
+            ],
+            share: [uint256(3578229790), uint256(13566), uint256(14027), uint256(767)],
+            asset: [uint256(9614), uint256(6709), uint256(1303), uint256(1900)],
+            yield: int256(10430)
+        });
+        test_RT_withdraw_mint(init, 3247934751);
+    }
+
     function test_RT_withdraw_deposit(Init memory init, uint256 assets) public override {
         // ignore
     }
 
     function test_RT_deposit_withdraw(Init memory init, uint256 shares) public override {
+        // ignore
+    }
+
+    function test_RT_redeem_mint(Init memory init, uint256 shares) public override {
+        // ignore
+    }
+
+    function test_RT_withdraw_mint(Init memory init, uint256 assets) public override {
         // ignore
     }
 }
