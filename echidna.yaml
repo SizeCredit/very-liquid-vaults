@@ -1,0 +1,6 @@
+corpusDir: "echidna-corpus"
+coverage: true
+testMode: assertion
+testLimit: 100000
+stopOnFail: true
+codeSize: 0xffffff

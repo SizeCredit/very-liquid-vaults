@@ -156,7 +156,8 @@ jobs:
           wget "$URL" -O "$TOOL.tar.gz"
           tar -xvkf "$TOOL.tar.gz"
           rm "$TOOL.tar.gz"
-          ./$TOOL --version
+          mv $TOOL /usr/local/bin/
+          $TOOL --version
 
       - name: Run Fuzzer (${{ matrix.fuzzer }})
         run: |

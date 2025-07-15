@@ -1,3 +1,0 @@
-corpusDir: "echidna-corpus"
-testMode: assertion
-testLimit: 100000
