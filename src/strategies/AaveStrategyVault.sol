@@ -13,6 +13,7 @@ import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol"
 import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {ReserveConfiguration} from "@aave/contracts/protocol/libraries/configuration/ReserveConfiguration.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title AaveStrategyVault
 /// @custom:security-contact security@size.credit
@@ -36,8 +37,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event PoolSet(address indexed poolBefore, address indexed poolAfter);
-    event ATokenSet(address indexed aTokenBefore, address indexed aTokenAfter);
+    event PoolSet(address indexed pool);
+    event ATokenSet(address indexed aToken);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -61,10 +62,9 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         }
 
         pool = pool_;
+        emit PoolSet(address(pool_));
         aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
-
-        emit PoolSet(address(0), address(pool_));
-        emit ATokenSet(address(0), address(aToken));
+        emit ATokenSet(address(aToken));
 
         super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
     }
@@ -108,7 +108,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     /// @dev Checks Aave reserve configuration and supply cap to determine max deposit
     /// @dev Updates Superform implementation to comply with https://github.com/aave-dao/aave-v3-origin/blob/v3.4.0/src/contracts/protocol/libraries/logic/ValidationLogic.sol#L79-L85
     /// @return The maximum deposit amount allowed by Aave
-    function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxDeposit(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getFrozen() && !config.getPaused())) {
@@ -128,13 +128,13 @@ contract AaveStrategyVault is BaseVault, IStrategy {
             (aToken.scaledTotalSupply() + uint256(reserve.accruedToTreasury)).rayMul(reserve.liquidityIndex);
 
         if (usedSupply >= supplyCap) return 0;
-        return supplyCap - usedSupply;
+        return Math.min(supplyCap - usedSupply, super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
     /// @dev Converts the max deposit amount to shares
-    function maxMint(address receiver) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return convertToShares(maxDeposit(receiver));
+    function maxMint(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
+        return Math.min(convertToShares(maxDeposit(receiver)), super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner

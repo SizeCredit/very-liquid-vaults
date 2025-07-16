@@ -349,4 +349,30 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
             erc4626StrategyVault.vault().maxRedeem(address(erc4626StrategyVault))
         );
     }
+
+    function test_ERC4626StrategyVault_totalAssetsCap_maxDeposit_maxMint() public {
+        uint256 totalAssetsBefore = erc4626StrategyVault.totalAssets();
+        uint256 underlyingVaultCap = 100e6;
+
+        vm.mockCall(
+            address(erc4626StrategyVault.vault()),
+            abi.encodeCall(erc4626StrategyVault.vault().maxDeposit, (address(erc4626StrategyVault))),
+            abi.encode(underlyingVaultCap)
+        );
+        vm.mockCall(
+            address(erc4626StrategyVault.vault()),
+            abi.encodeCall(erc4626StrategyVault.vault().maxMint, (address(erc4626StrategyVault))),
+            abi.encode(underlyingVaultCap)
+        );
+
+        assertEq(erc4626StrategyVault.maxDeposit(address(alice)), underlyingVaultCap);
+        assertEq(erc4626StrategyVault.maxMint(address(alice)), underlyingVaultCap);
+
+        uint256 totalAssetsCap = 30e6;
+        vm.prank(admin);
+        erc4626StrategyVault.setTotalAssetsCap(totalAssetsCap);
+
+        assertEq(erc4626StrategyVault.maxDeposit(address(alice)), totalAssetsCap - totalAssetsBefore);
+        assertEq(erc4626StrategyVault.maxMint(address(alice)), totalAssetsCap - totalAssetsBefore);
+    }
 }

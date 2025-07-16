@@ -83,7 +83,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Returns the maximum amount that can be deposited
     // slither-disable-next-line calls-loop
-    function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 length = strategies.length();
         uint256 max = 0;
         for (uint256 i = 0; i < length; i++) {
@@ -91,14 +91,16 @@ contract SizeMetaVault is BaseVault {
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             max = Math.saturatingAdd(max, strategyMaxDeposit);
         }
-        return max;
+        return Math.min(max, super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
     /// @dev Converts the max deposit amount to shares
-    function maxMint(address receiver) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 maxDepositAmount = maxDeposit(receiver);
-        return maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
+        uint256 maxMintAmount =
+            maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
+        return Math.min(maxMintAmount, super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
@@ -201,7 +203,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Sets the maximum number of strategies
     /// @dev Updating the max strategies does not change the existing strategies
-    function setMaxStrategies(uint256 maxStrategies_) external whenNotPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
+    function setMaxStrategies(uint256 maxStrategies_) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
         _setMaxStrategies(maxStrategies_);
     }
 
@@ -211,7 +213,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Replaces all current strategies with new ones
     /// @dev Removes all existing strategies and adds the new ones
-    function setStrategies(address[] calldata strategies_) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
+    function setStrategies(address[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
         uint256 oldLength = strategies.length();
         for (uint256 i = 0; i < oldLength; i++) {
             _removeStrategy(strategies.at(0));
@@ -223,13 +225,13 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    function addStrategy(address strategy) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
+    function addStrategy(address strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
         _addStrategy(strategy, asset());
     }
 
     /// @notice Removes a strategy from the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    function removeStrategy(address strategy) external whenNotPaused onlyAuth(STRATEGIST_ROLE) {
+    function removeStrategy(address strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
         _removeStrategy(strategy);
     }
 
@@ -237,7 +239,7 @@ contract SizeMetaVault is BaseVault {
     /// @dev Transfers assets from one strategy to another and skims the destination
     function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount, uint256 minAmount)
         external
-        whenNotPaused
+        notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
         if (!strategies.contains(address(strategyFrom))) {

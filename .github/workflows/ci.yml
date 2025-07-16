@@ -113,6 +113,23 @@ jobs:
       - name: Run solhint
         run: npx solhint "src/**/*.sol" --max-warnings 0
 
+  semgrep:
+    strategy:
+      fail-fast: true
+    
+    name: Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Semgrep
+        run: python3 -m pip install semgrep
+
+      - name: Run semgrep
+        run: semgrep --config semgrep src
+
   invariants:
     needs: [sizes, fmt, test, slither, solhint]
     strategy:

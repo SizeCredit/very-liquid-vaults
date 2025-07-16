@@ -7,9 +7,10 @@ import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/U
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
-import {PAUSER_ROLE, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
+import {PAUSER_ROLE, DEFAULT_ADMIN_ROLE, STRATEGIST_ROLE} from "@src/Auth.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
+import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
 contract BaseVaultTest is BaseTest {
     function test_BaseVault_initialize() public view {
@@ -177,5 +178,38 @@ contract BaseVaultTest is BaseTest {
         assertEq(baseVault.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
         assertEq(erc20Asset.balanceOf(address(baseVault)), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
         assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
+    }
+
+    function test_BaseVault_setTotalAssetsCap() public {
+        uint256 totalAssetsCap = 1000e6;
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, STRATEGIST_ROLE)
+        );
+        baseVault.setTotalAssetsCap(totalAssetsCap);
+
+        assertEq(baseVault.totalAssetsCap(), type(uint256).max);
+
+        vm.prank(strategist);
+        baseVault.setTotalAssetsCap(totalAssetsCap);
+        assertEq(baseVault.totalAssetsCap(), totalAssetsCap);
+    }
+
+    function test_BaseVault_deposit_reverts_when_totalAssetsCap_is_reached() public {
+        uint256 totalAssetsCap = 1000e6;
+        vm.prank(strategist);
+        baseVault.setTotalAssetsCap(totalAssetsCap);
+
+        _mint(erc20Asset, address(baseVault), totalAssetsCap);
+
+        uint256 depositAmount = 100e6;
+        _mint(erc20Asset, alice, depositAmount);
+        _approve(alice, erc20Asset, address(baseVault), depositAmount);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector, alice, depositAmount, 0)
+        );
+        baseVault.deposit(depositAmount, alice);
     }
 }

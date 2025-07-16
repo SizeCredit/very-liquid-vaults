@@ -11,10 +11,11 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Auth} from "@src/Auth.sol";
-import {DEFAULT_ADMIN_ROLE, PAUSER_ROLE} from "@src/Auth.sol";
+import {DEFAULT_ADMIN_ROLE, PAUSER_ROLE, STRATEGIST_ROLE} from "@src/Auth.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 /// @title BaseVault
 /// @custom:security-contact security@size.credit
@@ -36,7 +37,8 @@ abstract contract BaseVault is
 
     Auth public auth;
     uint256 public deadAssets;
-    uint256[48] private __gap;
+    uint256 public totalAssetsCap;
+    uint256[47] private __gap;
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -50,8 +52,9 @@ abstract contract BaseVault is
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event AuthSet(address indexed authBefore, address indexed authAfter);
-    event DeadAssetsSet(uint256 deadAssets);
+    event AuthSet(address indexed auth);
+    event DeadAssetsSet(uint256 indexed deadAssets);
+    event TotalAssetsCapSet(uint256 indexed totalAssetsCapBefore, uint256 indexed totalAssetsCapAfter);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -87,10 +90,12 @@ abstract contract BaseVault is
         }
 
         auth = auth_;
-        emit AuthSet(address(0), address(auth_));
+        emit AuthSet(address(auth_));
 
         deadAssets = firstDepositAmount_;
         emit DeadAssetsSet(firstDepositAmount_);
+
+        _setTotalAssetsCap(type(uint256).max);
 
         deposit(firstDepositAmount_, address(this));
     }
@@ -135,9 +140,25 @@ abstract contract BaseVault is
         _unpause();
     }
 
+    /// @notice Sets the maximum total assets of the vault
+    /// @dev Only callable by the auth contract
+    /// @dev Lowering the total assets cap does not affect existing deposited assets
+    function setTotalAssetsCap(uint256 totalAssetsCap_) external onlyAuth(STRATEGIST_ROLE) {
+        _setTotalAssetsCap(totalAssetsCap_);
+    }
+
+    /// @notice Sets the maximum total assets of the vault
+    function _setTotalAssetsCap(uint256 totalAssetsCap_) private {
+        uint256 oldTotalAssetsCap = totalAssetsCap;
+        totalAssetsCap = totalAssetsCap_;
+        emit TotalAssetsCapSet(oldTotalAssetsCap, totalAssetsCap_);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              ERC4626 OVERRIDES
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Returns the number of decimals for the vault token
-    /// @dev Overrides both ERC20 and ERC4626 decimals functions
-    /// @return The number of decimals (matches the underlying asset)
     function decimals()
         public
         view
@@ -152,5 +173,17 @@ abstract contract BaseVault is
     /// @dev Ensures transfers only happen when the contract is not paused and that no reentrancy is possible
     function _update(address from, address to, uint256 value) internal override nonReentrant notPaused {
         super._update(from, to, value);
+    }
+
+    /// @notice Returns the maximum amount that can be deposited
+    /// @dev Returns type(uint256).max if no total assets cap is set
+    function maxDeposit(address) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return totalAssetsCap == type(uint256).max ? type(uint256).max : totalAssetsCap - totalAssets();
+    }
+
+    /// @notice Returns the maximum amount that can be minted
+    /// @dev Returns type(uint256).max if no total assets cap is set
+    function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return totalAssetsCap == type(uint256).max ? type(uint256).max : convertToShares(maxDeposit(receiver));
     }
 }
