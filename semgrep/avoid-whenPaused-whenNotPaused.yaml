@@ -1,0 +1,9 @@
+rules:
+  - id: avoid-whenPaused-whenNotPaused
+    pattern-either:
+      - pattern: whenPaused
+      - pattern: whenNotPaused
+    message: >
+      Avoid using `whenPaused` or `whenNotPaused`. Use `paused` or `notPaused` instead, as these rely on the global Auth contract.
+    languages: [solidity]
+    severity: ERROR
