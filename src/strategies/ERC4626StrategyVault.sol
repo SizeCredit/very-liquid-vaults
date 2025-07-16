@@ -91,14 +91,14 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
 
     /// @notice Returns the maximum amount that can be deposited
     /// @dev Delegates to the external vault's maxDeposit function
-    function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.maxDeposit(address(this));
+    function maxDeposit(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
+        return Math.min(vault.maxDeposit(address(this)), super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
     /// @dev Delegates to the external vault's maxMint function
-    function maxMint(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.maxMint(address(this));
+    function maxMint(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
+        return Math.min(vault.maxMint(address(this)), super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner

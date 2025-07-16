@@ -23,6 +23,7 @@ This project implements ERC4626 property tests from [A16Z](https://github.com/a1
 * **Deposit/Withdrawal Priority Logic**: Configurable priority list for liquidity deposit/withdrawals
 * **Flexible Strategy Integration**: Easily add or remove ERC4626-compatible strategies
 * **Pause Functionality**: Emergency stop mechanisms for enhanced security
+* **Total Asset Caps**: Maximum asset limits for each strategy and meta vault
 
 ## Specifications
 

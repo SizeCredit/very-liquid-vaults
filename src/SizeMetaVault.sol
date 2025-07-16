@@ -83,7 +83,7 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Returns the maximum amount that can be deposited
     // slither-disable-next-line calls-loop
-    function maxDeposit(address) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 length = strategies.length();
         uint256 max = 0;
         for (uint256 i = 0; i < length; i++) {
@@ -91,14 +91,16 @@ contract SizeMetaVault is BaseVault {
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             max = Math.saturatingAdd(max, strategyMaxDeposit);
         }
-        return max;
+        return Math.min(max, super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
     /// @dev Converts the max deposit amount to shares
-    function maxMint(address receiver) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 maxDepositAmount = maxDeposit(receiver);
-        return maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
+        uint256 maxMintAmount =
+            maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
+        return Math.min(maxMintAmount, super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
