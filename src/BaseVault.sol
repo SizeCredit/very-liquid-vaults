@@ -47,7 +47,6 @@ abstract contract BaseVault is
     error NullAddress();
     error NullAmount();
     error InvalidAsset(address asset);
-    error TotalAssetsCapExceeded(uint256 totalAssets, uint256 totalAssetsCap);
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -174,15 +173,6 @@ abstract contract BaseVault is
     /// @dev Ensures transfers only happen when the contract is not paused and that no reentrancy is possible
     function _update(address from, address to, uint256 value) internal override nonReentrant notPaused {
         super._update(from, to, value);
-    }
-
-    /// @notice Internal deposit function that checks the max total assets
-    /// @dev Calls parent deposit then checks the max total assets
-    function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
-        super._deposit(caller, receiver, assets, shares);
-        if (totalAssets() > totalAssetsCap) {
-            revert TotalAssetsCapExceeded(totalAssets(), totalAssetsCap);
-        }
     }
 
     /// @notice Returns the maximum amount that can be deposited
