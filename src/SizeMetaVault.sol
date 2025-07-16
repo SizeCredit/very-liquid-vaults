@@ -71,7 +71,7 @@ contract SizeMetaVault is BaseVault {
         _setMaxStrategies(DEFAULT_MAX_STRATEGIES);
 
         for (uint256 i = 0; i < strategies_.length; i++) {
-            _addStrategy(strategies_[i], address(asset_));
+            _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
 
         super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
@@ -218,14 +218,14 @@ contract SizeMetaVault is BaseVault {
             _removeStrategy(strategies.at(0));
         }
         for (uint256 i = 0; i < strategies_.length; i++) {
-            _addStrategy(strategies_[i], asset());
+            _addStrategy(strategies_[i], asset(), address(auth));
         }
     }
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     function addStrategy(address strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        _addStrategy(strategy, asset());
+        _addStrategy(strategy, asset(), address(auth));
     }
 
     /// @notice Removes a strategy from the vault
@@ -275,16 +275,16 @@ contract SizeMetaVault is BaseVault {
     /// @dev Emits StrategyAdded event if the strategy was successfully added
     /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
     // slither-disable-next-line calls-loop
-    function _addStrategy(address strategy, address asset) private {
-        if (strategy == address(0)) {
+    function _addStrategy(address strategy_, address asset_, address auth_) private {
+        if (strategy_ == address(0)) {
             revert NullAddress();
         }
-        if (IStrategy(strategy).asset() != asset) {
-            revert InvalidAsset(IStrategy(strategy).asset());
+        if (IStrategy(strategy_).asset() != asset_ || address(IStrategy(strategy_).auth()) != auth_) {
+            revert InvalidStrategy(strategy_);
         }
-        bool added = strategies.add(strategy);
+        bool added = strategies.add(strategy_);
         if (added) {
-            emit StrategyAdded(strategy);
+            emit StrategyAdded(strategy_);
         }
         if (strategies.length() > maxStrategies) {
             revert MaxStrategiesExceeded(strategies.length(), maxStrategies);

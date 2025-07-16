@@ -13,6 +13,7 @@ import {VaultMockDecMaxDeposit} from "@test/mocks/VaultMockDecMaxDeposit.t.sol";
 import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {BaseVault} from "@src/BaseVault.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     bool public expectRevert = false;
@@ -250,8 +251,22 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_addStrategy_invalid_asset_must_revert() public {
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(weth)));
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cashStrategyVaultWETH)));
         sizeMetaVault.addStrategy(address(cashStrategyVaultWETH));
+    }
+
+    function test_SizeMetaVault_addStrategy_invalid_auth_must_revert() public {
+        address invalidAuth = address(0xDEAD);
+
+        vm.mockCall(
+            address(cryticCashStrategyVault), abi.encodeWithSelector(IBaseVault.auth.selector), abi.encode(invalidAuth)
+        );
+
+        vm.prank(strategist);
+        vm.expectRevert(
+            abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
+        );
+        sizeMetaVault.addStrategy(address(cryticCashStrategyVault));
     }
 
     function test_SizeMetaVault_addStrategy_address_zero_must_revert() public {
@@ -354,23 +369,19 @@ contract SizeMetaVaultTest is BaseTest {
         VaultMockDecMaxDeposit vault_decDeposit;
         ERC4626StrategyVault newERC4626StrategyVault;
 
-        address AuthImplementation = address(new Auth());
-        Auth auth_ =
-            Auth(payable(new ERC1967Proxy(AuthImplementation, abi.encodeWithSelector(Auth.initialize.selector, bob))));
-
         ERC4626StrategyVaultScript deployer = new ERC4626StrategyVaultScript();
 
         _mint(erc20Asset, address(deployer), FIRST_DEPOSIT_AMOUNT);
 
         if (_isRevertingOnDeposit) {
             vault_revertDeposit = new VaultMockRevertOnDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
-            newERC4626StrategyVault = deployer.deploy(auth_, FIRST_DEPOSIT_AMOUNT, vault_revertDeposit);
+            newERC4626StrategyVault = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault_revertDeposit);
         } else if (_isRevertingOnWithdraw) {
             vault_revertWithdraw = new VaultMockRevertOnWithdraw(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
-            newERC4626StrategyVault = deployer.deploy(auth_, FIRST_DEPOSIT_AMOUNT, vault_revertWithdraw);
+            newERC4626StrategyVault = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault_revertWithdraw);
         } else {
             vault_decDeposit = new VaultMockDecMaxDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
-            newERC4626StrategyVault = deployer.deploy(auth_, FIRST_DEPOSIT_AMOUNT, vault_decDeposit);
+            newERC4626StrategyVault = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault_decDeposit);
         }
         address[] memory newStrategiesAddresses = new address[](1);
         newStrategiesAddresses[0] = address(newERC4626StrategyVault);
