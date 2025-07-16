@@ -177,13 +177,19 @@ abstract contract BaseVault is
 
     /// @notice Returns the maximum amount that can be deposited
     /// @dev Returns type(uint256).max if no total assets cap is set
-    function maxDeposit(address) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxDeposit(address receiver)
+        public
+        view
+        virtual
+        override(ERC4626Upgradeable, IERC4626)
+        returns (uint256)
+    {
         return totalAssetsCap == type(uint256).max ? type(uint256).max : totalAssetsCap - totalAssets();
     }
 
     /// @notice Returns the maximum amount that can be minted
     /// @dev Returns type(uint256).max if no total assets cap is set
-    function maxMint(address) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return totalAssetsCap == type(uint256).max ? type(uint256).max : convertToShares(totalAssetsCap);
+    function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        return totalAssetsCap == type(uint256).max ? type(uint256).max : convertToShares(maxDeposit(receiver));
     }
 }
