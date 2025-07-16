@@ -175,7 +175,6 @@ contract SizeMetaVault is BaseVault {
         uint256 assetsToWithdraw = assets;
 
         uint256 length = strategies.length();
-
         for (uint256 i = 0; i < length; i++) {
             IStrategy strategy = IStrategy(strategies.at(i));
 
