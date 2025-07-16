@@ -2,12 +2,16 @@
 pragma solidity 0.8.23;
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {Auth} from "@src/Auth.sol";
 
 /// @title IBaseVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Interface for the base vault contract
 interface IBaseVault is IERC4626 {
+    /// @notice Returns the address of the auth contract
+    function auth() external view returns (Auth);
+
     /// @notice Returns the amount of assets that are dead and cannot be withdrawn
     function deadAssets() external view returns (uint256);
 
