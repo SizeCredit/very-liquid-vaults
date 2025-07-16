@@ -37,8 +37,8 @@ contract AaveStrategyVault is BaseVault, IStrategy {
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event PoolSet(address indexed poolBefore, address indexed poolAfter);
-    event ATokenSet(address indexed aTokenBefore, address indexed aTokenAfter);
+    event PoolSet(address indexed pool);
+    event ATokenSet(address indexed aToken);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -62,10 +62,9 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         }
 
         pool = pool_;
+        emit PoolSet(address(pool_));
         aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
-
-        emit PoolSet(address(0), address(pool_));
-        emit ATokenSet(address(0), address(aToken));
+        emit ATokenSet(address(aToken));
 
         super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
     }

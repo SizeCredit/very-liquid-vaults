@@ -13,6 +13,23 @@ This project implements ERC4626 property tests from [A16Z](https://github.com/a1
 - OpenZeppelin's implementation with decimals offset ([A Novel Defense Against ERC4626 Inflation Attacks](https://blog.openzeppelin.com/a-novel-defense-against-erc4626-inflation-attacks))
 - First deposit during deployment with dead shares, pioneered by the [Morpho Optimizer](https://github.com/morpho-org/morpho-optimizers-vaults/blob/a74846774afe4f74a75a0470c2984c7d8ea41f35/scripts/aave-v2/eth-mainnet/Deploy.s.sol#L85-L120)
 
+## Audits
+
+This project has not undergone any security reviews yet.
+
+## Deployments
+
+Target deployments:
+
+- Ethereum mainnet
+- Base mainnet
+
+Target integrations:
+
+- Aave v3 (USDC)
+- Morpho vaults (USDC)
+- Euler vaults (USDC)
+
 ## Key Features
 
 * **ERC4626 Compliance**: Standard vault interface for seamless DeFi integration

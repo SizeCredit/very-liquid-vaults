@@ -28,7 +28,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event VaultSet(address indexed vaultBefore, address indexed vaultAfter);
+    event VaultSet(address indexed vault);
 
     /*//////////////////////////////////////////////////////////////
                               INITIALIZER
@@ -48,7 +48,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
         }
 
         vault = vault_;
-        emit VaultSet(address(0), address(vault_));
+        emit VaultSet(address(vault_));
 
         super.initialize(auth_, IERC20(address(vault_.asset())), name_, symbol_, firstDepositAmount);
     }

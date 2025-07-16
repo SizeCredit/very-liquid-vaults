@@ -52,7 +52,7 @@ abstract contract BaseVault is
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event AuthSet(address indexed authBefore, address indexed authAfter);
+    event AuthSet(address indexed auth);
     event DeadAssetsSet(uint256 indexed deadAssets);
     event TotalAssetsCapSet(uint256 indexed totalAssetsCapBefore, uint256 indexed totalAssetsCapAfter);
 
@@ -90,7 +90,7 @@ abstract contract BaseVault is
         }
 
         auth = auth_;
-        emit AuthSet(address(0), address(auth_));
+        emit AuthSet(address(auth_));
 
         deadAssets = firstDepositAmount_;
         emit DeadAssetsSet(firstDepositAmount_);
