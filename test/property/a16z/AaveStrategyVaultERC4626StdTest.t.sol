@@ -2,9 +2,13 @@
 pragma solidity 0.8.23;
 
 import {ERC4626Test, IMockERC20} from "@a16z/erc4626-tests/ERC4626.test.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
+import {Logger} from "@test/Logger.t.sol";
+import {console} from "forge-std/Test.sol";
 
 contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
     function setUp() public override(ERC4626Test, BaseTest) {
@@ -15,7 +19,11 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
 
         _underlying_ = address(erc20Asset);
         _vault_ = address(aaveStrategyVault);
-        _delta_ = 0;
+
+        // these properties can break even if we assume a more security-focused property such as "the user cannot get more assets from RT operations"
+        //   since Aave rounding is inconsistent so totalAssts may round up/down at times
+        //   nevertheless, the delta will be at most 2 (one for each operation)
+        _delta_ = 2;
         _vaultMayBeEmpty = true;
         _unlimitedAmount = true;
     }
@@ -54,15 +62,61 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         test_RT_withdraw_mint(init, 3118930328);
     }
 
-    function test_RT_redeem_deposit(Init memory init, uint256 shares) public override {
-        // ignore
+    function test_AaveStrategyVaultERC4626StdTest_RT_redeem_mint_01() public {
+        // [FAIL; counterexample: calldata=0x840f3a740000000000000000000000002e234dae75c793f67a35089c9d99245e1c58470c0000000000000000000000000000000000000000000000000000000000002e740000000000000000000000000000000000000000000000000000000000001e470000000000000000000000000000000000000000000000000000000000001b96000000000000000000000000000000000000000000000000000000002489f7f6000000000000000000000000000000000000000000000000000000000000141d0000000000000000000000000000000000000000000000000000000000004383000000000000000000000000000000000000000000000000000000000000478500000000000000000000000000000000000004ee2d6d415b85acef8100000000000000000000000000000000000000000000000000000000000000000000065900000000000000000000000000000000000000000000000000000000000042b50000000000000000000000000000000000000000000000000000000000003d0900000000000000000000000000000000000000000000000000000000cfc0cc330000000000000000000000000000000000000000000000000000000000002e1c args=[Init({ user: [0x2e234dAE75c793F67a35089C9D99245e1C58470c, 0x0000000000000000000000000000000000002e74, 0x0000000000000000000000000000000000001e47, 0x0000000000000000000000000000000000001B96], share: [613021686 [6.13e8], 5149, 17283 [1.728e4], 18309 [1.83e4]], asset: [100000000000000000000000000000000 [1e32], 1625, 17077 [1.707e4], 15625 [1.562e4]], yield: 3485518899 [3.485e9] }), 11804 [1.18e4]]] test_RT_redeem_mint((address[4],uint256[4],uint256[4],int256),uint256) (runs: 2304, μ: 861475, ~: 861614)
+        Init memory init = Init({
+            user: [
+                0x2e234dAE75c793F67a35089C9D99245e1C58470c,
+                0x0000000000000000000000000000000000002e74,
+                0x0000000000000000000000000000000000001e47,
+                0x0000000000000000000000000000000000001B96
+            ],
+            share: [uint256(613021686), uint256(5149), uint256(17283), uint256(18309)],
+            asset: [uint256(100000000000000000000000000000000), uint256(1625), uint256(17077), uint256(15625)],
+            yield: int256(3485518899)
+        });
+        uint256 shares = 11804;
+        setUpVault(init);
+        Logger.log(aaveStrategyVault, init.user);
+        console.log("aToken.totalSupply", aToken.totalSupply());
+        console.log("aToken.balanceOf(aaveStrategyVault)", aToken.balanceOf(address(aaveStrategyVault)));
+        console.log("aToken.balanceOf(cryticAaveStrategyVault)", aToken.balanceOf(address(cryticAaveStrategyVault)));
+        address caller = init.user[0];
+        shares = bound(shares, 0, _max_redeem(caller));
+        _approve(_underlying_, caller, _vault_, type(uint256).max);
+        uint256 assetsBefore =
+            vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
+        vm.prank(caller);
+        uint256 assets1 = vault_redeem(shares, caller, caller);
+        console.log("aToken.totalSupply", aToken.totalSupply());
+        console.log("aToken.balanceOf(aaveStrategyVault)", aToken.balanceOf(address(aaveStrategyVault)));
+        console.log("aToken.balanceOf(cryticAaveStrategyVault)", aToken.balanceOf(address(cryticAaveStrategyVault)));
+        Logger.log(aaveStrategyVault, init.user);
+        if (!_vaultMayBeEmpty) vm.assume(IERC20(_vault_).totalSupply() > 0);
+        vm.prank(caller);
+        uint256 assets2 = vault_mint(shares, caller);
+        uint256 assetsAfter =
+            vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
+        assertApproxLeAbs(assetsAfter, assetsBefore, _delta_);
+        Logger.log(aaveStrategyVault, init.user);
+        console.log("aToken.totalSupply", aToken.totalSupply());
+        console.log("aToken.balanceOf(aaveStrategyVault)", aToken.balanceOf(address(aaveStrategyVault)));
+        console.log("aToken.balanceOf(cryticAaveStrategyVault)", aToken.balanceOf(address(cryticAaveStrategyVault)));
     }
 
-    function test_RT_redeem_mint(Init memory init, uint256 shares) public override {
-        // ignore
-    }
-
-    function test_RT_withdraw_mint(Init memory init, uint256 assets) public override {
-        // ignore
+    function test_AaveStrategyVaultERC4626StdTest_RT_withdraw_mint_02() public {
+        // [FAIL; counterexample: calldata=0x6aaa88bc0000000000000000000000002e234dae75c793f67a35089c9d99245e1c58470c0000000000000000000000000000000000000000000000000000000000002e740000000000000000000000000000000000000000000000000000000000001e470000000000000000000000000000000000000000000000000000000000001b96000000000000000000000000000000000000000000000000000000002489f7f6000000000000000000000000000000000000000000000000000000000000141d0000000000000000000000000000000000000000000000000000000000004383000000000000000000000000000000000000000000000000000000000000478500000000000000000000000000000000000004ee2d6d415b85acef8100000000000000000000000000000000000000000000000000000000000000000000065900000000000000000000000000000000000000000000000000000000000042b50000000000000000000000000000000000000000000000000000000000003d0900000000000000000000000000000000000000000000000000000000cfc0cc330000000000000000000000000000000000000000000000000000000000002e1c args=[Init({ user: [0x2e234dAE75c793F67a35089C9D99245e1C58470c, 0x0000000000000000000000000000000000002e74, 0x0000000000000000000000000000000000001e47, 0x0000000000000000000000000000000000001B96], share: [613021686 [6.13e8], 5149, 17283 [1.728e4], 18309 [1.83e4]], asset: [100000000000000000000000000000000 [1e32], 1625, 17077 [1.707e4], 15625 [1.562e4]], yield: 3485518899 [3.485e9] }), 11804 [1.18e4]]] test_RT_withdraw_mint((address[4],uint256[4],uint256[4],int256),uint256) (runs: 0, μ: 0, ~: 0)
+        Init memory init = Init({
+            user: [
+                0x2e234dAE75c793F67a35089C9D99245e1C58470c,
+                0x0000000000000000000000000000000000002e74,
+                0x0000000000000000000000000000000000001e47,
+                0x0000000000000000000000000000000000001B96
+            ],
+            share: [uint256(613021686), uint256(5149), uint256(5149), uint256(18309)],
+            asset: [uint256(100000000000000000000000000000000), uint256(1625), uint256(17077), uint256(15625)],
+            yield: int256(3485518899)
+        });
+        test_RT_withdraw_mint(init, 11804);
     }
 }

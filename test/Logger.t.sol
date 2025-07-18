@@ -7,6 +7,8 @@ import {console} from "forge-std/Test.sol";
 
 // TODO: generalize
 library Logger {
+    uint256 public constant DIGITS = 27;
+
     function spaces(uint256 n) public pure returns (string memory ans) {
         for (uint256 i = 0; i < n; i++) {
             ans = string.concat(ans, " ");
@@ -25,16 +27,16 @@ library Logger {
     function log(IERC4626 vault, address[] memory users) public view {
         string memory line = "";
         line = string.concat(
-            line, spaces(42 - 4 - 2), "user", "\t", spaces(10 - 6), "shares", "\t", spaces(10 - 6), "assets", "\n"
+            line, spaces(42 - 4 - 2), "user", spaces(DIGITS - 6 + 2), "shares", spaces(DIGITS - 6 + 2), "assets", "\n"
         );
         for (uint256 i = 0; i < users.length; i++) {
             line = string.concat(
                 line,
                 Strings.toHexString(users[i]),
-                "\t",
-                padStart(vault.balanceOf(users[i]), 10),
-                "\t",
-                padStart(vault.convertToAssets(vault.balanceOf(users[i])), 10),
+                spaces(2),
+                padStart(vault.balanceOf(users[i]), DIGITS),
+                spaces(2),
+                padStart(vault.convertToAssets(vault.balanceOf(users[i])), DIGITS),
                 "\n"
             );
         }
@@ -42,10 +44,10 @@ library Logger {
             line,
             spaces(42 - 5),
             "total",
-            "\t",
-            padStart(vault.totalSupply(), 10),
-            "\t",
-            padStart(vault.totalAssets(), 10),
+            spaces(2),
+            padStart(vault.totalSupply(), DIGITS),
+            spaces(2),
+            padStart(vault.totalAssets(), DIGITS),
             "\n"
         );
         console.log(line);

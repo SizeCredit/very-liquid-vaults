@@ -1,0 +1,48 @@
+Ran 1 test for test/property/a16z/AaveStrategyVaultERC4626StdTest.t.sol:AaveStrategyVaultERC4626StdTest
+[FAIL] test_AaveStrategyVaultERC4626StdTest_RT_redeem_mint_01() (gas: 1457872)
+Logs:
+  Bound result 3675149
+                                      user                       shares                       assets
+0x2e234dae75c793f67a35089c9d99245e1c58470c                    613021686                    616580490
+0x0000000000000000000000000000000000002e74                         5149                         5178
+0x0000000000000000000000000000000000001e47                        17283                        17383
+0x0000000000000000000000000000000000001b96                        18309                        18415
+                                     total                    623062427                    626679522
+
+  aToken.totalSupply 636737576
+  aToken.balanceOf(aaveStrategyVault) 626679522
+  aToken.balanceOf(cryticAaveStrategyVault) 10058054
+  Bound result 11804
+  aToken.totalSupply 636725704
+  aToken.balanceOf(aaveStrategyVault) 626667651
+  aToken.balanceOf(cryticAaveStrategyVault) 10058054
+                                      user                       shares                       assets
+0x2e234dae75c793f67a35089c9d99245e1c58470c                    613009882                    616568619
+0x0000000000000000000000000000000000002e74                         5149                         5178
+0x0000000000000000000000000000000000001e47                        17283                        17383
+0x0000000000000000000000000000000000001b96                        18309                        18415
+                                     total                    623050623                    626667651
+
+  Error: a <=~ b not satisfied [uint]
+     Value a: 100000000000000000000000616580491
+     Value b: 100000000000000000000000616580490
+   Max Delta: 0
+       Delta: 1
+                                      user                       shares                       assets
+0x2e234dae75c793f67a35089c9d99245e1c58470c                    613021686                    616580492
+0x0000000000000000000000000000000000002e74                         5149                         5178
+0x0000000000000000000000000000000000001e47                        17283                        17383
+0x0000000000000000000000000000000000001b96                        18309                        18415
+                                     total                    623062427                    626679524
+
+  aToken.totalSupply 636737577
+  aToken.balanceOf(aaveStrategyVault) 626679524
+  aToken.balanceOf(cryticAaveStrategyVault) 10058054
+
+Suite result: FAILED. 0 passed; 1 failed; 0 skipped; finished in 11.77ms (3.26ms CPU time)
+
+Ran 1 test suite in 158.36ms (11.77ms CPU time): 0 tests passed, 1 failed, 0 skipped (1 total tests)
+
+Failing tests:
+Encountered 1 failing test in test/property/a16z/AaveStrategyVaultERC4626StdTest.t.sol:AaveStrategyVaultERC4626StdTest
+[FAIL] test_AaveStrategyVaultERC4626StdTest_RT_redeem_mint_01() (gas: 1457872)
