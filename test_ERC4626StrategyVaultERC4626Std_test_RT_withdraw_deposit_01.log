@@ -1,0 +1,71 @@
+[⠊] Compiling...
+[⠆] Compiling 2 files with Solc 0.8.23
+[⠰] Solc 0.8.23 finished in 9.65s
+Compiler run successful!
+
+Ran 1 test for test/property/a16z/ERC4626StrategyVaultERC4626StdTest.t.sol:ERC4626StrategyVaultERC4626StdTest
+[FAIL] test_ERC4626StrategyVaultERC4626Std_test_RT_withdraw_deposit_01() (gas: 1397000)
+Logs:
+  Bound result 11179
+  setUpVault
+  ERC4626StrategyVault
+                                      user          shares          assets
+0x00000000000000000000000000000000000030b3       987910862       987921818
+0x0000000000000000000000000000000000002367             587             587
+0x0000000000000000000000000000000000001b08           13632           13632
+0x0000000000000000000000000000000000002d7e            6506            6506
+                                     total       997931587       997942655
+
+  ERC4626StrategyVault.vault()
+                                      user          shares          assets
+0xea849e9ae0471a3d919fcf8b45c271afb7becf69       997931587       997942655
+0x1b0ab25bc10f4dd7455e03604d7bd0e7cab5a0d2        10000000        10000110
+                                     total      1007931587      1007942766
+
+  Bound result 957625571
+  withdraw
+  ERC4626StrategyVault
+                                      user          shares          assets
+0x00000000000000000000000000000000000030b3        30295911        30296246
+0x0000000000000000000000000000000000002367             587             587
+0x0000000000000000000000000000000000001b08           13632           13632
+0x0000000000000000000000000000000000002d7e            6506            6506
+                                     total        40316636        40317083
+
+  ERC4626StrategyVault.vault()
+                                      user          shares          assets
+0xea849e9ae0471a3d919fcf8b45c271afb7becf69        40316636        40317083
+0x1b0ab25bc10f4dd7455e03604d7bd0e7cab5a0d2        10000000        10000111
+                                     total        50316636        50317195
+
+  deposit
+  ERC4626StrategyVault
+                                      user          shares          assets
+0x00000000000000000000000000000000000030b3       987910864       987921817
+0x0000000000000000000000000000000000002367             587             587
+0x0000000000000000000000000000000000001b08           13632           13632
+0x0000000000000000000000000000000000002d7e            6506            6506
+                                     total       997931589       997942654
+
+  ERC4626StrategyVault.vault()
+                                      user          shares          assets
+0xea849e9ae0471a3d919fcf8b45c271afb7becf69       997931568       997942654
+0x1b0ab25bc10f4dd7455e03604d7bd0e7cab5a0d2        10000000        10000111
+                                     total      1007931568      1007942766
+
+  Error: a <=~ b not satisfied [uint]
+     Value a: 957614953
+     Value b: 957614951
+   Max Delta: 0
+       Delta: 2
+
+Suite result: FAILED. 0 passed; 1 failed; 0 skipped; finished in 11.03ms (3.07ms CPU time)
+
+Ran 1 test suite in 154.50ms (11.03ms CPU time): 0 tests passed, 1 failed, 0 skipped (1 total tests)
+
+Failing tests:
+Encountered 1 failing test in test/property/a16z/ERC4626StrategyVaultERC4626StdTest.t.sol:ERC4626StrategyVaultERC4626StdTest
+[FAIL] test_ERC4626StrategyVaultERC4626Std_test_RT_withdraw_deposit_01() (gas: 1397000)
+
+Encountered a total of 1 failing tests, 0 tests succeeded
+[Command exited with 1, lasted 12.047303459s]

@@ -4,6 +4,9 @@ pragma solidity 0.8.23;
 import {ERC4626Test, IMockERC20} from "@a16z/erc4626-tests/ERC4626.test.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Logger} from "@test/Logger.t.sol";
+import {console} from "forge-std/Test.sol";
 
 contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
     function setUp() public override(ERC4626Test, BaseTest) {
@@ -68,7 +71,39 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
             ],
             yield: int256(11179)
         });
-        test_RT_withdraw_deposit(init, 957625571);
+        uint256 assets = 957625571;
+
+        setUpVault(init);
+        console.log("setUpVault");
+        _log();
+        address caller = init.user[0];
+        assets = bound(assets, 0, _max_withdraw(caller));
+        _approve(_underlying_, caller, _vault_, type(uint256).max);
+        vm.prank(caller);
+        uint256 shares1 = vault_withdraw(assets, caller, caller);
+        console.log("withdraw");
+        _log();
+        if (!_vaultMayBeEmpty) vm.assume(IERC20(_vault_).totalSupply() > 0);
+        vm.prank(caller);
+        uint256 shares2 = vault_deposit(assets, caller);
+        console.log("deposit");
+        _log();
+        assertApproxLeAbs(shares2, shares1, _delta_);
+    }
+
+    function _log() private view {
+        console.log("ERC4626StrategyVault");
+        Logger.log(
+            erc4626StrategyVault,
+            [
+                0x00000000000000000000000000000000000030b3,
+                0x0000000000000000000000000000000000002367,
+                0x0000000000000000000000000000000000001B08,
+                0x0000000000000000000000000000000000002D7E
+            ]
+        );
+        console.log("ERC4626StrategyVault.vault()");
+        Logger.log(erc4626StrategyVault.vault(), [address(erc4626StrategyVault), address(cryticERC4626StrategyVault)]);
     }
 
     function test_ERC4626StrategyVaultERC4626Std_test_RT_withdraw_mint_01() public {
