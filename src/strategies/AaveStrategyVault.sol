@@ -168,9 +168,11 @@ contract AaveStrategyVault is BaseVault, IStrategy {
 
     /// @notice Returns the total assets managed by this strategy
     /// @dev Returns the aToken balance since aTokens represent the underlying asset with accrued interest
+    /// @dev Round down to avoid stealing assets in roundtrip operations https://github.com/a16z/erc4626-tests/issues/13
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         /// @notice aTokens use rebasing to accrue interest, so the total assets is just the aToken balance
-        return aToken.balanceOf(address(this));
+        uint256 liquidityIndex = pool.getReserveNormalizedIncome(address(asset()));
+        return Math.mulDiv(aToken.scaledBalanceOf(address(this)), liquidityIndex, WadRayMath.RAY);
     }
 
     /// @notice Internal deposit function that supplies assets to Aave
