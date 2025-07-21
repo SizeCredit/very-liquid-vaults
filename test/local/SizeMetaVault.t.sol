@@ -92,7 +92,7 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_rebalance_slippage_validation_concrete() public {
         expectRevert = true;
-        testFuzz_SizeMetaVault_rebalance_slippage_validation(1309, 1042386157714299620775450811);
+        testFuzz_SizeMetaVault_rebalance_slippage_validation(90014716, 1200000000000000000000018340);
     }
 
     function test_SizeMetaVault_rebalance_with_slippage() public {
