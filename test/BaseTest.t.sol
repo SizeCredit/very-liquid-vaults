@@ -95,7 +95,7 @@ contract BaseTest is Test, Setup {
         assertEq(_a, _c);
     }
 
-    function mem(address[4] memory accounts) internal returns (address[] memory ans) {
+    function mem(address[4] memory accounts) internal pure returns (address[] memory ans) {
         ans = new address[](accounts.length);
         for (uint256 i = 0; i < accounts.length; i++) {
             ans[i] = accounts[i];

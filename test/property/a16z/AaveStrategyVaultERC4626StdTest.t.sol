@@ -87,14 +87,14 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         uint256 assetsBefore =
             vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
         vm.prank(caller);
-        uint256 assets1 = vault_redeem(shares, caller, caller);
+        vault_redeem(shares, caller, caller);
         console.log("aToken.totalSupply", aToken.totalSupply());
         console.log("aToken.balanceOf(aaveStrategyVault)", aToken.balanceOf(address(aaveStrategyVault)));
         console.log("aToken.balanceOf(cryticAaveStrategyVault)", aToken.balanceOf(address(cryticAaveStrategyVault)));
         console3.logERC4626(address(aaveStrategyVault), mem(init.user));
         if (!_vaultMayBeEmpty) vm.assume(IERC20(_vault_).totalSupply() > 0);
         vm.prank(caller);
-        uint256 assets2 = vault_mint(shares, caller);
+        vault_mint(shares, caller);
         uint256 assetsAfter =
             vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
         assertApproxLeAbs(assetsAfter, assetsBefore, _delta_);
