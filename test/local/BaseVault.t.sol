@@ -11,8 +11,15 @@ import {PAUSER_ROLE, DEFAULT_ADMIN_ROLE, STRATEGIST_ROLE} from "@src/Auth.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
+import {BaseVaultMockMaxDeposit0} from "@test/mocks/BaseVaultMockMaxDeposit0.t.sol";
 
 contract BaseVaultTest is BaseTest {
+    using SafeERC20 for IERC20Metadata;
+
     function test_BaseVault_initialize() public view {
         assertEq(baseVault.asset(), address(erc20Asset));
         assertEq(baseVault.name(), "Size Base USD Coin Mock Vault");
@@ -178,6 +185,35 @@ contract BaseVaultTest is BaseTest {
         assertEq(baseVault.totalAssets(), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
         assertEq(erc20Asset.balanceOf(address(baseVault)), FIRST_DEPOSIT_AMOUNT + depositAmount - withdrawAmount);
         assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
+    }
+
+    function test_BaseVault_firstDeposit_reverts_when_maxDeposit_is_0() public {
+        string memory name = string.concat("Size Base ", erc20Asset.name(), " Mock Vault");
+        string memory symbol = string.concat("sz", "Base", erc20Asset.symbol(), "Mock");
+        address implementation = address(new BaseVaultMockMaxDeposit0());
+        uint256 firstDepositAmount = 42e6;
+        bytes memory initializationData =
+            abi.encodeCall(BaseVault.initialize, (auth, erc20Asset, name, symbol, address(this), firstDepositAmount));
+        bytes memory creationCode =
+            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
+        bytes32 salt = keccak256(initializationData);
+        BaseVaultMockMaxDeposit0 baseVaultMockMaxDeposit0 =
+            BaseVaultMockMaxDeposit0(Create2.computeAddress(salt, keccak256(creationCode)));
+
+        _mint(erc20Asset, address(this), firstDepositAmount);
+
+        erc20Asset.forceApprove(address(baseVaultMockMaxDeposit0), firstDepositAmount);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector,
+                address(baseVaultMockMaxDeposit0),
+                firstDepositAmount,
+                0
+            )
+        );
+        Create2.deploy(
+            0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
+        );
     }
 
     function test_BaseVault_setTotalAssetsCap() public {
