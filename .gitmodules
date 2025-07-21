@@ -7,9 +7,6 @@
 [submodule "lib/openzeppelin-contracts-upgradeable"]
 	path = lib/openzeppelin-contracts-upgradeable
 	url = https://github.com/openzeppelin/openzeppelin-contracts-upgradeable
-[submodule "lib/erc4626-tests"]
-	path = lib/erc4626-tests
-	url = https://github.com/a16z/erc4626-tests
 [submodule "lib/properties"]
 	path = lib/properties
 	url = https://github.com/crytic/properties
@@ -22,3 +19,6 @@
 [submodule "lib/console3"]
 	path = lib/console3
 	url = https://github.com/aviggiano/console3
+[submodule "lib/erc4626-tests"]
+	path = lib/erc4626-tests
+	url = https://github.com/aviggiano/erc4626-tests
