@@ -8,3 +8,4 @@
 @rv/ercx/=lib/ercx-tests/
 openzeppelin-contracts/=lib/openzeppelin-contracts/contracts/
 @aave/=lib/aave-v3-origin/src/
+console3=lib/console3/src

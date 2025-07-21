@@ -7,8 +7,8 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
-import {Logger} from "@test/Logger.t.sol";
 import {console} from "forge-std/Test.sol";
+import {console3} from "console3/console3.sol";
 
 contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
     function setUp() public override(ERC4626Test, BaseTest) {
@@ -77,7 +77,7 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         });
         uint256 shares = 11804;
         setUpVault(init);
-        Logger.log(aaveStrategyVault, init.user);
+        console3.logERC4626(address(aaveStrategyVault), mem(init.user));
         console.log("aToken.totalSupply", aToken.totalSupply());
         console.log("aToken.balanceOf(aaveStrategyVault)", aToken.balanceOf(address(aaveStrategyVault)));
         console.log("aToken.balanceOf(cryticAaveStrategyVault)", aToken.balanceOf(address(cryticAaveStrategyVault)));
@@ -91,14 +91,14 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         console.log("aToken.totalSupply", aToken.totalSupply());
         console.log("aToken.balanceOf(aaveStrategyVault)", aToken.balanceOf(address(aaveStrategyVault)));
         console.log("aToken.balanceOf(cryticAaveStrategyVault)", aToken.balanceOf(address(cryticAaveStrategyVault)));
-        Logger.log(aaveStrategyVault, init.user);
+        console3.logERC4626(address(aaveStrategyVault), mem(init.user));
         if (!_vaultMayBeEmpty) vm.assume(IERC20(_vault_).totalSupply() > 0);
         vm.prank(caller);
         uint256 assets2 = vault_mint(shares, caller);
         uint256 assetsAfter =
             vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
         assertApproxLeAbs(assetsAfter, assetsBefore, _delta_);
-        Logger.log(aaveStrategyVault, init.user);
+        console3.logERC4626(address(aaveStrategyVault), mem(init.user));
         console.log("aToken.totalSupply", aToken.totalSupply());
         console.log("aToken.balanceOf(aaveStrategyVault)", aToken.balanceOf(address(aaveStrategyVault)));
         console.log("aToken.balanceOf(cryticAaveStrategyVault)", aToken.balanceOf(address(cryticAaveStrategyVault)));

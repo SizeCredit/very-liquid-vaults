@@ -6,8 +6,8 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Logger} from "@test/Logger.t.sol";
 import {console} from "forge-std/Test.sol";
+import {console3} from "console3/console3.sol";
 
 contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
     function setUp() public override(ERC4626Test, BaseTest) {
@@ -76,19 +76,19 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
 
         setUpVault(init);
         console.log("setUpVault");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         address caller = init.user[0];
         assets = bound(assets, 0, _max_withdraw(caller));
         _approve(_underlying_, caller, _vault_, type(uint256).max);
         vm.prank(caller);
         uint256 shares1 = vault_withdraw(assets, caller, caller);
         console.log("withdraw");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         if (!_vaultMayBeEmpty) vm.assume(IERC20(_vault_).totalSupply() > 0);
         vm.prank(caller);
         uint256 shares2 = vault_deposit(assets, caller);
         console.log("deposit");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         assertApproxLeAbs(shares2, shares1, _delta_);
     }
 
@@ -108,7 +108,7 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
 
         setUpVault(init);
         console.log("setUpVault");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         address caller = init.user[0];
         uint256 assetsBefore = vault_convertToAssets(IERC4626(_vault_).balanceOf(caller));
         assets = bound(assets, 0, _max_withdraw(caller));
@@ -116,21 +116,14 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         vm.prank(caller);
         uint256 shares1 = vault_withdraw(assets, caller, caller);
         console.log("withdraw");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         if (!_vaultMayBeEmpty) vm.assume(IERC20(_vault_).totalSupply() > 0);
         vm.prank(caller);
         uint256 shares2 = vault_deposit(assets, caller);
         console.log("deposit");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         uint256 assetsAfter = vault_convertToAssets(IERC4626(_vault_).balanceOf(caller));
         assertApproxLeAbs(assetsAfter, assetsBefore, _delta_);
-    }
-
-    function _log(address[4] memory users) private view {
-        console.log("ERC4626StrategyVault");
-        Logger.log(erc4626StrategyVault, users);
-        console.log("ERC4626StrategyVault.vault()");
-        Logger.log(erc4626StrategyVault.vault(), [address(erc4626StrategyVault), address(cryticERC4626StrategyVault)]);
     }
 
     function test_ERC4626StrategyVaultERC4626Std_test_RT_withdraw_mint_01() public {
@@ -165,7 +158,7 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
 
         setUpVault(init);
         console.log("setUpVault");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         address caller = init.user[0];
         uint256 assetsBefore =
             vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
@@ -174,12 +167,12 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         vm.prank(caller);
         uint256 shares = vault_withdraw(assets, caller, caller);
         console.log("withdraw");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         if (!_vaultMayBeEmpty) vm.assume(IERC20(_vault_).totalSupply() > 0);
         vm.prank(caller);
         uint256 assets2 = vault_mint(shares, caller);
         console.log("mint");
-        _log(init.user);
+        console3.logERC4626(address(erc4626StrategyVault), mem(init.user));
         uint256 assetsAfter =
             vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
         assertApproxLeAbs(assetsAfter, assetsBefore, _delta_);
