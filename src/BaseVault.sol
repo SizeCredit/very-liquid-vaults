@@ -72,6 +72,7 @@ abstract contract BaseVault is
         IERC20 asset_,
         string memory name_,
         string memory symbol_,
+        address fundingAccount_,
         uint256 firstDepositAmount_
     ) public virtual initializer {
         __ERC4626_init(asset_);
@@ -97,7 +98,7 @@ abstract contract BaseVault is
 
         _setTotalAssetsCap(type(uint256).max);
 
-        deposit(firstDepositAmount_, address(this));
+        _firstDeposit(fundingAccount_, firstDepositAmount_);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -152,6 +153,19 @@ abstract contract BaseVault is
         uint256 oldTotalAssetsCap = totalAssetsCap;
         totalAssetsCap = totalAssetsCap_;
         emit TotalAssetsCapSet(oldTotalAssetsCap, totalAssetsCap_);
+    }
+
+    /// @notice This function is used to deposit the first amount of assets into the vault
+    /// @dev This is equivalent to deposit(firstDepositAmount_, address(this)); with _msgSender() replaced by fundingAccount_
+    function _firstDeposit(address fundingAccount_, uint256 firstDepositAmount_) private {
+        address receiver = address(this);
+        uint256 maxAssets = maxDeposit(receiver);
+        if (firstDepositAmount_ > maxAssets) {
+            revert ERC4626ExceededMaxDeposit(receiver, firstDepositAmount_, maxAssets);
+        }
+
+        uint256 shares = previewDeposit(firstDepositAmount_);
+        _deposit(fundingAccount_, receiver, firstDepositAmount_, shares);
     }
 
     /*//////////////////////////////////////////////////////////////

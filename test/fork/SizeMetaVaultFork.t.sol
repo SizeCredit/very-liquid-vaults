@@ -5,8 +5,8 @@ import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {AaveStrategyVaultForkTest} from "@test/fork/strategies/AaveStrategyVaultFork.t.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {BaseScript} from "@script/BaseScript.s.sol";
 
 contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
     using SafeERC20 for IERC20Metadata;
@@ -27,6 +27,7 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
                 IERC20Metadata(address(asset)),
                 string.concat("Size ", asset.name(), " Meta Vault"),
                 string.concat("size", asset.symbol()),
+                address(this),
                 FIRST_DEPOSIT_AMOUNT,
                 initialStrategies
             )
@@ -34,9 +35,9 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
         bytes memory creationCode =
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
-        sizeMetaVault = SizeMetaVault(Create2.computeAddress(salt, keccak256(creationCode)));
+        sizeMetaVault = SizeMetaVault(create2Deployer.computeAddress(salt, keccak256(creationCode)));
         asset.forceApprove(address(sizeMetaVault), FIRST_DEPOSIT_AMOUNT);
-        Create2.deploy(
+        create2Deployer.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
     }

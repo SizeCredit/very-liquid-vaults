@@ -22,3 +22,6 @@
 [submodule "lib/erc4626-tests"]
 	path = lib/erc4626-tests
 	url = https://github.com/aviggiano/erc4626-tests
+[submodule "lib/create2deployer"]
+	path = lib/create2deployer
+	url = https://github.com/pcaversaccio/create2deployer

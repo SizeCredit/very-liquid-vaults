@@ -126,3 +126,15 @@ uint256 assets = vault.convertToAssets(shares);
 * **Performance Fees**: Optional fee mechanism
 * **Async Withdrawals**: Not supported at launch; can be added later via ERC-7540
 * **Venue Flexibility**: Architecture supports delayed withdrawal venues in future
+
+### Deployment
+
+```bash
+forge script script/Auth.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv [--slow]
+export AUTH=XXX
+forge script script/CashStrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv [--slow]
+forge script script/AaveStrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv [--slow]
+forge script script/ERC4626StrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv [--slow]
+export STRATEGIES=XXX
+forge script script/SizeMetaVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --ffi --verify -vvvvv [--slow]
+```

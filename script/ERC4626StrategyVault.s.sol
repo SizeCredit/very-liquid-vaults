@@ -1,25 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Auth} from "@src/Auth.sol";
+import {BaseScript} from "@script/BaseScript.s.sol";
 
-contract ERC4626StrategyVaultScript is Script {
+contract ERC4626StrategyVaultScript is BaseScript {
     using SafeERC20 for IERC20Metadata;
 
     Auth auth;
+    address fundingAccount = address(this);
     uint256 firstDepositAmount;
     IERC4626 vault;
 
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
+
         auth = Auth(vm.envAddress("AUTH"));
+        fundingAccount = msg.sender;
         firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
         vault = IERC4626(vm.envAddress("VAULT"));
     }
@@ -39,14 +41,15 @@ contract ERC4626StrategyVaultScript is Script {
         string memory name = string.concat("ERC4626 ", IERC20Metadata(address(vault_.asset())).name(), " Strategy");
         string memory symbol = string.concat("erc4626", IERC20Metadata(address(vault_.asset())).symbol());
         address implementation = address(new ERC4626StrategyVault());
-        bytes memory initializationData =
-            abi.encodeCall(ERC4626StrategyVault.initialize, (auth_, name, symbol, firstDepositAmount_, vault_));
+        bytes memory initializationData = abi.encodeCall(
+            ERC4626StrategyVault.initialize, (auth_, name, symbol, fundingAccount, firstDepositAmount_, vault_)
+        );
         bytes memory creationCode =
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
-        erc4626StrategyVault = ERC4626StrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
+        erc4626StrategyVault = ERC4626StrategyVault(create2Deployer.computeAddress(salt, keccak256(creationCode)));
         IERC20Metadata(address(vault_.asset())).forceApprove(address(erc4626StrategyVault), firstDepositAmount_);
-        Create2.deploy(
+        create2Deployer.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
     }

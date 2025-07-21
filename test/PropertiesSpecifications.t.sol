@@ -7,4 +7,6 @@ abstract contract PropertiesSpecifications {
     string constant REBALANCE_01 = "REBALANCE_01: rebalance does not change balanceOf";
     string constant TRANSFER_ASSETS_01 = "TRANSFER_ASSETS_01: transferAssets does not change balanceOf";
     string constant STRATEGY_01 = "STRATEGY_01: Removing a strategy does not change balanceOf";
+    string constant TOTAL_ASSETS_CAP_01 =
+        "TOTAL_ASSETS_CAP_01: Deposit reverts if amount + totalAssets() >= totalAssetsCap()";
 }

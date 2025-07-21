@@ -20,8 +20,9 @@ import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 import {Auth, STRATEGIST_ROLE, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {BaseScript} from "@script/BaseScript.s.sol";
 
-contract BaseTest is Test, Setup {
+contract BaseTest is Test, Setup, BaseScript {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;
 
     address internal alice = address(0x10000);
@@ -30,7 +31,9 @@ contract BaseTest is Test, Setup {
     address internal admin = address(0x40000);
     address internal strategist = address(0x50000);
 
-    function setUp() public virtual {
+    function setUp() public virtual override {
+        super.setUp();
+
         deploy(admin);
 
         vm.label(address(auth), "Auth");

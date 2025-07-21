@@ -40,6 +40,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
         Auth auth_,
         string memory name_,
         string memory symbol_,
+        address fundingAccount,
         uint256 firstDepositAmount,
         IERC4626 vault_
     ) public virtual initializer {
@@ -50,7 +51,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
         vault = vault_;
         emit VaultSet(address(vault_));
 
-        super.initialize(auth_, IERC20(address(vault_.asset())), name_, symbol_, firstDepositAmount);
+        super.initialize(auth_, IERC20(address(vault_.asset())), name_, symbol_, fundingAccount, firstDepositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////

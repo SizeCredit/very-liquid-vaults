@@ -27,7 +27,9 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         vm.store(address(aaveStrategyVault), _initializableStorageSlot(), bytes32(uint256(0)));
         vm.prank(admin);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(weth)));
-        aaveStrategyVault.initialize(auth, IERC20(address(weth)), "VAULT", "VAULT", FIRST_DEPOSIT_AMOUNT, pool);
+        aaveStrategyVault.initialize(
+            auth, IERC20(address(weth)), "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, pool
+        );
     }
 
     function test_AaveStrategyVault_transferAssets() public {
@@ -229,14 +231,9 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
             payable(
                 new ERC1967Proxy(
                     AaveStrategyVaultImplementation,
-                    abi.encodeWithSelector(
-                        AaveStrategyVault.initialize.selector,
-                        auth,
-                        erc20Asset,
-                        "VAULT",
-                        "VAULT",
-                        FIRST_DEPOSIT_AMOUNT,
-                        IPool(address(0))
+                    abi.encodeCall(
+                        AaveStrategyVault.initialize,
+                        (auth, erc20Asset, "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, IPool(address(0)))
                     )
                 )
             )

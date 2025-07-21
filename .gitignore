@@ -28,3 +28,6 @@ slither_results.json
 
 # Npm
 node_modules
+
+# Env
+.env*

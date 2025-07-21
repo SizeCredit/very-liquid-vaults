@@ -35,7 +35,7 @@ contract BaseVaultTest is BaseTest {
     function test_BaseVault_initialize_invalidInitialization_reverts() public {
         BaseVaultMock newBaseVault = new BaseVaultMock();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        newBaseVault.initialize(auth, IERC20(address(0)), "Test", "TST", FIRST_DEPOSIT_AMOUNT);
+        newBaseVault.initialize(auth, IERC20(address(0)), "Test", "TST", address(this), FIRST_DEPOSIT_AMOUNT);
     }
 
     function test_BaseVault_pause_success() public {

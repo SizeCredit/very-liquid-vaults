@@ -159,7 +159,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
                     ERC4626StrategyVaultImplementation,
                     abi.encodeCall(
                         ERC4626StrategyVault.initialize,
-                        (Auth(address(0)), "VAULT", "VAULT", FIRST_DEPOSIT_AMOUNT, vaultMock)
+                        (Auth(address(0)), "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, vaultMock)
                     )
                 )
             )
@@ -181,7 +181,9 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
             payable(
                 new ERC1967Proxy(
                     ERC4626StrategyVaultImplementation,
-                    abi.encodeCall(ERC4626StrategyVault.initialize, (auth, "VAULT", "VAULT", 0, vaultMock))
+                    abi.encodeCall(
+                        ERC4626StrategyVault.initialize, (auth, "VAULT", "VAULT", address(this), 0, vaultMock)
+                    )
                 )
             )
         );
@@ -206,7 +208,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
                     ERC4626StrategyVaultImplementation,
                     abi.encodeCall(
                         ERC4626StrategyVault.initialize,
-                        (auth, "VAULT", "VAULT", FIRST_DEPOSIT_AMOUNT, VaultMock(address(0)))
+                        (auth, "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, VaultMock(address(0)))
                     )
                 )
             )

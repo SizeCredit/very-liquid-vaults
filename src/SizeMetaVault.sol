@@ -65,6 +65,7 @@ contract SizeMetaVault is BaseVault {
         IERC20 asset_,
         string memory name_,
         string memory symbol_,
+        address fundingAccount,
         uint256 firstDepositAmount,
         address[] memory strategies_
     ) public virtual initializer {
@@ -74,7 +75,7 @@ contract SizeMetaVault is BaseVault {
             _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
 
-        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
+        super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////

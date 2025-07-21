@@ -10,7 +10,6 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
-import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 
@@ -39,6 +38,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
                 IERC20(address(asset)),
                 string.concat("Aave ", asset.name(), " Strategy"),
                 string.concat("aave", asset.symbol()),
+                address(this),
                 FIRST_DEPOSIT_AMOUNT,
                 aavePool
             )
@@ -46,9 +46,9 @@ contract AaveStrategyVaultForkTest is ForkTest {
         bytes memory creationCode =
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
-        aaveStrategyVault = AaveStrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
+        aaveStrategyVault = AaveStrategyVault(create2Deployer.computeAddress(salt, keccak256(creationCode)));
         asset.forceApprove(address(aaveStrategyVault), FIRST_DEPOSIT_AMOUNT);
-        Create2.deploy(
+        create2Deployer.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
     }
@@ -64,6 +64,7 @@ contract AaveStrategyVaultForkTest is ForkTest {
                 IERC20(address(asset)),
                 string.concat("Aave ", asset.name(), " Strategy"),
                 string.concat("aave", asset.symbol()),
+                address(this),
                 FIRST_DEPOSIT_AMOUNT,
                 IPool(address(0))
             )
@@ -71,10 +72,10 @@ contract AaveStrategyVaultForkTest is ForkTest {
         bytes memory creationCode =
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
-        aaveStrategyVault = AaveStrategyVault(Create2.computeAddress(salt, keccak256(creationCode)));
+        aaveStrategyVault = AaveStrategyVault(create2Deployer.computeAddress(salt, keccak256(creationCode)));
         asset.forceApprove(address(aaveStrategyVault), FIRST_DEPOSIT_AMOUNT);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
-        Create2.deploy(
+        create2Deployer.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
     }

@@ -51,6 +51,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         IERC20 asset_,
         string memory name_,
         string memory symbol_,
+        address fundingAccount,
         uint256 firstDepositAmount,
         IPool pool_
     ) public virtual initializer {
@@ -66,7 +67,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
         aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
         emit ATokenSet(address(aToken));
 
-        super.initialize(auth_, asset_, name_, symbol_, firstDepositAmount);
+        super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
 
     /*//////////////////////////////////////////////////////////////
