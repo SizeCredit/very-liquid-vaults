@@ -40,9 +40,8 @@ contract CryticERC4626StrategyVaultMockScript is BaseScript {
         public
         returns (CryticERC4626StrategyVaultMock cryticERC4626StrategyVaultMock)
     {
-        string memory name =
-            string.concat("Crytic ERC4626 ", IERC20Metadata(address(vault_.asset())).name(), " Strategy Mock");
-        string memory symbol = string.concat("cryticERC4626", IERC20Metadata(address(vault_.asset())).symbol(), "MOCK");
+        string memory name = string.concat("Size ", vault_.name(), " Strategy Mock Vault");
+        string memory symbol = string.concat("sz", vault_.symbol(), "Mock");
         address implementation = address(new CryticERC4626StrategyVaultMock());
         bytes memory initializationData = abi.encodeCall(
             ERC4626StrategyVault.initialize, (auth_, name, symbol, fundingAccount, firstDepositAmount_, vault_)

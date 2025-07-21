@@ -38,8 +38,8 @@ contract ERC4626StrategyVaultScript is BaseScript {
         public
         returns (ERC4626StrategyVault erc4626StrategyVault)
     {
-        string memory name = string.concat("ERC4626 ", IERC20Metadata(address(vault_.asset())).name(), " Strategy");
-        string memory symbol = string.concat("erc4626", IERC20Metadata(address(vault_.asset())).symbol());
+        string memory name = string.concat("Size ", vault_.name(), " Strategy Vault");
+        string memory symbol = string.concat("sz", vault_.symbol());
         address implementation = address(new ERC4626StrategyVault());
         bytes memory initializationData = abi.encodeCall(
             ERC4626StrategyVault.initialize, (auth_, name, symbol, fundingAccount, firstDepositAmount_, vault_)

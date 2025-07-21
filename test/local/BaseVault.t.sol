@@ -15,8 +15,8 @@ import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC2
 contract BaseVaultTest is BaseTest {
     function test_BaseVault_initialize() public view {
         assertEq(baseVault.asset(), address(erc20Asset));
-        assertEq(baseVault.name(), "Base USD Coin Mock");
-        assertEq(baseVault.symbol(), "baseUSDCMOCK");
+        assertEq(baseVault.name(), "Size Base USD Coin Mock Vault");
+        assertEq(baseVault.symbol(), "szBaseUSDCMock");
         assertEq(baseVault.decimals(), erc20Asset.decimals(), 6);
     }
 

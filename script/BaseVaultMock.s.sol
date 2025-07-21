@@ -39,8 +39,8 @@ contract BaseVaultMockScript is BaseScript {
         public
         returns (BaseVaultMock baseVaultMock)
     {
-        string memory name = string.concat("Base ", asset_.name(), " Mock");
-        string memory symbol = string.concat("base", asset_.symbol(), "MOCK");
+        string memory name = string.concat("Size Base ", asset_.name(), " Mock Vault");
+        string memory symbol = string.concat("sz", "Base", asset_.symbol(), "Mock");
         address implementation = address(new BaseVaultMock());
         bytes memory initializationData =
             abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));

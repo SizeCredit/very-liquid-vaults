@@ -38,8 +38,8 @@ contract CashStrategyVaultScript is BaseScript {
         public
         returns (CashStrategyVault cashStrategyVault)
     {
-        string memory name = string.concat("Cash ", asset_.name(), " Strategy");
-        string memory symbol = string.concat("cash", asset_.symbol());
+        string memory name = string.concat("Size Cash ", asset_.name(), " Strategy Vault");
+        string memory symbol = string.concat("sz", "Cash", asset_.symbol());
         address implementation = address(new CashStrategyVault());
         bytes memory initializationData =
             abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));

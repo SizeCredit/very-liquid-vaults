@@ -38,8 +38,8 @@ contract CryticCashStrategyVaultMockScript is BaseScript {
         public
         returns (CryticCashStrategyVaultMock cryticCashStrategyVaultMock)
     {
-        string memory name = string.concat("Crytic Cash ", asset_.name(), " Strategy Mock");
-        string memory symbol = string.concat("cryticCash", asset_.symbol(), "MOCK");
+        string memory name = string.concat("Size Crytic Cash ", asset_.name(), " Strategy Mock Vault");
+        string memory symbol = string.concat("sz", "Cash", asset_.symbol(), "Mock");
         address implementation = address(new CryticCashStrategyVaultMock());
         bytes memory initializationData =
             abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));

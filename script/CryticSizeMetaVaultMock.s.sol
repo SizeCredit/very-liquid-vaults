@@ -40,8 +40,8 @@ contract CryticSizeMetaVaultMockScript is BaseScript {
         public
         returns (CryticSizeMetaVaultMock cryticSizeMetaVaultMock)
     {
-        string memory name = string.concat("Crytic Size ", asset_.name(), " Vault");
-        string memory symbol = string.concat("cryticSize", asset_.symbol(), "MOCK");
+        string memory name = string.concat("Size Crytic ", asset_.name(), " Vault");
+        string memory symbol = string.concat("sz", "Crytic", asset_.symbol(), "Mock");
         address implementation = address(new CryticSizeMetaVaultMock());
         bytes memory initializationData = abi.encodeCall(
             SizeMetaVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_, strategies_)

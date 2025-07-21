@@ -42,8 +42,8 @@ contract SizeMetaVaultScript is BaseScript {
         uint256 sizeMetaVaultFirstDepositAmount_,
         address[] memory strategies_
     ) public returns (SizeMetaVault sizeMetaVault) {
-        string memory name = string.concat("Size ", asset_.name(), " Vault");
-        string memory symbol = string.concat("size", asset_.symbol());
+        string memory name = string.concat("Size Meta ", asset_.name(), " Vault");
+        string memory symbol = string.concat("sz", "Meta", asset_.symbol());
         address implementation = address(new SizeMetaVault());
         bytes memory initializationData = abi.encodeCall(
             SizeMetaVault.initialize,

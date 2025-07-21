@@ -40,8 +40,8 @@ contract AaveStrategyVaultScript is BaseScript {
         public
         returns (AaveStrategyVault aaveStrategyVault)
     {
-        string memory name = string.concat("Aave ", asset_.name(), " Strategy");
-        string memory symbol = string.concat("aave", asset_.symbol());
+        string memory name = string.concat("Size Aave ", asset_.name(), " Strategy Vault");
+        string memory symbol = string.concat("sz", "Aave", asset_.symbol());
         address implementation = address(new AaveStrategyVault());
         bytes memory initializationData = abi.encodeCall(
             AaveStrategyVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_, pool_)

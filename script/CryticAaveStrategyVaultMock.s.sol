@@ -41,8 +41,8 @@ contract CryticAaveStrategyVaultMockScript is BaseScript {
         public
         returns (CryticAaveStrategyVaultMock cryticAaveStrategyVaultMock)
     {
-        string memory name = string.concat("Crytic Aave ", asset_.name(), " Strategy Mock");
-        string memory symbol = string.concat("cryticAave", asset_.symbol(), "MOCK");
+        string memory name = string.concat("Size Crytic Aave ", asset_.name(), " Strategy Mock Vault");
+        string memory symbol = string.concat("sz", "Aave", asset_.symbol(), "Mock");
         address implementation = address(new CryticAaveStrategyVaultMock());
         bytes memory initializationData = abi.encodeCall(
             AaveStrategyVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_, pool_)
