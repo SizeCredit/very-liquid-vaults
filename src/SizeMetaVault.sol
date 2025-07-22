@@ -67,7 +67,7 @@ contract SizeMetaVault is BaseVault {
         string memory symbol_,
         address fundingAccount,
         uint256 firstDepositAmount,
-        address[] memory strategies_
+        IStrategy[] memory strategies_
     ) public virtual initializer {
         _setMaxStrategies(DEFAULT_MAX_STRATEGIES);
 
@@ -211,28 +211,45 @@ contract SizeMetaVault is BaseVault {
                               STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Replaces all current strategies with new ones
-    /// @dev Removes all existing strategies and adds the new ones
-    function setStrategies(address[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        uint256 oldLength = strategies.length();
-        for (uint256 i = 0; i < oldLength; i++) {
-            _removeStrategy(strategies.at(0));
-        }
-        for (uint256 i = 0; i < strategies_.length; i++) {
-            _addStrategy(strategies_[i], asset(), address(auth));
-        }
-    }
+    // /// @notice Replaces all current strategies with new ones
+    // /// @dev Removes all existing strategies and adds the new ones
+    // function setStrategies(IStrategy[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
+    //     uint256 oldLength = strategies.length();
+    //     for (uint256 i = 0; i < oldLength; i++) {
+    //         _removeStrategy(IStrategy(strategies.at(0)));
+    //     }
+    //     for (uint256 i = 0; i < strategies_.length; i++) {
+    //         _addStrategy(strategies_[i], asset(), address(auth));
+    //     }
+    // }
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    function addStrategy(address strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
+    function addStrategy(IStrategy strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
         _addStrategy(strategy, asset(), address(auth));
     }
 
-    /// @notice Removes a strategy from the vault
+    /// @notice Removes a strategy from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    function removeStrategy(address strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        _removeStrategy(strategy);
+    function removeStrategy(IStrategy strategyToRemove, IStrategy strategyToReceiveAssets)
+        external
+        notPaused
+        onlyAuth(STRATEGIST_ROLE)
+    {
+        if (!strategies.contains(address(strategyToReceiveAssets))) {
+            revert InvalidStrategy(address(strategyToReceiveAssets));
+        }
+        if (strategyToRemove == strategyToReceiveAssets) {
+            revert InvalidStrategy(address(strategyToReceiveAssets));
+        }
+
+        uint256 shares = strategyToRemove.balanceOf(address(this));
+        if (shares > 0) {
+            strategyToRemove.redeem(shares, address(strategyToReceiveAssets), address(this));
+            strategyToReceiveAssets.skim();
+        }
+
+        _removeStrategy(strategyToRemove);
     }
 
     /// @notice Rebalances assets between two strategies
@@ -274,16 +291,16 @@ contract SizeMetaVault is BaseVault {
     /// @dev Emits StrategyAdded event if the strategy was successfully added
     /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
     // slither-disable-next-line calls-loop
-    function _addStrategy(address strategy_, address asset_, address auth_) private {
-        if (strategy_ == address(0)) {
+    function _addStrategy(IStrategy strategy_, address asset_, address auth_) private {
+        if (address(strategy_) == address(0)) {
             revert NullAddress();
         }
-        if (IStrategy(strategy_).asset() != asset_ || address(IStrategy(strategy_).auth()) != auth_) {
-            revert InvalidStrategy(strategy_);
+        if (strategy_.asset() != asset_ || address(strategy_.auth()) != auth_) {
+            revert InvalidStrategy(address(strategy_));
         }
-        bool added = strategies.add(strategy_);
+        bool added = strategies.add(address(strategy_));
         if (added) {
-            emit StrategyAdded(strategy_);
+            emit StrategyAdded(address(strategy_));
         }
         if (strategies.length() > maxStrategies) {
             revert MaxStrategiesExceeded(strategies.length(), maxStrategies);
@@ -294,13 +311,11 @@ contract SizeMetaVault is BaseVault {
     /// @dev Emits StrategyRemoved event if the strategy was successfully removed
     /// @dev Removing a strategy without first withdrawing the assets held in those strategies will no longer include
     ///        that strategy in its calculations, effectively locking any assets still deposited in the removed strategy
-    function _removeStrategy(address strategy) private {
-        if (address(strategy) == address(0)) {
-            revert NullAddress();
-        }
-        bool removed = strategies.remove(strategy);
+    ///      No NullAddress check is needed because only whitelisted strategies can be removed, and the strategy is checked for validity in _addStrategy
+    function _removeStrategy(IStrategy strategy) private {
+        bool removed = strategies.remove(address(strategy));
         if (removed) {
-            emit StrategyRemoved(strategy);
+            emit StrategyRemoved(address(strategy));
         }
     }
 

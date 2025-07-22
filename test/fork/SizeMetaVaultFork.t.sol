@@ -7,6 +7,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
+import {IStrategy} from "@src/strategies/IStrategy.sol";
 
 contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
     using SafeERC20 for IERC20Metadata;
@@ -16,8 +17,8 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
 
         _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
 
-        address[] memory initialStrategies = new address[](1);
-        initialStrategies[0] = address(aaveStrategyVault);
+        IStrategy[] memory initialStrategies = new IStrategy[](1);
+        initialStrategies[0] = IStrategy(address(aaveStrategyVault));
 
         address implementation = address(new SizeMetaVault());
         bytes memory initializationData = abi.encodeCall(

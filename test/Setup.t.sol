@@ -30,6 +30,7 @@ import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {BaseVaultMockScript} from "@script/BaseVaultMock.s.sol";
 import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
 import {CryticSizeMetaVaultMockScript} from "@script/CryticSizeMetaVaultMock.s.sol";
+import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {WETH9} from "@aave/contracts/dependencies/weth/WETH9.sol";
 
 abstract contract Setup {
@@ -71,7 +72,7 @@ abstract contract Setup {
             CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
             CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
             BaseVaultMockScript baseVaultMockScript,
-            CryticSizeMetaVaultMockScript cryticSizeMetaVaultScript,
+            CryticSizeMetaVaultMockScript cryticSizeMetaVaultMockScript,
             PoolMockScript poolMockScript,
             VaultMockScript vaultMockScript
         ) = _deployScripts();
@@ -86,7 +87,7 @@ abstract contract Setup {
             cryticCashStrategyVaultScript,
             cryticAaveStrategyVaultScript,
             cryticERC4626StrategyVaultScript,
-            cryticSizeMetaVaultScript,
+            cryticSizeMetaVaultMockScript,
             baseVaultMockScript
         );
         _deployContracts(
@@ -100,7 +101,7 @@ abstract contract Setup {
             cryticCashStrategyVaultScript,
             cryticAaveStrategyVaultScript,
             cryticERC4626StrategyVaultScript,
-            cryticSizeMetaVaultScript,
+            cryticSizeMetaVaultMockScript,
             baseVaultMockScript,
             poolMockScript,
             vaultMockScript
@@ -120,7 +121,7 @@ abstract contract Setup {
             CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
             CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
             BaseVaultMockScript baseVaultMockScript,
-            CryticSizeMetaVaultMockScript cryticSizeMetaVaultScript,
+            CryticSizeMetaVaultMockScript cryticSizeMetaVaultMockScript,
             PoolMockScript poolMockScript,
             VaultMockScript vaultMockScript
         )
@@ -134,7 +135,7 @@ abstract contract Setup {
         cryticCashStrategyVaultScript = new CryticCashStrategyVaultMockScript();
         cryticAaveStrategyVaultScript = new CryticAaveStrategyVaultMockScript();
         cryticERC4626StrategyVaultScript = new CryticERC4626StrategyVaultMockScript();
-        cryticSizeMetaVaultScript = new CryticSizeMetaVaultMockScript();
+        cryticSizeMetaVaultMockScript = new CryticSizeMetaVaultMockScript();
         baseVaultMockScript = new BaseVaultMockScript();
         poolMockScript = new PoolMockScript();
         vaultMockScript = new VaultMockScript();
@@ -151,7 +152,7 @@ abstract contract Setup {
         CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
         CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
         CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
-        CryticSizeMetaVaultMockScript cryticSizeMetaVaultScript,
+        CryticSizeMetaVaultMockScript cryticSizeMetaVaultMockScript,
         BaseVaultMockScript baseVaultMockScript
     ) internal {
         address[7] memory scripts = [
@@ -170,7 +171,7 @@ abstract contract Setup {
         vm.prank(admin);
         usdc.mint(address(sizeMetaVaultScript), INITIAL_STRATEGIES_COUNT * FIRST_DEPOSIT_AMOUNT + 1);
         vm.prank(admin);
-        usdc.mint(address(cryticSizeMetaVaultScript), INITIAL_STRATEGIES_COUNT * FIRST_DEPOSIT_AMOUNT + 1);
+        usdc.mint(address(cryticSizeMetaVaultMockScript), INITIAL_STRATEGIES_COUNT * FIRST_DEPOSIT_AMOUNT + 1);
 
         vm.deal(admin, WETH_DEPOSIT_AMOUNT);
         vm.prank(admin);
@@ -190,7 +191,7 @@ abstract contract Setup {
         CryticCashStrategyVaultMockScript cryticCashStrategyVaultScript,
         CryticAaveStrategyVaultMockScript cryticAaveStrategyVaultScript,
         CryticERC4626StrategyVaultMockScript cryticERC4626StrategyVaultScript,
-        CryticSizeMetaVaultMockScript cryticSizeMetaVaultScript,
+        CryticSizeMetaVaultMockScript cryticSizeMetaVaultMockScript,
         BaseVaultMockScript baseVaultMockScript,
         PoolMockScript poolMockScript,
         VaultMockScript vaultMockScript
@@ -206,17 +207,18 @@ abstract contract Setup {
         cryticCashStrategyVault = cryticCashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
         cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
         cryticERC4626StrategyVault = cryticERC4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
-        address[] memory strategies = new address[](3);
-        strategies[0] = address(cryticCashStrategyVault);
-        strategies[1] = address(cryticAaveStrategyVault);
-        strategies[2] = address(cryticERC4626StrategyVault);
-        cryticSizeMetaVault =
-            cryticSizeMetaVaultScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
+        IStrategy[] memory strategies = new IStrategy[](3);
+        strategies[0] = cryticCashStrategyVault;
+        strategies[1] = cryticAaveStrategyVault;
+        strategies[2] = cryticERC4626StrategyVault;
+        cryticSizeMetaVault = cryticSizeMetaVaultMockScript.deploy(
+            auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies
+        );
         baseVault = baseVaultMockScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
-        strategies = new address[](3);
-        strategies[0] = address(cashStrategyVault);
-        strategies[1] = address(aaveStrategyVault);
-        strategies[2] = address(erc4626StrategyVault);
+        strategies = new IStrategy[](3);
+        strategies[0] = cashStrategyVault;
+        strategies[1] = aaveStrategyVault;
+        strategies[2] = erc4626StrategyVault;
         sizeMetaVault =
             sizeMetaVaultScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
         aToken = IAToken(pool.getReserveData(address(erc20Asset)).aTokenAddress);

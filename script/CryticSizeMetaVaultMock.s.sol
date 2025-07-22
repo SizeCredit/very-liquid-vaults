@@ -8,6 +8,7 @@ import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Auth} from "@src/Auth.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
+import {IStrategy} from "@src/strategies/IStrategy.sol";
 
 contract CryticSizeMetaVaultMockScript is BaseScript {
     using SafeERC20 for IERC20Metadata;
@@ -16,7 +17,7 @@ contract CryticSizeMetaVaultMockScript is BaseScript {
     IERC20Metadata asset;
     address fundingAccount = address(this);
     uint256 firstDepositAmount;
-    address[] strategies;
+    IStrategy[] strategies;
 
     function setUp() public override {
         super.setUp();
@@ -25,7 +26,11 @@ contract CryticSizeMetaVaultMockScript is BaseScript {
         asset = IERC20Metadata(vm.envAddress("ASSET"));
         fundingAccount = msg.sender;
         firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
-        strategies = vm.envAddress("STRATEGIES", ",");
+        address[] memory strategies_ = vm.envAddress("STRATEGIES", ",");
+        strategies = new IStrategy[](strategies_.length);
+        for (uint256 i = 0; i < strategies_.length; i++) {
+            strategies[i] = IStrategy(strategies_[i]);
+        }
     }
 
     function run() public {
@@ -36,7 +41,7 @@ contract CryticSizeMetaVaultMockScript is BaseScript {
         vm.stopBroadcast();
     }
 
-    function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, address[] memory strategies_)
+    function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, IStrategy[] memory strategies_)
         public
         returns (CryticSizeMetaVaultMock cryticSizeMetaVaultMock)
     {
