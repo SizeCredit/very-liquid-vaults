@@ -76,8 +76,8 @@ contract SizeMetaVault is BaseVault, Timelock {
         for (uint256 i = 0; i < strategies_.length; i++) {
             _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
-        _setTimelockDuration(this.addStrategy.selector, 1 days);
-        _setTimelockDuration(this.removeStrategy.selector, 1 hours);
+        _setTimelockDuration(this.addStrategies.selector, 1 days);
+        _setTimelockDuration(this.removeStrategies.selector, 1 hours);
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -248,27 +248,29 @@ contract SizeMetaVault is BaseVault, Timelock {
         }
     }
 
-    /// @notice Adds a new strategy to the vault
+    /// @notice Adds new strategies to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
-    function addStrategy(IStrategy strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _checkTimelock(this.addStrategy.selector);
+    function addStrategies(IStrategy[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
+        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _timelocked(this.addStrategies.selector);
         if (timelocked) {
             return;
         }
 
-        _addStrategy(strategy, asset(), address(auth));
+        for (uint256 i = 0; i < strategies_.length; i++) {
+            _addStrategy(strategies_[i], asset(), address(auth));
+        }
     }
 
-    /// @notice Removes a strategy from the vault and transfers all assets, if any, to another strategy
+    /// @notice Removes strategies from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
-    function removeStrategy(IStrategy strategyToRemove, IStrategy strategyToReceiveAssets)
+    function removeStrategies(IStrategy[] calldata strategiesToRemove, IStrategy strategyToReceiveAssets)
         external
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
-        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _checkTimelock(this.removeStrategy.selector);
+        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _timelocked(this.removeStrategies.selector);
         if (timelocked) {
             return;
         }
@@ -276,17 +278,21 @@ contract SizeMetaVault is BaseVault, Timelock {
         if (!strategies.contains(address(strategyToReceiveAssets))) {
             revert InvalidStrategy(address(strategyToReceiveAssets));
         }
-        if (strategyToRemove == strategyToReceiveAssets) {
-            revert InvalidStrategy(address(strategyToReceiveAssets));
+        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
+            if (strategiesToRemove[i] == strategyToReceiveAssets) {
+                revert InvalidStrategy(address(strategyToReceiveAssets));
+            }
         }
 
-        uint256 shares = strategyToRemove.balanceOf(address(this));
-        if (shares > 0) {
-            strategyToRemove.redeem(shares, address(strategyToReceiveAssets), address(this));
-            strategyToReceiveAssets.skim();
+        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
+            IStrategy strategyToRemove = strategiesToRemove[i];
+            uint256 shares = strategyToRemove.balanceOf(address(this));
+            if (shares > 0) {
+                strategyToRemove.redeem(shares, address(strategyToReceiveAssets), address(this));
+                strategyToReceiveAssets.skim();
+            }
+            _removeStrategy(strategyToRemove);
         }
-
-        _removeStrategy(strategyToRemove);
     }
 
     /// @notice Rebalances assets between two strategies

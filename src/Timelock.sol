@@ -32,6 +32,7 @@ abstract contract Timelock {
 
     event TimelockDurationSet(bytes4 indexed sig, uint256 indexed durationBefore, uint256 indexed durationAfter);
     event ActionTimelocked(bytes4 indexed sig, bytes indexed data, uint256 indexed unlockTimestamp);
+    event TimelockExpired(bytes4 indexed sig);
 
     /*//////////////////////////////////////////////////////////////
                               FUNCTIONS
@@ -39,7 +40,8 @@ abstract contract Timelock {
 
     /// @notice Checks if the function is timelocked and returns true if it is
     /// @dev The user must call the function again with the same calldata to execute the function, otherwise it resets the timelock
-    function _checkTimelock(bytes4 sig) internal returns (bool timelocked) {
+    /// @dev Updates the timelocked state of the function
+    function _timelocked(bytes4 sig) internal returns (bool timelocked) {
         bytes memory data = msg.data;
 
         uint256 timelockDuration = Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
@@ -52,6 +54,7 @@ abstract contract Timelock {
         } else if (block.timestamp >= timelockDuration + proposedTimestamps[sig]) {
             delete proposedTimestamps[sig];
             delete proposedCalldatas[sig];
+            emit TimelockExpired(sig);
             return false;
         } else {
             return true;
