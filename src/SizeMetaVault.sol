@@ -299,6 +299,15 @@ contract SizeMetaVault is BaseVault {
         emit Rebalance(address(strategyFrom), address(strategyTo), amount);
     }
 
+    /// @notice Skims the assets from a strategy
+    /// @dev Only callable by addresses with STRATEGIST_ROLE
+    function skim(IStrategy strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
+        if (!strategies.contains(address(strategy))) {
+            revert InvalidStrategy(address(strategy));
+        }
+        strategy.skim();
+    }
+
     /*//////////////////////////////////////////////////////////////
                               INTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
