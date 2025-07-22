@@ -79,7 +79,7 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
 
     /// @notice Invests any idle assets sitting in this contract
     /// @dev Deposits any assets held by this contract into the external vault
-    function skim() external override nonReentrant notPaused onlyAuth(SIZE_VAULT_ROLE) {
+    function skim() external override nonReentrant notPaused {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         IERC20(asset()).forceApprove(address(vault), assets);
         // slither-disable-next-line unused-return

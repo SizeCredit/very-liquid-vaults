@@ -279,19 +279,15 @@ contract SizeMetaVaultTest is BaseTest {
     function test_SizeMetaVault_skim() public {
         _deposit(erc4626StrategyVault, alice, 100e6);
 
-        uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
+        uint256 assetsBefore = sizeMetaVault.totalAssets();
 
-        _mint(erc20Asset, address(erc4626StrategyVault), 300e6);
-
-        vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(0)));
-        sizeMetaVault.skim(IStrategy(address(0)));
+        _mint(erc20Asset, address(sizeMetaVault), 300e6);
 
         vm.prank(strategist);
-        sizeMetaVault.skim(erc4626StrategyVault);
+        sizeMetaVault.skim();
 
-        uint256 erc4626AssetsAfter = erc4626StrategyVault.totalAssets();
-        assertEq(erc4626AssetsAfter, erc4626AssetsBefore + 300e6);
+        uint256 assetsAfter = sizeMetaVault.totalAssets();
+        assertEq(assetsAfter, assetsBefore + 300e6);
     }
 
     function test_SizeMetaVault_reorderStrategies() public {

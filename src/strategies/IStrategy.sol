@@ -14,16 +14,9 @@ interface IStrategy is IBaseVault {
     /// @param amount The amount of assets transferred
     event TransferAssets(address indexed to, uint256 amount);
 
-    /// @notice Emitted when the strategy skims idle assets and re-invests them in the underlying protocol
-    event Skim();
-
     /// @notice Transfers assets from this strategy to another address
     /// @dev Can only be called by SizeMetaVault
     /// @param to The recipient address for the transferred assets
     /// @param amount The amount of assets to transfer
     function transferAssets(address to, uint256 amount) external;
-
-    /// @notice Invests any idle assets held by the strategy
-    /// @dev This function should move any assets sitting in the strategy into the underlying protocol
-    function skim() external;
 }

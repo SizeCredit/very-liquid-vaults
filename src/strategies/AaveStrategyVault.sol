@@ -94,7 +94,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
 
     /// @notice Invests any idle assets sitting in this contract
     /// @dev Supplies any assets held by this contract to the Aave pool
-    function skim() external override nonReentrant notPaused onlyAuth(SIZE_VAULT_ROLE) {
+    function skim() external override nonReentrant notPaused {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         IERC20(asset()).forceApprove(address(pool), assets);
         pool.supply(asset(), assets, address(this), 0);
