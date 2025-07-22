@@ -17,7 +17,7 @@ abstract contract Timelock {
 
     mapping(bytes4 sig => uint256 duration) public timelockDurations;
     mapping(bytes4 sig => uint256 timestamp) public proposedTimestamps;
-    mapping(bytes4 sig => bytes data) public proposedCalldatas;
+    mapping(bytes4 sig => bytes32 calldataHash) public proposedCalldataHashes;
     uint256[47] private __gap;
 
     /*//////////////////////////////////////////////////////////////
@@ -46,14 +46,14 @@ abstract contract Timelock {
 
         uint256 timelockDuration = Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
 
-        if (keccak256(proposedCalldatas[sig]) != keccak256(data)) {
+        if (proposedCalldataHashes[sig] != keccak256(data)) {
             proposedTimestamps[sig] = block.timestamp;
-            proposedCalldatas[sig] = data;
+            proposedCalldataHashes[sig] = keccak256(data);
             emit ActionTimelocked(sig, data, timelockDuration + proposedTimestamps[sig]);
             return true;
         } else if (block.timestamp >= timelockDuration + proposedTimestamps[sig]) {
             delete proposedTimestamps[sig];
-            delete proposedCalldatas[sig];
+            delete proposedCalldataHashes[sig];
             emit TimelockExpired(sig);
             return false;
         } else {
