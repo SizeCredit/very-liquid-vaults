@@ -237,14 +237,12 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Rebalances assets between two strategies
     /// @dev Transfers assets from one strategy to another and skims the destination
+    ///      Does not check that the strategyFrom is a whitelisted strategy to allow for rebalancing from removed strategies
     function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount, uint256 minAmount)
         external
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
-        if (!strategies.contains(address(strategyFrom))) {
-            revert InvalidStrategy(address(strategyFrom));
-        }
         if (!strategies.contains(address(strategyTo))) {
             revert InvalidStrategy(address(strategyTo));
         }

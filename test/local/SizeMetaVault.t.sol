@@ -134,7 +134,7 @@ contract SizeMetaVaultTest is BaseTest {
 
         // validate strategyFrom
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(1)));
+        vm.expectRevert();
         sizeMetaVault.rebalance(IStrategy(address(1)), erc4626StrategyVault, amount, 0);
 
         // validate strategyTo
@@ -182,10 +182,12 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(erc4626StrategyVault.totalAssets(), erc4626AssetsBefore + 5e6);
     }
 
-    function test_sizeMetaVault_rebalance_strategyFrom_not_added_must_revert() public {
+    function test_sizeMetaVault_rebalance_strategyFrom_not_added_must_not_revert() public {
         // remove cashStrategyVault; check removal; try to transfer from it
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
         uint256 cashAssets = cashStrategyVault.totalAssets();
+
+        _mint(erc20Asset, address(cashStrategyVault), 2 * cashAssets);
 
         vm.prank(strategist);
         sizeMetaVault.removeStrategy(address(cashStrategyVault));
@@ -193,7 +195,6 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         assertEq(lengthBefore - 1, lengthAfter);
 
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cashStrategyVault)));
         vm.prank(strategist);
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets, 0);
     }
