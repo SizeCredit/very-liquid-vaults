@@ -10,8 +10,8 @@ import {ERC20PermitUpgradeable} from
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {Auth} from "@src/Auth.sol";
-import {DEFAULT_ADMIN_ROLE, PAUSER_ROLE, STRATEGIST_ROLE} from "@src/Auth.sol";
+import {Auth} from "@src/utils/Auth.sol";
+import {DEFAULT_ADMIN_ROLE, PAUSER_ROLE, STRATEGIST_ROLE} from "@src/utils/Auth.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";

@@ -18,7 +18,7 @@ import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
-import {Auth, STRATEGIST_ROLE, SIZE_VAULT_ROLE} from "@src/Auth.sol";
+import {Auth, STRATEGIST_ROLE, SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
 

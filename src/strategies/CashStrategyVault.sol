@@ -5,7 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {SIZE_VAULT_ROLE} from "@src/Auth.sol";
+import {SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
 
 /// @title CashStrategyVault
 /// @custom:security-contact security@size.credit

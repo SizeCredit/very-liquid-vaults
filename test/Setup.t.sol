@@ -24,7 +24,7 @@ import {VaultMockScript} from "@script/VaultMock.s.sol";
 import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
 import {CryticERC4626StrategyVaultMockScript} from "@script/CryticERC4626StrategyVaultMock.s.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
-import {Auth} from "@src/Auth.sol";
+import {Auth} from "@src/utils/Auth.sol";
 import {AuthScript} from "@script/Auth.s.sol";
 import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {BaseVaultMockScript} from "@script/BaseVaultMock.s.sol";

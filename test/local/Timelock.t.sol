@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Timelock} from "@src/Timelock.sol";
+import {Timelock} from "@src/utils/Timelock.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
-import {DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
+import {DEFAULT_ADMIN_ROLE} from "@src/utils/Auth.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 
 contract TimelockTest is BaseTest {
