@@ -55,6 +55,7 @@ abstract contract BaseVault is
     event AuthSet(address indexed auth);
     event DeadAssetsSet(uint256 indexed deadAssets);
     event TotalAssetsCapSet(uint256 indexed totalAssetsCapBefore, uint256 indexed totalAssetsCapAfter);
+    event VaultStatus(uint256 indexed timestamp, uint256 totalShares, uint256 totalAssets);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -187,6 +188,7 @@ abstract contract BaseVault is
     /// @dev Ensures transfers only happen when the contract is not paused and that no reentrancy is possible
     function _update(address from, address to, uint256 value) internal override nonReentrant notPaused {
         super._update(from, to, value);
+        emit VaultStatus(block.timestamp, totalSupply(), totalAssets());
     }
 
     /// @notice Returns the maximum amount that can be deposited
