@@ -121,15 +121,31 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.removeStrategy(IStrategy(address(0)), IStrategy(address(0)));
     }
 
-    // function test_SizeMetaVault_setStrategies_validation() public {
-    //     IStrategy[] memory strategiesWithZero = new IStrategy[](2);
-    //     strategiesWithZero[0] = IStrategy(address(0));
-    //     strategiesWithZero[1] = IStrategy(address(0xDEAD));
+    function test_SizeMetaVault_reorderStrategies_validation() public {
+        vm.prank(strategist);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.ArrayLengthMismatch.selector, 3, 0));
+        sizeMetaVault.reorderStrategies(new IStrategy[](0));
 
-    //     vm.prank(strategist);
-    //     vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
-    //     sizeMetaVault.setStrategies(strategiesWithZero);
-    // }
+        IStrategy[] memory strategiesWithZero = new IStrategy[](3);
+        strategiesWithZero[0] = cryticCashStrategyVault;
+        strategiesWithZero[1] = cryticAaveStrategyVault;
+        strategiesWithZero[2] = cryticERC4626StrategyVault;
+
+        vm.prank(strategist);
+        vm.expectRevert(
+            abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
+        );
+        sizeMetaVault.reorderStrategies(strategiesWithZero);
+
+        IStrategy[] memory duplicates = new IStrategy[](3);
+        duplicates[0] = cashStrategyVault;
+        duplicates[1] = erc4626StrategyVault;
+        duplicates[2] = cashStrategyVault;
+
+        vm.prank(strategist);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cashStrategyVault)));
+        sizeMetaVault.reorderStrategies(duplicates);
+    }
 
     function test_SizeMetaVault_rebalance_validation() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
@@ -220,23 +236,23 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets, 0);
     }
 
-    // function test_SizeMetaVault_setStrategies() public {
-    //     IStrategy firstStrategy = aaveStrategyVault;
-    //     IStrategy secondStrategy = erc4626StrategyVault;
-    //     IStrategy thirdStrategy = cashStrategyVault;
+    function test_SizeMetaVault_reorderStrategies() public {
+        IStrategy firstStrategy = aaveStrategyVault;
+        IStrategy secondStrategy = erc4626StrategyVault;
+        IStrategy thirdStrategy = cashStrategyVault;
 
-    //     IStrategy[] memory strategies = new IStrategy[](3);
-    //     strategies[0] = firstStrategy;
-    //     strategies[1] = secondStrategy;
-    //     strategies[2] = thirdStrategy;
+        IStrategy[] memory strategies = new IStrategy[](3);
+        strategies[0] = firstStrategy;
+        strategies[1] = secondStrategy;
+        strategies[2] = thirdStrategy;
 
-    //     vm.prank(strategist);
-    //     sizeMetaVault.setStrategies(strategies);
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
 
-    //     assertEq(sizeMetaVault.getStrategy(0), address(firstStrategy));
-    //     assertEq(sizeMetaVault.getStrategy(1), address(secondStrategy));
-    //     assertEq(sizeMetaVault.getStrategy(2), address(thirdStrategy));
-    // }
+        assertEq(sizeMetaVault.getStrategy(0), address(firstStrategy));
+        assertEq(sizeMetaVault.getStrategy(1), address(secondStrategy));
+        assertEq(sizeMetaVault.getStrategy(2), address(thirdStrategy));
+    }
 
     function test_SizeMetaVault_addStrategy() public {
         address oneStrategy = address(cryticCashStrategyVault);
@@ -300,8 +316,6 @@ contract SizeMetaVaultTest is BaseTest {
         vm.startPrank(strategist);
         for (uint256 i = 0; i < length; i++) {
             IStrategy strategy = IStrategy(currentStrategies[i]);
-            uint256 shares = strategy.balanceOf(address(sizeMetaVault));
-            uint256 assets = strategy.convertToAssets(shares);
             sizeMetaVault.removeStrategy(strategy, cryticCashStrategyVault);
         }
         vm.expectRevert(

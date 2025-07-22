@@ -48,6 +48,7 @@ contract SizeMetaVault is BaseVault {
     error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
     error TransferredAmountLessThanMin(uint256 transferred, uint256 minAmount);
     error MaxStrategiesExceeded(uint256 strategiesCount, uint256 maxStrategies);
+    error ArrayLengthMismatch(uint256 expectedLength, uint256 actualLength);
 
     /*//////////////////////////////////////////////////////////////
                               CONSTRUCTOR / INITIALIZER
@@ -211,17 +212,32 @@ contract SizeMetaVault is BaseVault {
                               STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    // /// @notice Replaces all current strategies with new ones
-    // /// @dev Removes all existing strategies and adds the new ones
-    // function setStrategies(IStrategy[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
-    //     uint256 oldLength = strategies.length();
-    //     for (uint256 i = 0; i < oldLength; i++) {
-    //         _removeStrategy(IStrategy(strategies.at(0)));
-    //     }
-    //     for (uint256 i = 0; i < strategies_.length; i++) {
-    //         _addStrategy(strategies_[i], asset(), address(auth));
-    //     }
-    // }
+    /// @notice Reorders the strategies
+    /// @dev Verifies that the new strategies order is valid and that there are no duplicates, then clear current strategies and add them in the new order
+    function reorderStrategies(IStrategy[] calldata newStrategiesOrder) external notPaused onlyAuth(STRATEGIST_ROLE) {
+        if (strategies.length() != newStrategiesOrder.length) {
+            revert ArrayLengthMismatch(strategies.length(), newStrategiesOrder.length);
+        }
+
+        for (uint256 i = 0; i < newStrategiesOrder.length; i++) {
+            if (!strategies.contains(address(newStrategiesOrder[i]))) {
+                revert InvalidStrategy(address(newStrategiesOrder[i]));
+            }
+            for (uint256 j = i + 1; j < newStrategiesOrder.length; j++) {
+                if (newStrategiesOrder[i] == newStrategiesOrder[j]) {
+                    revert InvalidStrategy(address(newStrategiesOrder[i]));
+                }
+            }
+        }
+
+        address[] memory currentStrategies = strategies.values();
+        for (uint256 i = 0; i < currentStrategies.length; i++) {
+            _removeStrategy(IStrategy(currentStrategies[i]));
+        }
+        for (uint256 i = 0; i < newStrategiesOrder.length; i++) {
+            _addStrategy(newStrategiesOrder[i], asset(), address(auth));
+        }
+    }
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
