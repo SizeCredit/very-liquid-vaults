@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {console} from "forge-std/console.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseVault} from "@src/BaseVault.sol";
@@ -106,9 +105,6 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     /// @dev Limited by both owner's balance and external vault's withdrawal capacity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        console.log(
-            "maxWithdraw", _convertToAssets(balanceOf(owner), Math.Rounding.Floor), vault.maxWithdraw(address(this))
-        );
         return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), vault.maxWithdraw(address(this)));
     }
 
