@@ -80,7 +80,7 @@ Target integrations:
 
 1. **`CashStrategyVault`**: Simple cash-holding strategy (no yield generation)
 2. **`AaveStrategyVault`**: Aave lending protocol integration for yield generation
-3. **`ERC4626StrategyVault`**: Generic wrapper for other ERC4626-compliant vaults (e.g., Morpho)
+3. **`ERC4626StrategyVault`**: Generic wrapper for other ERC4626-compliant vaults (e.g., Morpho). Only ERC-4626 vaults passing the [integration checklist](https://github.com/aviggiano/security/blob/v0.1.0/audit-checklists/ERC-4626-integration.md) will be considered.
 
 ## Usage
 
@@ -118,7 +118,7 @@ uint256 assets = vault.convertToAssets(shares);
 ## Roles and Permissions
 
 * **`DEFAULT_ADMIN_ROLE`**: Admin (multisig)
-* **`STRATEGIST_ROLE`**: Rebalance across strategies, configure strategies (timelock)
+* **`STRATEGIST_ROLE`**: Rebalance across strategies, configure strategies (timelocked)
 * **`PAUSER_ROLE`**: Emergency pause functionality: per vault or whole protocol
 
 ## Future Considerations

@@ -110,12 +110,25 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_addStrategy_validation() public {
+        uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(IStrategy(address(0)));
+
+        vm.warp(block.timestamp + addStrategyTimelockDuration);
+
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         sizeMetaVault.addStrategy(IStrategy(address(0)));
     }
 
     function test_SizeMetaVault_removeStrategy_validation() public {
+        uint256 removeStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategy.selector);
+
+        vm.prank(strategist);
+        sizeMetaVault.removeStrategy(IStrategy(address(0)), IStrategy(address(0)));
+
+        vm.warp(block.timestamp + removeStrategyTimelockDuration);
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(0)));
         sizeMetaVault.removeStrategy(IStrategy(address(0)), IStrategy(address(0)));
@@ -211,6 +224,12 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.removeStrategy(cashStrategyVault, erc4626StrategyVault);
 
+        uint256 removeStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategy.selector);
+        vm.warp(block.timestamp + removeStrategyTimelockDuration);
+
+        vm.prank(strategist);
+        sizeMetaVault.removeStrategy(cashStrategyVault, erc4626StrategyVault);
+
         _mint(erc20Asset, address(cashStrategyVault), 2 * cashAssets);
 
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
@@ -224,6 +243,12 @@ contract SizeMetaVaultTest is BaseTest {
         // remove erc4626StrategyVault; check removal; try to transfer to it
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
         uint256 cashAssets = cashStrategyVault.totalAssets();
+
+        vm.prank(strategist);
+        sizeMetaVault.removeStrategy(erc4626StrategyVault, aaveStrategyVault);
+
+        uint256 removeStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategy.selector);
+        vm.warp(block.timestamp + removeStrategyTimelockDuration);
 
         vm.prank(strategist);
         sizeMetaVault.removeStrategy(erc4626StrategyVault, aaveStrategyVault);
@@ -280,6 +305,11 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategy(IStrategy(oneStrategy));
 
+        uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+        vm.warp(block.timestamp + addStrategyTimelockDuration);
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(IStrategy(oneStrategy));
+
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         uint256 indexLastStrategy = lengthAfter - 1;
 
@@ -290,6 +320,12 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_addStrategy_invalid_asset_must_revert() public {
+        uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(cashStrategyVaultWETH);
+
+        vm.warp(block.timestamp + addStrategyTimelockDuration);
+
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cashStrategyVaultWETH)));
         sizeMetaVault.addStrategy(cashStrategyVaultWETH);
@@ -297,6 +333,12 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_addStrategy_invalid_auth_must_revert() public {
         address invalidAuth = address(0xDEAD);
+
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(cryticCashStrategyVault);
+
+        uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+        vm.warp(block.timestamp + addStrategyTimelockDuration);
 
         vm.mockCall(
             address(cryticCashStrategyVault), abi.encodeWithSelector(IBaseVault.auth.selector), abi.encode(invalidAuth)
@@ -314,6 +356,12 @@ contract SizeMetaVaultTest is BaseTest {
 
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
 
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(IStrategy(addressZero));
+
+        uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+        vm.warp(block.timestamp + addStrategyTimelockDuration);
+
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         vm.prank(strategist);
         sizeMetaVault.addStrategy(IStrategy(addressZero));
@@ -321,6 +369,14 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
 
         assertEq(lengthBefore, lengthAfter);
+    }
+
+    function test_SizeMetaVault_addStrategy_removeStrategy_admin_is_not_timelocked() public {
+        vm.prank(admin);
+        sizeMetaVault.addStrategy(cryticCashStrategyVault);
+
+        vm.prank(strategist);
+        sizeMetaVault.removeStrategy(cryticCashStrategyVault, erc4626StrategyVault);
     }
 
     function test_SizeMetaVault_removeStrategy_one_after_another() public {
@@ -331,11 +387,28 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategy(cryticCashStrategyVault);
 
+        uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+        vm.warp(block.timestamp + addStrategyTimelockDuration);
+
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(cryticCashStrategyVault);
+
         vm.startPrank(strategist);
         for (uint256 i = 0; i < length; i++) {
             IStrategy strategy = IStrategy(currentStrategies[i]);
             sizeMetaVault.removeStrategy(strategy, cryticCashStrategyVault);
+
+            uint256 removeStrategyTimelockDuration =
+                sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategy.selector);
+            vm.warp(block.timestamp + removeStrategyTimelockDuration);
+
+            sizeMetaVault.removeStrategy(strategy, cryticCashStrategyVault);
         }
+        uint256 removeStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategy.selector);
+        sizeMetaVault.removeStrategy(cryticCashStrategyVault, cryticCashStrategyVault);
+
+        vm.warp(block.timestamp + removeStrategyTimelockDuration);
+
         vm.expectRevert(
             abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
         );
@@ -435,10 +508,21 @@ contract SizeMetaVaultTest is BaseTest {
         for (uint256 i = 0; i < newStrategies.length; i++) {
             vm.prank(strategist);
             sizeMetaVault.addStrategy(newStrategies[i]);
+
+            uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+            vm.warp(block.timestamp + addStrategyTimelockDuration);
+            vm.prank(strategist);
+            sizeMetaVault.addStrategy(newStrategies[i]);
         }
 
         for (uint256 i = 0; i < oldStrategies.length; i++) {
             IStrategy oldStrategy = IStrategy(oldStrategies[i]);
+            vm.prank(strategist);
+            sizeMetaVault.removeStrategy(oldStrategy, newERC4626StrategyVault);
+
+            uint256 removeStrategyTimelockDuration =
+                sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategy.selector);
+            vm.warp(block.timestamp + removeStrategyTimelockDuration);
             vm.prank(strategist);
             sizeMetaVault.removeStrategy(oldStrategy, newERC4626StrategyVault);
         }
@@ -495,6 +579,12 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(admin);
         sizeMetaVault.setMaxStrategies(3);
         assertEq(sizeMetaVault.maxStrategies(), 3);
+
+        vm.prank(strategist);
+        sizeMetaVault.addStrategy(cryticCashStrategyVault);
+
+        uint256 addStrategyTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategy.selector);
+        vm.warp(block.timestamp + addStrategyTimelockDuration);
 
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.MaxStrategiesExceeded.selector, 4, 3));

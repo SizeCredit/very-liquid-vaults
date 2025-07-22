@@ -10,13 +10,14 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Timelock} from "@src/Timelock.sol";
 
 /// @title SizeMetaVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Meta vault that distributes assets across multiple strategies
 /// @dev Extends BaseVault to manage multiple strategy vaults for asset allocation
-contract SizeMetaVault is BaseVault {
+contract SizeMetaVault is BaseVault, Timelock {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -75,6 +76,8 @@ contract SizeMetaVault is BaseVault {
         for (uint256 i = 0; i < strategies_.length; i++) {
             _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
+        _setTimelockDuration(this.addStrategy.selector, 1 days);
+        _setTimelockDuration(this.removeStrategy.selector, 1 hours);
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -208,6 +211,12 @@ contract SizeMetaVault is BaseVault {
         _setMaxStrategies(maxStrategies_);
     }
 
+    /// @notice Sets the timelock duration for a specific function
+    /// @dev Only callable by addresses with DEFAULT_ADMIN_ROLE
+    function setTimelockDuration(bytes4 sig, uint256 duration) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
+        _setTimelockDuration(sig, duration);
+    }
+
     /*//////////////////////////////////////////////////////////////
                               STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -241,17 +250,29 @@ contract SizeMetaVault is BaseVault {
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
+    ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
     function addStrategy(IStrategy strategy) external notPaused onlyAuth(STRATEGIST_ROLE) {
+        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _checkTimelock(this.addStrategy.selector);
+        if (timelocked) {
+            return;
+        }
+
         _addStrategy(strategy, asset(), address(auth));
     }
 
     /// @notice Removes a strategy from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with STRATEGIST_ROLE
+    ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
     function removeStrategy(IStrategy strategyToRemove, IStrategy strategyToReceiveAssets)
         external
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
+        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _checkTimelock(this.removeStrategy.selector);
+        if (timelocked) {
+            return;
+        }
+
         if (!strategies.contains(address(strategyToReceiveAssets))) {
             revert InvalidStrategy(address(strategyToReceiveAssets));
         }
