@@ -48,13 +48,11 @@ abstract contract Timelock {
             bytes4 sig = msg.sig;
             bytes memory data = msg.data;
 
-            uint256 timelockDuration = Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
-
             if (proposedCalldataHashes[sig] != keccak256(data)) {
                 proposedTimestamps[sig] = block.timestamp;
                 proposedCalldataHashes[sig] = keccak256(data);
-                emit ActionTimelocked(sig, data, timelockDuration + proposedTimestamps[sig]);
-            } else if (block.timestamp >= timelockDuration + proposedTimestamps[sig]) {
+                emit ActionTimelocked(sig, data, _getTimelockDuration(sig) + proposedTimestamps[sig]);
+            } else if (block.timestamp >= _getTimelockDuration(sig) + proposedTimestamps[sig]) {
                 delete proposedTimestamps[sig];
                 delete proposedCalldataHashes[sig];
                 emit TimelockExpired(sig);
@@ -71,9 +69,7 @@ abstract contract Timelock {
     /// @notice Checks if the function is timelocked
     /// @dev Returns true if the function is timelocked, false otherwise
     function isTimelocked(bytes4 sig) public view returns (bool) {
-        uint256 timelockDuration = Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
-
-        return block.timestamp < timelockDuration + proposedTimestamps[sig];
+        return block.timestamp < _getTimelockDuration(sig) + proposedTimestamps[sig];
     }
 
     /// @notice Checks if the current function is timelocked
@@ -92,5 +88,10 @@ abstract contract Timelock {
         uint256 durationBefore = timelockDurations[sig];
         timelockDurations[sig] = duration;
         emit TimelockDurationSet(sig, durationBefore, duration);
+    }
+
+    /// @notice Gets the timelock duration for a specific function
+    function _getTimelockDuration(bytes4 sig) internal view returns (uint256) {
+        return Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
     }
 }
