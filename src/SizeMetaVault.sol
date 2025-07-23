@@ -98,7 +98,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 maxDepositAmount = maxDeposit(receiver);
         uint256 maxMintAmount =
-            maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
+            Math.ternary(maxDepositAmount == type(uint256).max, type(uint256).max, convertToShares(maxDepositAmount));
         return Math.min(maxMintAmount, super.maxMint(receiver));
     }
 

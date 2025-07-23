@@ -183,7 +183,7 @@ abstract contract BaseVault is
         override(ERC20Upgradeable, IERC20)
         returns (uint256)
     {
-        return auth.hasRole(SIZE_VAULT_ROLE, spender) ? type(uint256).max : super.allowance(owner, spender);
+        return Math.ternary(auth.hasRole(SIZE_VAULT_ROLE, spender), type(uint256).max, super.allowance(owner, spender));
     }
 
     /// @notice Returns the number of decimals for the vault token
@@ -211,13 +211,15 @@ abstract contract BaseVault is
     /// @notice Returns the maximum amount that can be deposited
     /// @dev Returns type(uint256).max if no total assets cap is set
     function maxDeposit(address) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return
-            totalAssetsCap == type(uint256).max ? type(uint256).max : Math.saturatingSub(totalAssetsCap, totalAssets());
+        return Math.ternary(
+            totalAssetsCap == type(uint256).max, type(uint256).max, Math.saturatingSub(totalAssetsCap, totalAssets())
+        );
     }
 
     /// @notice Returns the maximum amount that can be minted
     /// @dev Returns type(uint256).max if no total assets cap is set
     function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return totalAssetsCap == type(uint256).max ? type(uint256).max : convertToShares(maxDeposit(receiver));
+        return
+            Math.ternary(totalAssetsCap == type(uint256).max, type(uint256).max, convertToShares(maxDeposit(receiver)));
     }
 }
