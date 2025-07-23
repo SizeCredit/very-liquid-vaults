@@ -89,16 +89,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the maximum amount that can be deposited
-    // slither-disable-next-line calls-loop
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
-        uint256 max = 0;
-        uint256 length = strategies.length;
-        for (uint256 i = 0; i < length; i++) {
-            IBaseVault strategy = strategies[i];
-            uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
-            max = Math.saturatingAdd(max, strategyMaxDeposit);
-        }
-        return Math.min(max, super.maxDeposit(receiver));
+        return Math.min(_maxDeposit(), super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
@@ -123,8 +115,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     }
 
     /// @notice Returns the total assets managed by the vault
-    /// @dev Sums the total assets across all strategies
-    /// @return total The total assets under management
     // slither-disable-next-line calls-loop
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
         uint256 length = strategies.length;
@@ -354,18 +344,25 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         }
     }
 
-    /// @notice Internal function to calculate maximum withdrawable amount
-    /// @dev Sums the max withdraw amounts across all strategies
-    /// @return The total maximum withdrawable amount
+    /// @notice Internal function to calculate maximum depositable amount in all strategies
     // slither-disable-next-line calls-loop
-    function _maxWithdraw() private view returns (uint256) {
-        uint256 max = 0;
+    function _maxDeposit() private view returns (uint256 max) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
+            IBaseVault strategy = strategies[i];
+            uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
+            max = Math.saturatingAdd(max, strategyMaxDeposit);
+        }
+    }
+
+    /// @notice Internal function to calculate maximum withdrawable amount from all strategies
+    // slither-disable-next-line calls-loop
+    function _maxWithdraw() private view returns (uint256 max) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             uint256 strategyMaxWithdraw = strategies[i].maxWithdraw(address(this));
             max = Math.saturatingAdd(max, strategyMaxWithdraw);
         }
-        return max;
     }
 
     /// @notice Internal function to set the maximum number of strategies
@@ -437,7 +434,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the number of strategies in the vault
-    /// @return The count of active strategies
     function strategiesCount() public view returns (uint256) {
         return strategies.length;
     }

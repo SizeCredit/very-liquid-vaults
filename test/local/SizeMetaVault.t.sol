@@ -15,6 +15,7 @@ import {IBaseVault} from "@src/IBaseVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
 import {console} from "forge-std/console.sol";
+import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     bool public expectRevert = false;
@@ -699,5 +700,17 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.MaxStrategiesExceeded.selector, 4, 3));
         sizeMetaVault.addStrategies(strategies);
+    }
+
+    function test_SizeMetaVault_maxWithdraw_cannot_be_used_to_steal_assets() public {
+        _deposit(alice, sizeMetaVault, 100e6);
+        _deposit(bob, sizeMetaVault, 200e6);
+
+        uint256 maxWithdraw = sizeMetaVault.maxWithdraw(alice);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxWithdraw.selector, alice, 150e6, maxWithdraw)
+        );
+        _withdraw(alice, sizeMetaVault, 150e6);
     }
 }

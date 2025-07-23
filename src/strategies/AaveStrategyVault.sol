@@ -120,6 +120,7 @@ contract AaveStrategyVault is BaseVault {
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
+    /// @dev Updates Superform implementation to allow the SizeMetaVault to withdraw all
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
@@ -137,6 +138,7 @@ contract AaveStrategyVault is BaseVault {
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
+    /// @dev Updates Superform implementation to allow the SizeMetaVault to redeem all
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {

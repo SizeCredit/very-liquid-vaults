@@ -39,13 +39,13 @@ abstract contract Timelock {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Checks if the function is timelocked
-    /// @dev Returns true if the function is timelocked, false otherwise
+    /// @return True if the function is timelocked, false otherwise
     function isTimelocked(bytes4 sig) public view returns (bool) {
         return block.timestamp < _getTimelockDuration(sig) + proposedTimestamps[sig];
     }
 
     /// @notice Updates the timelock state and checks if the current function is timelocked
-    /// @dev Returns true if the current function is timelocked, false otherwise
+    /// @return True if the current function is timelocked, false otherwise
     function _updateTimelockStateAndCheckIfTimelocked() internal returns (bool) {
         bytes4 sig = msg.sig;
         bytes memory data = msg.data;
