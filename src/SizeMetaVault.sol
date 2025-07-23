@@ -5,7 +5,7 @@ import {BaseVault} from "@src/BaseVault.sol";
 import {PerformanceVault} from "@src/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE} from "@src/utils/Auth.sol";
-import {IStrategy} from "@src/strategies/IStrategy.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
@@ -27,7 +27,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     //////////////////////////////////////////////////////////////*/
 
     uint256 public maxStrategies;
-    IStrategy[] public strategies;
+    IBaseVault[] public strategies;
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -69,7 +69,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         string memory symbol_,
         address fundingAccount,
         uint256 firstDepositAmount,
-        IStrategy[] memory strategies_
+        IBaseVault[] memory strategies_
     ) public virtual initializer {
         __PerformanceVault_init(auth_.getRoleMember(DEFAULT_ADMIN_ROLE, 0), 0);
         _setMaxStrategies(DEFAULT_MAX_STRATEGIES);
@@ -94,7 +94,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         uint256 max = 0;
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = strategies[i];
+            IBaseVault strategy = strategies[i];
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             max = Math.saturatingAdd(max, strategyMaxDeposit);
         }
@@ -197,7 +197,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Reorders the strategies
     /// @dev Verifies that the new strategies order is valid and that there are no duplicates
     /// @dev Clears current strategies and adds them in the new order
-    function reorderStrategies(IStrategy[] calldata newStrategiesOrder) external notPaused onlyAuth(STRATEGIST_ROLE) {
+    function reorderStrategies(IBaseVault[] calldata newStrategiesOrder) external notPaused onlyAuth(STRATEGIST_ROLE) {
         if (strategies.length != newStrategiesOrder.length) {
             revert ArrayLengthMismatch(strategies.length, newStrategiesOrder.length);
         }
@@ -213,7 +213,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
             }
         }
 
-        IStrategy[] memory oldStrategiesOrder = getStrategies();
+        IBaseVault[] memory oldStrategiesOrder = getStrategies();
         for (uint256 i = 0; i < oldStrategiesOrder.length; i++) {
             _removeStrategy(oldStrategiesOrder[i]);
         }
@@ -225,7 +225,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Adds new strategies to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     ///      If the caller has DEFAULT_ADMIN_ROLE, the timelock state is not updated
-    function addStrategies(IStrategy[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
+    function addStrategies(IBaseVault[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
         if (!auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _updateTimelockStateAndCheckIfTimelocked()) {
             return;
         }
@@ -239,7 +239,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     ///      If the caller has DEFAULT_ADMIN_ROLE, the timelock state is not updated
     // slither-disable-next-line calls-loop
-    function removeStrategies(IStrategy[] calldata strategiesToRemove, IStrategy strategyToReceiveAssets)
+    function removeStrategies(IBaseVault[] calldata strategiesToRemove, IBaseVault strategyToReceiveAssets)
         external
         nonReentrant
         notPaused
@@ -259,7 +259,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         }
 
         for (uint256 i = 0; i < strategiesToRemove.length; i++) {
-            IStrategy strategyToRemove = strategiesToRemove[i];
+            IBaseVault strategyToRemove = strategiesToRemove[i];
             uint256 shares = strategyToRemove.balanceOf(address(this));
             if (shares > 0) {
                 // slither-disable-next-line unused-return
@@ -273,7 +273,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Rebalances assets between two strategies
     /// @dev Transfers assets from one strategy to another and skims the destination
     ///      Does not check that the strategyFrom is a whitelisted strategy to allow for rebalancing from removed strategies
-    function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount, uint256 minAmount)
+    function rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 minAmount)
         external
         nonReentrant
         notPaused
@@ -291,7 +291,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
         uint256 totalAssetBefore = strategyTo.totalAssets();
 
-        strategyFrom.transferAssets(address(strategyTo), amount);
+        strategyFrom.withdraw(amount, address(strategyTo), address(this));
         strategyTo.skim();
 
         uint256 transferredAmount = strategyTo.totalAssets() - totalAssetBefore;
@@ -316,7 +316,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Internal function to add a strategy
     /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
     // slither-disable-next-line calls-loop
-    function _addStrategy(IStrategy strategy_, address asset_, address auth_) private {
+    function _addStrategy(IBaseVault strategy_, address asset_, address auth_) private {
         if (address(strategy_) == address(0)) {
             revert NullAddress();
         }
@@ -336,7 +336,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Internal function to remove a strategy
     /// @dev No NullAddress check is needed because only whitelisted strategies can be removed, and it is checked in _addStrategy
     /// @dev Removes the strategy in-place to keep the order
-    function _removeStrategy(IStrategy strategy) private {
+    function _removeStrategy(IBaseVault strategy) private {
         bool removed = false;
         for (uint256 i = 0; i < strategies.length; i++) {
             if (strategies[i] == strategy) {
@@ -382,7 +382,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = strategies[i];
+            IBaseVault strategy = strategies[i];
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
 
@@ -411,7 +411,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = strategies[i];
+            IBaseVault strategy = strategies[i];
 
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
             uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
@@ -443,21 +443,21 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     }
 
     /// @notice Returns all strategy addresses
-    function getStrategies() public view returns (IStrategy[] memory strategies_) {
+    function getStrategies() public view returns (IBaseVault[] memory strategies_) {
         uint256 length = strategies.length;
-        strategies_ = new IStrategy[](length);
+        strategies_ = new IBaseVault[](length);
         for (uint256 i = 0; i < length; i++) {
             strategies_[i] = strategies[i];
         }
     }
 
     /// @notice Returns the strategy at a specific index
-    function getStrategy(uint256 index) public view returns (IStrategy) {
+    function getStrategy(uint256 index) public view returns (IBaseVault) {
         return strategies[index];
     }
 
     /// @notice Returns true if the strategy is in the vault
-    function isStrategy(IStrategy strategy) public view returns (bool) {
+    function isStrategy(IBaseVault strategy) public view returns (bool) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             if (strategies[i] == strategy) {

@@ -8,7 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Auth} from "@src/utils/Auth.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
-import {IStrategy} from "@src/strategies/IStrategy.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 
 contract SizeMetaVaultScript is BaseScript {
     using SafeERC20 for IERC20;
@@ -17,7 +17,7 @@ contract SizeMetaVaultScript is BaseScript {
     IERC20Metadata asset;
     address fundingAccount = address(this);
     uint256 sizeMetaVaultFirstDepositAmount;
-    IStrategy[] strategies;
+    IBaseVault[] strategies;
 
     function setUp() public override {
         super.setUp();
@@ -27,9 +27,9 @@ contract SizeMetaVaultScript is BaseScript {
         fundingAccount = msg.sender;
         sizeMetaVaultFirstDepositAmount = vm.envUint("SIZE_META_VAULT_FIRST_DEPOSIT_AMOUNT");
         address[] memory strategies_ = vm.envAddress("STRATEGIES", ",");
-        strategies = new IStrategy[](strategies_.length);
+        strategies = new IBaseVault[](strategies_.length);
         for (uint256 i = 0; i < strategies_.length; i++) {
-            strategies[i] = IStrategy(strategies_[i]);
+            strategies[i] = IBaseVault(strategies_[i]);
         }
     }
 
@@ -45,7 +45,7 @@ contract SizeMetaVaultScript is BaseScript {
         Auth auth_,
         IERC20Metadata asset_,
         uint256 sizeMetaVaultFirstDepositAmount_,
-        IStrategy[] memory strategies_
+        IBaseVault[] memory strategies_
     ) public returns (SizeMetaVault sizeMetaVault) {
         string memory name = string.concat("Size Meta ", asset_.name(), " Vault");
         string memory symbol = string.concat("sz", "Meta", asset_.symbol());

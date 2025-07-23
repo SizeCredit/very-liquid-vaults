@@ -11,7 +11,6 @@ import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
 import {Auth, SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
-import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {ReserveConfiguration} from "@aave/contracts/protocol/libraries/configuration/ReserveConfiguration.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
@@ -19,9 +18,9 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A strategy that invests assets in Aave v3 lending pools
-/// @dev Implements IStrategy interface for Aave v3 integration within the Size Meta Vault system
+/// @dev Extends BaseVault for Aave v3 integration within the Size Meta Vault system
 /// @dev Reference https://github.com/superform-xyz/super-vaults/blob/8bc1d1bd1579f6fb9a047802256ed3a2bf15f602/src/aave-v3/AaveV3ERC4626Reinvest.sol
-contract AaveStrategyVault is BaseVault, IStrategy {
+contract AaveStrategyVault is BaseVault {
     using SafeERC20 for IERC20;
     using WadRayMath for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -71,24 +70,6 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              SIZE VAULT FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Transfers assets from this strategy to another address
-    /// @dev Withdraws from Aave pool and transfers to the recipient
-    function transferAssets(address to, uint256 amount)
-        external
-        override
-        nonReentrant
-        notPaused
-        onlyAuth(SIZE_VAULT_ROLE)
-    {
-        // slither-disable-next-line unused-return
-        pool.withdraw(asset(), amount, to);
-        emit TransferAssets(to, amount);
-    }
-
-    /*//////////////////////////////////////////////////////////////
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -109,7 +90,7 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     /// @dev Checks Aave reserve configuration and supply cap to determine max deposit
     /// @dev Updates Superform implementation to comply with https://github.com/aave-dao/aave-v3-origin/blob/v3.4.0/src/contracts/protocol/libraries/logic/ValidationLogic.sol#L79-L85
     /// @return The maximum deposit amount allowed by Aave
-    function maxDeposit(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
+    function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getFrozen() && !config.getPaused())) {
@@ -134,13 +115,16 @@ contract AaveStrategyVault is BaseVault, IStrategy {
 
     /// @notice Returns the maximum number of shares that can be minted
     /// @dev Converts the max deposit amount to shares
-    function maxMint(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
+    function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         return Math.min(convertToShares(maxDeposit(receiver)), super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
+            return _convertToAssets(totalSupply(), Math.Rounding.Floor);
+        }
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {
@@ -155,6 +139,9 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     /// @notice Returns the maximum number of shares that can be redeemed
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
+            return totalSupply();
+        }
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {
@@ -192,6 +179,13 @@ contract AaveStrategyVault is BaseVault, IStrategy {
     {
         // slither-disable-next-line unused-return
         pool.withdraw(asset(), assets, address(this));
-        super._withdraw(caller, receiver, owner, assets, shares);
+
+        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
+            // do not _burn shares
+            SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
+            emit Withdraw(caller, receiver, owner, assets, shares);
+        } else {
+            super._withdraw(caller, receiver, owner, assets, shares);
+        }
     }
 }

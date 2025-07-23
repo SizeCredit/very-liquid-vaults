@@ -30,7 +30,7 @@ import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {BaseVaultMockScript} from "@script/BaseVaultMock.s.sol";
 import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
 import {CryticSizeMetaVaultMockScript} from "@script/CryticSizeMetaVaultMock.s.sol";
-import {IStrategy} from "@src/strategies/IStrategy.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 import {WETH9} from "@aave/contracts/dependencies/weth/WETH9.sol";
 
 abstract contract Setup {
@@ -207,7 +207,7 @@ abstract contract Setup {
         cryticCashStrategyVault = cryticCashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
         cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
         cryticERC4626StrategyVault = cryticERC4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
-        IStrategy[] memory strategies = new IStrategy[](3);
+        IBaseVault[] memory strategies = new IBaseVault[](3);
         strategies[0] = cryticCashStrategyVault;
         strategies[1] = cryticAaveStrategyVault;
         strategies[2] = cryticERC4626StrategyVault;
@@ -215,7 +215,7 @@ abstract contract Setup {
             auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies
         );
         baseVault = baseVaultMockScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
-        strategies = new IStrategy[](3);
+        strategies = new IBaseVault[](3);
         strategies[0] = cashStrategyVault;
         strategies[1] = aaveStrategyVault;
         strategies[2] = erc4626StrategyVault;

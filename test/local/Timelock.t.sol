@@ -6,7 +6,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {DEFAULT_ADMIN_ROLE} from "@src/utils/Auth.sol";
-import {IStrategy} from "@src/strategies/IStrategy.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 
 contract TimelockTest is BaseTest {
     function test_Timelock_initialize() public view {
@@ -33,7 +33,7 @@ contract TimelockTest is BaseTest {
         uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
         assertEq(proposedTimestamp, 0);
 
-        IStrategy[] memory strategies = new IStrategy[](1);
+        IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = aaveStrategyVault;
 
         vm.prank(strategist);
@@ -44,7 +44,7 @@ contract TimelockTest is BaseTest {
 
         vm.warp(30 minutes);
 
-        IStrategy[] memory strategies2 = new IStrategy[](1);
+        IBaseVault[] memory strategies2 = new IBaseVault[](1);
         strategies2[0] = cashStrategyVault;
 
         vm.prank(strategist);
@@ -62,7 +62,7 @@ contract TimelockTest is BaseTest {
         uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
         assertEq(proposedTimestamp, 0);
 
-        IStrategy[] memory strategies = new IStrategy[](1);
+        IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = aaveStrategyVault;
 
         vm.prank(strategist);
@@ -87,7 +87,7 @@ contract TimelockTest is BaseTest {
         uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
         assertEq(proposedTimestamp, 0);
 
-        IStrategy[] memory strategies = new IStrategy[](1);
+        IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = cryticAaveStrategyVault;
 
         vm.prank(admin);
@@ -109,7 +109,7 @@ contract TimelockTest is BaseTest {
         uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
         assertEq(proposedTimestamp, 0);
 
-        IStrategy[] memory strategies = new IStrategy[](1);
+        IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = cryticAaveStrategyVault;
 
         vm.prank(strategist);
@@ -155,7 +155,7 @@ contract TimelockTest is BaseTest {
     function test_Timelock_multicall() public {
         vm.warp(123 days);
 
-        IStrategy[] memory strategies = new IStrategy[](1);
+        IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = cryticCashStrategyVault;
 
         bytes[] memory data = new bytes[](2);

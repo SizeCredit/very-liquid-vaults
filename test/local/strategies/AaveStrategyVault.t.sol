@@ -32,7 +32,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         );
     }
 
-    function test_AaveStrategyVault_transferAssets() public {
+    function test_AaveStrategyVault_rebalance() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
         _approve(alice, erc20Asset, address(aaveStrategyVault), amount);
@@ -115,7 +115,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
     }
 
-    function test_AaveStrategyVault_deposit_transferAssets_does_not_change_balanceOf() public {
+    function test_AaveStrategyVault_deposit_rebalance_does_not_change_balanceOf() public {
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(aaveStrategyVault), depositAmount);
@@ -124,16 +124,18 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         uint256 shares = aaveStrategyVault.balanceOf(alice);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
 
+        uint256 balanceBeforeRebalance = erc20Asset.balanceOf(address(cashStrategyVault));
+
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeMetaVault));
-        aaveStrategyVault.transferAssets(bob, pullAmount);
+        vm.prank(strategist);
+        sizeMetaVault.rebalance(aaveStrategyVault, cashStrategyVault, pullAmount, 0);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + depositAmount - pullAmount);
-        assertEq(erc20Asset.balanceOf(bob), pullAmount);
+        assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), balanceBeforeRebalance + pullAmount);
     }
 
-    function test_AaveStrategyVault_deposit_transferAssets_redeem() public {
+    function test_AaveStrategyVault_deposit_rebalance_redeem() public {
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(aaveStrategyVault), depositAmount);
@@ -142,13 +144,15 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         uint256 shares = aaveStrategyVault.balanceOf(alice);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
 
+        uint256 balanceBeforeRebalance = erc20Asset.balanceOf(address(cashStrategyVault));
+
         uint256 pullAmount = 30e6;
-        vm.prank(address(sizeMetaVault));
-        aaveStrategyVault.transferAssets(bob, pullAmount);
+        vm.prank(strategist);
+        sizeMetaVault.rebalance(aaveStrategyVault, cashStrategyVault, pullAmount, 0);
         assertEq(aaveStrategyVault.balanceOf(alice), shares);
         assertEq(aaveStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(address(aToken)), initialBalance + depositAmount - pullAmount);
-        assertEq(erc20Asset.balanceOf(bob), pullAmount);
+        assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), balanceBeforeRebalance + pullAmount);
 
         uint256 maxRedeem = aaveStrategyVault.maxRedeem(alice);
         uint256 previewRedeem = aaveStrategyVault.previewRedeem(maxRedeem);

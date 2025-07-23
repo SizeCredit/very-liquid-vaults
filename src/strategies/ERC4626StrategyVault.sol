@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseVault} from "@src/BaseVault.sol";
-import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -15,7 +14,7 @@ import {Auth, SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
 /// @author Size (https://size.credit/)
 /// @notice A strategy that invests assets in an external ERC4626-compliant vault
 /// @dev Wraps an external ERC4626 vault to provide strategy functionality for the Size Meta Vault
-contract ERC4626StrategyVault is BaseVault, IStrategy {
+contract ERC4626StrategyVault is BaseVault {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////
@@ -55,24 +54,6 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              SIZE VAULT FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Transfers assets from this strategy to another address
-    /// @dev Withdraws from the external vault and transfers to the recipient
-    function transferAssets(address to, uint256 assets)
-        external
-        override
-        nonReentrant
-        notPaused
-        onlyAuth(SIZE_VAULT_ROLE)
-    {
-        // slither-disable-next-line unused-return
-        vault.withdraw(assets, to, address(this));
-        emit TransferAssets(to, assets);
-    }
-
-    /*//////////////////////////////////////////////////////////////
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -92,26 +73,34 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
 
     /// @notice Returns the maximum amount that can be deposited
     /// @dev Delegates to the external vault's maxDeposit function
-    function maxDeposit(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
+    function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxDeposit(address(this)), super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
     /// @dev Delegates to the external vault's maxMint function
-    function maxMint(address receiver) public view override(BaseVault, IERC4626) returns (uint256) {
+    function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxMint(address(this)), super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     /// @dev Limited by both owner's balance and external vault's withdrawal capacity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), vault.maxWithdraw(address(this)));
+        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
+            return _convertToAssets(totalSupply(), Math.Rounding.Floor);
+        } else {
+            return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), vault.maxWithdraw(address(this)));
+        }
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
     /// @dev Limited by both owner's balance and external vault's redemption capacity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(balanceOf(owner), _convertToShares(vault.maxWithdraw(address(this)), Math.Rounding.Floor));
+        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
+            return totalSupply();
+        } else {
+            return Math.min(balanceOf(owner), _convertToShares(vault.maxWithdraw(address(this)), Math.Rounding.Floor));
+        }
     }
 
     /// @notice Returns the total assets managed by this strategy
@@ -141,6 +130,13 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
         vault.withdraw(assets, address(this), address(this));
         uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
         assets = balanceAfter - balanceBefore;
-        super._withdraw(caller, receiver, owner, assets, shares);
+
+        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
+            // do not _burn shares
+            SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
+            emit Withdraw(caller, receiver, owner, assets, shares);
+        } else {
+            super._withdraw(caller, receiver, owner, assets, shares);
+        }
     }
 }
