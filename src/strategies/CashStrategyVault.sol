@@ -2,18 +2,15 @@
 pragma solidity 0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {BaseStrategy} from "@src/strategies/BaseStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 
 /// @title CashStrategyVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A strategy that only holds cash assets without investing in external protocols
 /// @dev Extends BaseStrategy for cash management within the Size Meta Vault system
-contract CashStrategyVault is BaseStrategy {
+contract CashStrategyVault is BaseVault {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////
@@ -23,27 +20,5 @@ contract CashStrategyVault is BaseStrategy {
     /// @notice Skims idle assets (no-op for cash strategy)
     function skim() external override nonReentrant notPaused {
         emit Skim();
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                              ERC4626 OVERRIDES
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Returns the maximum amount that can be withdrawn by an owner
-    function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return _sizeMetaVaultMaxWithdraw();
-        } else {
-            return super.maxWithdraw(owner);
-        }
-    }
-
-    /// @notice Returns the maximum number of shares that can be redeemed
-    function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return _sizeMetaVaultMaxRedeem();
-        } else {
-            return super.maxRedeem(owner);
-        }
     }
 }

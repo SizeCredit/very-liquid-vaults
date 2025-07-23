@@ -167,6 +167,7 @@ contract TimelockTest is BaseTest {
     }
 
     function test_Timelock_multicall() public {
+        _deposit(alice, sizeMetaVault, 10e6);
         vm.warp(123 days);
 
         IBaseVault[] memory strategies = new IBaseVault[](1);

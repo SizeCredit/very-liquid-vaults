@@ -5,7 +5,6 @@ import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC2
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {BaseVault} from "@src/BaseVault.sol";
-import {BaseStrategy} from "@src/strategies/BaseStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
@@ -21,7 +20,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 /// @notice A strategy that invests assets in Aave v3 lending pools
 /// @dev Extends BaseVault for Aave v3 integration within the Size Meta Vault system
 /// @dev Reference https://github.com/superform-xyz/super-vaults/blob/8bc1d1bd1579f6fb9a047802256ed3a2bf15f602/src/aave-v3/AaveV3ERC4626Reinvest.sol
-contract AaveStrategyVault is BaseStrategy {
+contract AaveStrategyVault is BaseVault {
     using SafeERC20 for IERC20;
     using WadRayMath for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
@@ -121,12 +120,8 @@ contract AaveStrategyVault is BaseStrategy {
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
-    /// @dev Updates Superform implementation to allow the SizeMetaVault to withdraw all
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return _sizeMetaVaultMaxWithdraw();
-        }
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {
@@ -142,9 +137,6 @@ contract AaveStrategyVault is BaseStrategy {
     /// @dev Updates Superform implementation to allow the SizeMetaVault to redeem all
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return _sizeMetaVaultMaxRedeem();
-        }
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {

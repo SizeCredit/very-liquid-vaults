@@ -60,7 +60,7 @@ Target integrations:
 
 * Allocation is manually managed by a Strategist
 * Percentage allocations are defined off-chain, e.g., 5% Cash, 50% Aave, 45% Euler
-* Strategist uses e.g. `rebalance` to move liquidity between strategies. This changes the PPS of the underlying strategy vaults.
+* Strategist uses e.g. `rebalance` to move liquidity between strategies
 
 ## Architecture
 

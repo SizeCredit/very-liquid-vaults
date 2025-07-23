@@ -239,9 +239,14 @@ contract SizeMetaVault is PerformanceVault, Timelock {
             IBaseVault strategyToRemove = strategiesToRemove[i];
             uint256 maxWithdrawAmount = strategyToRemove.maxWithdraw(address(this));
             if (maxWithdrawAmount > 0) {
+                uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
                 // slither-disable-next-line unused-return
-                strategyToRemove.withdraw(maxWithdrawAmount, address(strategyToReceiveAssets), address(this));
-                strategyToReceiveAssets.skim();
+                strategyToRemove.withdraw(maxWithdrawAmount, address(this), address(this));
+                uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
+                uint256 assets = balanceAfter - balanceBefore;
+                IERC20(asset()).forceApprove(address(strategyToReceiveAssets), assets);
+                // slither-disable-next-line unused-return
+                strategyToReceiveAssets.deposit(assets, address(this));
             }
             _removeStrategy(strategyToRemove);
         }
@@ -268,9 +273,15 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
         uint256 totalAssetBefore = strategyTo.totalAssets();
 
+        uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
         // slither-disable-next-line unused-return
-        strategyFrom.withdraw(amount, address(strategyTo), address(this));
-        strategyTo.skim();
+        strategyFrom.withdraw(amount, address(this), address(this));
+        uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
+        uint256 assets = balanceAfter - balanceBefore;
+
+        IERC20(asset()).forceApprove(address(strategyTo), assets);
+        // slither-disable-next-line unused-return
+        strategyTo.deposit(assets, address(this));
 
         uint256 transferredAmount = strategyTo.totalAssets() - totalAssetBefore;
         if (transferredAmount < minAmount) {
@@ -280,7 +291,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         emit Rebalance(address(strategyFrom), address(strategyTo), amount);
     }
 
-    /// @notice Skims the assets from a strategy
+    /// @notice Skims the assets from the vault
     function skim() external nonReentrant notPaused {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         _depositToStrategies(assets, convertToShares(assets));
