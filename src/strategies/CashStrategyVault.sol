@@ -21,7 +21,6 @@ contract CashStrategyVault is BaseStrategy {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Skims idle assets (no-op for cash strategy)
-    /// @dev Since this is a cash strategy, there are no assets to invest, so this just emits an event
     function skim() external override nonReentrant notPaused {
         emit Skim();
     }

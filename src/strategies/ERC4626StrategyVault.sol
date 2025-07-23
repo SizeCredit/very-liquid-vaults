@@ -58,8 +58,7 @@ contract ERC4626StrategyVault is BaseStrategy {
                               EXTERNAL FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Invests any idle assets sitting in this contract
-    /// @dev Deposits any assets held by this contract into the external vault
+    /// @notice Invests any idle assets sitting in this contract into the external vault
     function skim() external override nonReentrant notPaused {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         IERC20(asset()).forceApprove(address(vault), assets);
@@ -73,13 +72,13 @@ contract ERC4626StrategyVault is BaseStrategy {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the maximum amount that can be deposited
-    /// @dev Delegates to the external vault's maxDeposit function
+    /// @dev Limited by the external vault's maxDeposit function
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxDeposit(address(this)), super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
-    /// @dev Delegates to the external vault's maxMint function
+    /// @dev Limited by the external vault's maxMint function
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxMint(address(this)), super.maxMint(receiver));
     }
