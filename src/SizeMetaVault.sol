@@ -136,7 +136,6 @@ contract SizeMetaVault is BaseVault, Timelock {
 
     /// @notice Deposits assets to strategies in order
     /// @dev Tries to deposit to strategies sequentially, reverts if not all assets can be deposited
-    // slither-disable-next-line calls-loop
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         if (_isInitializing()) {
             // first deposit
@@ -150,7 +149,6 @@ contract SizeMetaVault is BaseVault, Timelock {
 
     /// @notice Withdraws assets from strategies in order
     /// @dev Tries to withdraw from strategies sequentially, reverts if not enough assets available
-    // slither-disable-next-line calls-loop
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
@@ -228,6 +226,7 @@ contract SizeMetaVault is BaseVault, Timelock {
     /// @notice Removes strategies from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
+    // slither-disable-next-line calls-loop
     function removeStrategies(IStrategy[] calldata strategiesToRemove, IStrategy strategyToReceiveAssets)
         external
         notPaused
@@ -251,6 +250,7 @@ contract SizeMetaVault is BaseVault, Timelock {
             IStrategy strategyToRemove = strategiesToRemove[i];
             uint256 shares = strategyToRemove.balanceOf(address(this));
             if (shares > 0) {
+                // slither-disable-next-line unused-return
                 strategyToRemove.redeem(shares, address(strategyToReceiveAssets), address(this));
                 strategyToReceiveAssets.skim();
             }
@@ -355,6 +355,7 @@ contract SizeMetaVault is BaseVault, Timelock {
     }
 
     /// @notice Internal function to deposit assets to strategies
+    // slither-disable-next-line calls-loop
     function _depositToStrategies(uint256 assets, uint256 shares) private {
         uint256 assetsToDeposit = assets;
 
@@ -364,16 +365,18 @@ contract SizeMetaVault is BaseVault, Timelock {
 
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
+
+            // slither-disable-next-line incorrect-equality
+            if (depositAmount == 0) {
+                break;
+            }
+
             IERC20(asset()).forceApprove(address(strategy), depositAmount);
             // slither-disable-next-line unused-return
             try strategy.deposit(depositAmount, address(this)) {
                 assetsToDeposit -= depositAmount;
             } catch {
                 IERC20(asset()).forceApprove(address(strategy), 0);
-            }
-
-            if (assetsToDeposit == 0) {
-                break;
             }
         }
         if (assetsToDeposit > 0) {
@@ -382,6 +385,7 @@ contract SizeMetaVault is BaseVault, Timelock {
     }
 
     /// @notice Internal function to withdraw assets from strategies
+    // slither-disable-next-line calls-loop
     function _withdrawFromStrategies(uint256 assets, uint256 shares) private {
         uint256 assetsToWithdraw = assets;
 
@@ -391,14 +395,15 @@ contract SizeMetaVault is BaseVault, Timelock {
 
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
             uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
+
+            if (withdrawAmount == 0) {
+                break;
+            }
+
             // slither-disable-next-line unused-return
             try strategy.withdraw(withdrawAmount, address(this), address(this)) {
                 assetsToWithdraw -= withdrawAmount;
             } catch {}
-
-            if (assetsToWithdraw == 0) {
-                break;
-            }
         }
         if (assetsToWithdraw > 0) {
             revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);
