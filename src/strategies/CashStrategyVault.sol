@@ -34,7 +34,7 @@ contract CashStrategyVault is BaseVault {
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return _convertToAssets(totalSupply(), Math.Rounding.Floor);
+            return Math.saturatingSub(_convertToAssets(totalSupply(), Math.Rounding.Floor), deadAssets);
         } else {
             return super.maxWithdraw(owner);
         }
@@ -43,7 +43,7 @@ contract CashStrategyVault is BaseVault {
     /// @notice Returns the maximum number of shares that can be redeemed
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return totalSupply();
+            return Math.saturatingSub(totalSupply(), _convertToShares(deadAssets, Math.Rounding.Ceil));
         } else {
             return super.maxRedeem(owner);
         }

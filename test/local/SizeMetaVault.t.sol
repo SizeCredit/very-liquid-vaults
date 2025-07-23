@@ -441,9 +441,17 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_removeStrategies() public {
+        _deposit(alice, sizeMetaVault, 100e6);
+
         uint256 length = sizeMetaVault.strategiesCount();
         IBaseVault[] memory currentStrategies = new IBaseVault[](length);
         currentStrategies = sizeMetaVault.getStrategies();
+
+        for (uint256 i = 0; i < currentStrategies.length; i++) {
+            uint256 strategyAssets = currentStrategies[i].totalAssets();
+            vm.prank(strategist);
+            sizeMetaVault.rebalance(currentStrategies[i], currentStrategies[(i + 1) % length], strategyAssets / 2, 0);
+        }
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = cryticCashStrategyVault;
@@ -480,6 +488,10 @@ contract SizeMetaVaultTest is BaseTest {
         );
         sizeMetaVault.removeStrategies(strategies, cryticCashStrategyVault);
         vm.stopPrank();
+
+        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
+            assertGt(strategiesToRemove[i].totalAssets(), 0);
+        }
     }
 
     function test_SizeMetaVault_removeStrategies_invalid_strategy_must_revert() public {

@@ -124,7 +124,7 @@ contract AaveStrategyVault is BaseVault {
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return _convertToAssets(totalSupply(), Math.Rounding.Floor);
+            return Math.saturatingSub(_convertToAssets(totalSupply(), Math.Rounding.Floor), deadAssets);
         }
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
@@ -142,7 +142,7 @@ contract AaveStrategyVault is BaseVault {
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return totalSupply();
+            return Math.saturatingSub(totalSupply(), _convertToShares(deadAssets, Math.Rounding.Ceil));
         }
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;

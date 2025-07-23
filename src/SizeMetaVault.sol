@@ -237,10 +237,10 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
         for (uint256 i = 0; i < strategiesToRemove.length; i++) {
             IBaseVault strategyToRemove = strategiesToRemove[i];
-            uint256 shares = strategyToRemove.balanceOf(address(this));
-            if (shares > 0) {
+            uint256 maxWithdrawAmount = strategyToRemove.maxWithdraw(address(this));
+            if (maxWithdrawAmount > 0) {
                 // slither-disable-next-line unused-return
-                strategyToRemove.redeem(shares, address(strategyToReceiveAssets), address(this));
+                strategyToRemove.withdraw(maxWithdrawAmount, address(strategyToReceiveAssets), address(this));
                 strategyToReceiveAssets.skim();
             }
             _removeStrategy(strategyToRemove);
@@ -268,6 +268,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
         uint256 totalAssetBefore = strategyTo.totalAssets();
 
+        // slither-disable-next-line unused-return
         strategyFrom.withdraw(amount, address(strategyTo), address(this));
         strategyTo.skim();
 

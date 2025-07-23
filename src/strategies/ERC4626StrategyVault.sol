@@ -87,7 +87,7 @@ contract ERC4626StrategyVault is BaseVault {
     /// @dev Limited by both owner's balance and external vault's withdrawal capacity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return _convertToAssets(totalSupply(), Math.Rounding.Floor);
+            return Math.saturatingSub(_convertToAssets(totalSupply(), Math.Rounding.Floor), deadAssets);
         } else {
             return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), vault.maxWithdraw(address(this)));
         }
@@ -97,7 +97,7 @@ contract ERC4626StrategyVault is BaseVault {
     /// @dev Limited by both owner's balance and external vault's redemption capacity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return totalSupply();
+            return Math.saturatingSub(totalSupply(), _convertToShares(deadAssets, Math.Rounding.Ceil));
         } else {
             return Math.min(balanceOf(owner), _convertToShares(vault.maxWithdraw(address(this)), Math.Rounding.Floor));
         }
