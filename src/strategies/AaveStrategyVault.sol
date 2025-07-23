@@ -10,7 +10,7 @@ import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
-import {Auth, SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
+import {Auth} from "@src/utils/Auth.sol";
 import {ReserveConfiguration} from "@aave/contracts/protocol/libraries/configuration/ReserveConfiguration.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 

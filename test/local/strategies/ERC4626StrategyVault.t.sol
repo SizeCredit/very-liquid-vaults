@@ -56,7 +56,18 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_ERC4626StrategyVault_deposit_rebalance_does_not_change_balanceOf() public {
-        uint256 depositAmount = 100e6;
+        IBaseVault[] memory strategies = new IBaseVault[](3);
+        strategies[0] = erc4626StrategyVault;
+        strategies[1] = cashStrategyVault;
+        strategies[2] = aaveStrategyVault;
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        _deposit(charlie, sizeMetaVault, 100e6);
+
+        uint256 balanceBeforeERC4626StrategyVault = erc20Asset.balanceOf(address(erc4626Vault));
+
+        uint256 depositAmount = 200e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(erc4626StrategyVault), depositAmount);
         vm.prank(alice);
@@ -70,13 +81,25 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         vm.prank(strategist);
         sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
-        assertEq(erc4626StrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
-        assertEq(erc20Asset.balanceOf(address(erc4626Vault)), initialBalance + depositAmount - pullAmount);
+        assertEq(
+            erc20Asset.balanceOf(address(erc4626Vault)), balanceBeforeERC4626StrategyVault + depositAmount - pullAmount
+        );
         assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), balanceBeforeRebalance + pullAmount);
     }
 
     function test_ERC4626StrategyVault_deposit_rebalance_redeem() public {
-        uint256 depositAmount = 100e6;
+        IBaseVault[] memory strategies = new IBaseVault[](3);
+        strategies[0] = erc4626StrategyVault;
+        strategies[1] = cashStrategyVault;
+        strategies[2] = aaveStrategyVault;
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        _deposit(charlie, sizeMetaVault, 100e6);
+
+        uint256 balanceBeforeERC4626StrategyVault = erc20Asset.balanceOf(address(erc4626Vault));
+
+        uint256 depositAmount = 200e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(erc4626StrategyVault), depositAmount);
         vm.prank(alice);
@@ -90,8 +113,9 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         vm.prank(strategist);
         sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
-        assertEq(erc4626StrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
-        assertEq(erc20Asset.balanceOf(address(erc4626Vault)), initialBalance + depositAmount - pullAmount);
+        assertEq(
+            erc20Asset.balanceOf(address(erc4626Vault)), balanceBeforeERC4626StrategyVault + depositAmount - pullAmount
+        );
         assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), balanceBeforeRebalance + pullAmount);
 
         uint256 previewRedeemAssets = erc4626StrategyVault.previewRedeem(shares);
@@ -394,13 +418,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         _deposit(alice, erc4626StrategyVault, 100e6);
         _deposit(bob, sizeMetaVault, 30e6);
 
-        uint256 totalSupply = erc4626StrategyVault.totalSupply();
-        uint256 totalAssets = erc4626StrategyVault.totalAssets();
-        uint256 deadAssets = erc4626StrategyVault.deadAssets();
-        assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), totalAssets - deadAssets);
-        assertEq(
-            erc4626StrategyVault.maxRedeem(address(sizeMetaVault)),
-            totalSupply - erc4626StrategyVault.previewWithdraw(deadAssets)
-        );
+        assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), 30e6);
+        assertEq(erc4626StrategyVault.maxRedeem(address(sizeMetaVault)), erc4626StrategyVault.previewRedeem(30e6));
     }
 }

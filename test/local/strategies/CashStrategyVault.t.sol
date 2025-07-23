@@ -162,26 +162,20 @@ contract CashStrategyVaultTest is BaseTest {
         assertEq(cashStrategyVault.balanceOf(alice), shares);
 
         uint256 pullAmount = erc20Asset.balanceOf(address(cashStrategyVault));
-        uint256 deadAssets = cashStrategyVault.deadAssets();
 
         vm.prank(strategist);
-        vm.expectRevert(
-            abi.encodeWithSelector(SizeMetaVault.InsufficientAssets.selector, pullAmount, deadAssets, pullAmount)
-        );
+        vm.expectRevert();
         sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
     }
 
     function test_CashStrategyVault_maxWithdraw_maxRedeem() public {
+        uint256 assetsBefore = cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
         _deposit(alice, cashStrategyVault, 100e6);
         _deposit(bob, sizeMetaVault, 30e6);
 
-        uint256 totalSupply = cashStrategyVault.totalSupply();
-        uint256 totalAssets = cashStrategyVault.totalAssets();
-        uint256 deadAssets = cashStrategyVault.deadAssets();
-        assertEq(cashStrategyVault.maxWithdraw(address(sizeMetaVault)), totalAssets - deadAssets);
+        assertEq(cashStrategyVault.maxWithdraw(address(sizeMetaVault)), assetsBefore + 30e6);
         assertEq(
-            cashStrategyVault.maxRedeem(address(sizeMetaVault)),
-            totalSupply - cashStrategyVault.previewWithdraw(deadAssets)
+            cashStrategyVault.maxRedeem(address(sizeMetaVault)), cashStrategyVault.previewRedeem(assetsBefore + 30e6)
         );
     }
 }

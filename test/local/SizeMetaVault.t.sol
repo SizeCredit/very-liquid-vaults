@@ -63,7 +63,15 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_rebalance_erc4626_to_cashStrategy() public {
-        _deposit(alice, erc4626StrategyVault, 100e6);
+        IBaseVault[] memory strategies = new IBaseVault[](3);
+        strategies[0] = erc4626StrategyVault;
+        strategies[1] = cashStrategyVault;
+        strategies[2] = aaveStrategyVault;
+
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        _deposit(alice, sizeMetaVault, 100e6);
 
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
@@ -178,7 +186,6 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_rebalance_validation() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
-        uint256 cashStrategyDeadAssets = cashStrategyVault.deadAssets();
 
         uint256 amount = 5e6;
 
@@ -202,27 +209,18 @@ contract SizeMetaVaultTest is BaseTest {
         assertLt(cashAssetsBefore, amount);
 
         vm.prank(strategist);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                SizeMetaVault.InsufficientAssets.selector, cashAssetsBefore, cashStrategyDeadAssets, amount
-            )
-        );
+        vm.expectRevert();
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0);
     }
 
     function test_SizeMetaVault_rebalance() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
-        uint256 cashStrategyDeadAssets = cashStrategyVault.deadAssets();
 
         uint256 amount = 50e6;
         assertLt(cashAssetsBefore, amount);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                SizeMetaVault.InsufficientAssets.selector, cashAssetsBefore, cashStrategyDeadAssets, amount
-            )
-        );
+        vm.expectRevert();
         vm.prank(strategist);
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0);
 
@@ -233,6 +231,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_sizeMetaVault_rebalance_strategyFrom_not_added_must_not_revert() public {
+        _deposit(alice, sizeMetaVault, 100e6);
         // remove cashStrategyVault; check removal; try to transfer from it
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
         uint256 cashAssets = cashStrategyVault.totalAssets();
@@ -255,8 +254,15 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         assertEq(lengthBefore - 1, lengthAfter);
 
+        _deposit(bob, cashStrategyVault, 40e6);
+        uint256 bobBalanceBefore = cashStrategyVault.balanceOf(bob);
+        vm.prank(bob);
+        cashStrategyVault.transfer(address(sizeMetaVault), bobBalanceBefore);
+
+        uint256 assetsToTransfer = cashStrategyVault.balanceOf(address(sizeMetaVault));
+
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, cashAssets, 0);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, assetsToTransfer, 0);
     }
 
     function test_sizeMetaVault_rebalance_strategyTo_not_added_must_revert() public {

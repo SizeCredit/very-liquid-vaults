@@ -43,7 +43,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     error InvalidStrategy(address strategy);
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
-    error InsufficientAssets(uint256 totalAssets, uint256 deadAssets, uint256 amount);
     error TransferredAmountLessThanMin(uint256 transferred, uint256 minAmount);
     error MaxStrategiesExceeded(uint256 strategiesCount, uint256 maxStrategies);
     error ArrayLengthMismatch(uint256 expectedLength, uint256 actualLength);
@@ -266,9 +265,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         }
         if (amount == 0) {
             revert NullAmount();
-        }
-        if (amount + strategyFrom.deadAssets() > strategyFrom.totalAssets()) {
-            revert InsufficientAssets(strategyFrom.totalAssets(), strategyFrom.deadAssets(), amount);
         }
 
         uint256 totalAssetBefore = strategyTo.totalAssets();
