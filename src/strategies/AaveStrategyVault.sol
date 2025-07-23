@@ -182,13 +182,6 @@ contract AaveStrategyVault is BaseStrategy {
     {
         // slither-disable-next-line unused-return
         pool.withdraw(asset(), assets, address(this));
-
-        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            // do not _burn shares
-            SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
-            emit Withdraw(caller, receiver, owner, assets, shares);
-        } else {
-            super._withdraw(caller, receiver, owner, assets, shares);
-        }
+        super._withdraw(caller, receiver, owner, assets, shares);
     }
 }

@@ -47,17 +47,4 @@ contract CashStrategyVault is BaseStrategy {
             return super.maxRedeem(owner);
         }
     }
-
-    function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
-        internal
-        override
-    {
-        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            // do not _burn shares
-            SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
-            emit Withdraw(caller, receiver, owner, assets, shares);
-        } else {
-            super._withdraw(caller, receiver, owner, assets, shares);
-        }
-    }
 }

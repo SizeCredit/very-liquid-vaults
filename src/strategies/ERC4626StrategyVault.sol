@@ -132,12 +132,6 @@ contract ERC4626StrategyVault is BaseStrategy {
         uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
         assets = balanceAfter - balanceBefore;
 
-        if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            // do not _burn shares
-            SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
-            emit Withdraw(caller, receiver, owner, assets, shares);
-        } else {
-            super._withdraw(caller, receiver, owner, assets, shares);
-        }
+        super._withdraw(caller, receiver, owner, assets, shares);
     }
 }
