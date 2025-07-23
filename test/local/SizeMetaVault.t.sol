@@ -467,6 +467,17 @@ contract SizeMetaVaultTest is BaseTest {
         vm.stopPrank();
     }
 
+    function test_SizeMetaVault_removeStrategies_invalid_strategy_must_revert() public {
+        IStrategy[] memory strategiesToRemove = new IStrategy[](1);
+        strategiesToRemove[0] = cryticCashStrategyVault;
+
+        vm.prank(admin);
+        vm.expectRevert(
+            abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
+        );
+        sizeMetaVault.removeStrategies(strategiesToRemove, cashStrategyVault);
+    }
+
     function test_SizeMetaVault_deposit_withdraw() public {
         uint256 initialTotalAssets = sizeMetaVault.totalAssets();
 

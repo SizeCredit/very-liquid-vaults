@@ -91,7 +91,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     // slither-disable-next-line calls-loop
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 max = 0;
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             IStrategy strategy = strategies[i];
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             max = Math.saturatingAdd(max, strategyMaxDeposit);
@@ -125,7 +126,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @return total The total assets under management
     // slither-disable-next-line calls-loop
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             total += strategies[i].totalAssets();
         }
     }
@@ -171,13 +173,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     }
 
     /// @notice Sets the performance fee percent
-    function setPerformanceFeePercent(uint256 performanceFeePercent_)
-        external
-        notPaused
-        timelocked
-        onlyAuth(DEFAULT_ADMIN_ROLE)
-    {
-        if (_isTimelocked()) {
+    function setPerformanceFeePercent(uint256 performanceFeePercent_) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
+        if (_updateTimelockStateAndCheckIfTimelocked()) {
             return;
         }
         _setPerformanceFeePercent(performanceFeePercent_);
@@ -223,13 +220,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Adds new strategies to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
-    function addStrategies(IStrategy[] calldata strategies_)
-        external
-        notPaused
-        timelockedUnless(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
-        onlyAuth(STRATEGIST_ROLE)
-    {
-        if (_isTimelocked()) {
+    function addStrategies(IStrategy[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
+        if (!auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _updateTimelockStateAndCheckIfTimelocked()) {
             return;
         }
 
@@ -244,11 +236,11 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     // slither-disable-next-line calls-loop
     function removeStrategies(IStrategy[] calldata strategiesToRemove, IStrategy strategyToReceiveAssets)
         external
+        nonReentrant
         notPaused
-        timelockedUnless(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
         onlyAuth(STRATEGIST_ROLE)
     {
-        if (_isTimelocked()) {
+        if (!auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _updateTimelockStateAndCheckIfTimelocked()) {
             return;
         }
 
@@ -278,6 +270,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     ///      Does not check that the strategyFrom is a whitelisted strategy to allow for rebalancing from removed strategies
     function rebalance(IStrategy strategyFrom, IStrategy strategyTo, uint256 amount, uint256 minAmount)
         external
+        nonReentrant
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
@@ -339,6 +332,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @dev No NullAddress check is needed because only whitelisted strategies can be removed, and it is checked in _addStrategy
     /// @dev Removes the strategy in-place to keep the order
     function _removeStrategy(IStrategy strategy) private {
+        bool removed = false;
         for (uint256 i = 0; i < strategies.length; i++) {
             if (strategies[i] == strategy) {
                 for (uint256 j = i; j < strategies.length - 1; j++) {
@@ -346,8 +340,12 @@ contract SizeMetaVault is PerformanceVault, Timelock {
                 }
                 strategies.pop();
                 emit StrategyRemoved(address(strategy));
+                removed = true;
                 break;
             }
+        }
+        if (!removed) {
+            revert InvalidStrategy(address(strategy));
         }
     }
 
@@ -357,7 +355,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     // slither-disable-next-line calls-loop
     function _maxWithdraw() private view returns (uint256) {
         uint256 max = 0;
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             uint256 strategyMaxWithdraw = strategies[i].maxWithdraw(address(this));
             max = Math.saturatingAdd(max, strategyMaxWithdraw);
         }
@@ -376,7 +375,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     function _depositToStrategies(uint256 assets, uint256 shares) private {
         uint256 assetsToDeposit = assets;
 
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             IStrategy strategy = strategies[i];
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
@@ -404,7 +404,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     function _withdrawFromStrategies(uint256 assets, uint256 shares) private {
         uint256 assetsToWithdraw = assets;
 
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             IStrategy strategy = strategies[i];
 
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
@@ -436,8 +437,9 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Returns all strategy addresses
     function getStrategies() public view returns (IStrategy[] memory strategies_) {
-        strategies_ = new IStrategy[](strategies.length);
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 length = strategies.length;
+        strategies_ = new IStrategy[](length);
+        for (uint256 i = 0; i < length; i++) {
             strategies_[i] = strategies[i];
         }
     }
@@ -449,7 +451,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Returns true if the strategy is in the vault
     function isStrategy(IStrategy strategy) public view returns (bool) {
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
             if (strategies[i] == strategy) {
                 return true;
             }

@@ -50,6 +50,7 @@ abstract contract PerformanceVault is BaseVault {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Initializes the PerformanceVault with a fee recipient and performance fee percent
+    // solhint-disable-next-line func-name-mixedcase
     function __PerformanceVault_init(address feeRecipient_, uint256 performanceFeePercent_) internal onlyInitializing {
         _setFeeRecipient(feeRecipient_);
         _setPerformanceFeePercent(performanceFeePercent_);

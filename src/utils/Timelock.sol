@@ -35,27 +35,6 @@ abstract contract Timelock {
     event TimelockExpired(bytes4 indexed sig);
 
     /*//////////////////////////////////////////////////////////////
-                              MODIFIERS
-    //////////////////////////////////////////////////////////////*/
-
-    modifier timelocked() {
-        _updateTimelockState();
-        _;
-    }
-
-    /// @notice Modifier to update the timelocked state of a function
-    /// @dev The user must call the function again with the same calldata to execute the function, otherwise it resets the timelock
-    /// @param bypassTimelock If true, the timelock update is not performed
-    modifier timelockedUnless(bool bypassTimelock) {
-        if (bypassTimelock) {
-            _;
-        } else {
-            _updateTimelockState();
-            _;
-        }
-    }
-
-    /*//////////////////////////////////////////////////////////////
                               FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -65,9 +44,22 @@ abstract contract Timelock {
         return block.timestamp < _getTimelockDuration(sig) + proposedTimestamps[sig];
     }
 
-    /// @notice Checks if the current function is timelocked
+    /// @notice Updates the timelock state and checks if the current function is timelocked
     /// @dev Returns true if the current function is timelocked, false otherwise
-    function _isTimelocked() internal view returns (bool) {
+    function _updateTimelockStateAndCheckIfTimelocked() internal returns (bool) {
+        bytes4 sig = msg.sig;
+        bytes memory data = msg.data;
+
+        if (proposedCalldataHashes[sig] != keccak256(data)) {
+            proposedTimestamps[sig] = block.timestamp;
+            proposedCalldataHashes[sig] = keccak256(data);
+            emit ActionTimelocked(sig, data, _getTimelockDuration(sig) + proposedTimestamps[sig]);
+        } else if (block.timestamp >= _getTimelockDuration(sig) + proposedTimestamps[sig]) {
+            delete proposedTimestamps[sig];
+            delete proposedCalldataHashes[sig];
+            emit TimelockExpired(sig);
+        }
+
         return isTimelocked(msg.sig);
     }
 
@@ -86,21 +78,5 @@ abstract contract Timelock {
     /// @notice Gets the timelock duration for a specific function
     function _getTimelockDuration(bytes4 sig) internal view returns (uint256) {
         return Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
-    }
-
-    /// @notice Updates the timelock state
-    function _updateTimelockState() internal {
-        bytes4 sig = msg.sig;
-        bytes memory data = msg.data;
-
-        if (proposedCalldataHashes[sig] != keccak256(data)) {
-            proposedTimestamps[sig] = block.timestamp;
-            proposedCalldataHashes[sig] = keccak256(data);
-            emit ActionTimelocked(sig, data, _getTimelockDuration(sig) + proposedTimestamps[sig]);
-        } else if (block.timestamp >= _getTimelockDuration(sig) + proposedTimestamps[sig]) {
-            delete proposedTimestamps[sig];
-            delete proposedCalldataHashes[sig];
-            emit TimelockExpired(sig);
-        }
     }
 }
