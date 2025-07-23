@@ -186,7 +186,7 @@ abstract contract BaseVault is
 
     /// @notice Internal function called during token transfers
     /// @dev Ensures transfers only happen when the contract is not paused and that no reentrancy is possible
-    function _update(address from, address to, uint256 value) internal override nonReentrant notPaused {
+    function _update(address from, address to, uint256 value) internal virtual override nonReentrant notPaused {
         super._update(from, to, value);
         emit VaultStatus(block.timestamp, totalSupply(), totalAssets());
     }

@@ -55,7 +55,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_rebalance_erc4626_to_cashStrategy() public {
-        _deposit(erc4626StrategyVault, alice, 100e6);
+        _deposit(alice, erc4626StrategyVault, 100e6);
 
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
@@ -277,7 +277,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_skim() public {
-        _deposit(erc4626StrategyVault, alice, 100e6);
+        _deposit(alice, erc4626StrategyVault, 100e6);
 
         uint256 assetsBefore = sizeMetaVault.totalAssets();
 

@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {BaseVault} from "@src/BaseVault.sol";
+import {PerformanceVault} from "@src/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE} from "@src/utils/Auth.sol";
@@ -16,8 +17,8 @@ import {Timelock} from "@src/utils/Timelock.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Meta vault that distributes assets across multiple strategies
-/// @dev Extends BaseVault to manage multiple strategy vaults for asset allocation
-contract SizeMetaVault is BaseVault, Timelock {
+/// @dev Extends PerformanceVault to manage multiple strategy vaults for asset allocation. By default, the performance fee is 0.
+contract SizeMetaVault is PerformanceVault, Timelock {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -71,6 +72,7 @@ contract SizeMetaVault is BaseVault, Timelock {
         uint256 firstDepositAmount,
         IStrategy[] memory strategies_
     ) public virtual initializer {
+        __PerformanceVault_init(auth_.getRoleMember(DEFAULT_ADMIN_ROLE, 0), 0);
         _setMaxStrategies(DEFAULT_MAX_STRATEGIES);
 
         for (uint256 i = 0; i < strategies_.length; i++) {
@@ -78,6 +80,7 @@ contract SizeMetaVault is BaseVault, Timelock {
         }
         _setTimelockDuration(this.addStrategies.selector, 1 days);
         _setTimelockDuration(this.removeStrategies.selector, 1 hours);
+        _setTimelockDuration(this.setPerformanceFeePercent.selector, 1 days);
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -174,6 +177,24 @@ contract SizeMetaVault is BaseVault, Timelock {
         _setTimelockDuration(sig, duration);
     }
 
+    /// @notice Sets the performance fee percent
+    function setPerformanceFeePercent(uint256 performanceFeePercent_)
+        external
+        notPaused
+        timelocked
+        onlyAuth(DEFAULT_ADMIN_ROLE)
+    {
+        if (_isTimelocked()) {
+            return;
+        }
+        _setPerformanceFeePercent(performanceFeePercent_);
+    }
+
+    /// @notice Sets the fee recipient
+    function setFeeRecipient(address feeRecipient_) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
+        _setFeeRecipient(feeRecipient_);
+    }
+
     /*//////////////////////////////////////////////////////////////
                               STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
@@ -211,7 +232,7 @@ contract SizeMetaVault is BaseVault, Timelock {
     function addStrategies(IStrategy[] calldata strategies_)
         external
         notPaused
-        timelocked(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
+        timelockedUnless(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
         onlyAuth(STRATEGIST_ROLE)
     {
         if (_isTimelocked()) {
@@ -230,7 +251,7 @@ contract SizeMetaVault is BaseVault, Timelock {
     function removeStrategies(IStrategy[] calldata strategiesToRemove, IStrategy strategyToReceiveAssets)
         external
         notPaused
-        timelocked(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
+        timelockedUnless(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
         onlyAuth(STRATEGIST_ROLE)
     {
         if (_isTimelocked()) {

@@ -81,11 +81,16 @@ contract BaseTest is Test, Setup, BaseScript {
         _asset.approve(_spender, _amount);
     }
 
-    function _deposit(IERC4626 _vault, address _user, uint256 _amount) internal {
+    function _deposit(address _user, IERC4626 _vault, uint256 _amount) internal {
         _mint(IERC20Metadata(address(_vault.asset())), _user, _amount);
         _approve(_user, IERC20Metadata(address(_vault.asset())), address(_vault), _amount);
         vm.prank(_user);
         _vault.deposit(_amount, _user);
+    }
+
+    function _withdraw(address _user, IERC4626 _vault, uint256 _amount) internal {
+        vm.prank(_user);
+        _vault.withdraw(_amount, _user, _user);
     }
 
     function _setLiquidityIndex(IERC20Metadata _asset, uint256 _index) internal {

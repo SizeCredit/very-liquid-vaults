@@ -2,7 +2,8 @@
 pragma solidity 0.8.23;
 
 import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {AccessControlUpgradeable} from "@openzeppelin-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import {AccessControlEnumerableUpgradeable} from
+    "@openzeppelin-upgradeable/contracts/access/extensions/AccessControlEnumerableUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 
@@ -15,7 +16,7 @@ bytes32 constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Authority acccess control contract with global pause functionality for the Size Meta Vault system
-contract Auth is UUPSUpgradeable, AccessControlUpgradeable, PausableUpgradeable, MulticallUpgradeable {
+contract Auth is UUPSUpgradeable, AccessControlEnumerableUpgradeable, PausableUpgradeable, MulticallUpgradeable {
     error NullAddress();
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -31,6 +32,7 @@ contract Auth is UUPSUpgradeable, AccessControlUpgradeable, PausableUpgradeable,
         }
 
         __AccessControl_init();
+        __AccessControlEnumerable_init();
         __Pausable_init();
         __Multicall_init();
         __UUPSUpgradeable_init();
