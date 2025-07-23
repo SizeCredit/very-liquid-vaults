@@ -64,8 +64,6 @@ contract BaseTest is Test, Setup, BaseScript {
 
         vm.prank(admin);
         auth.grantRole(STRATEGIST_ROLE, strategist);
-        vm.prank(admin);
-        auth.grantRole(SIZE_VAULT_ROLE, address(sizeMetaVault));
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {

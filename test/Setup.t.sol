@@ -106,6 +106,8 @@ abstract contract Setup {
             poolMockScript,
             vaultMockScript
         );
+        vm.prank(admin);
+        auth.grantRole(SIZE_VAULT_ROLE, address(sizeMetaVault));
     }
 
     function _deployScripts()
