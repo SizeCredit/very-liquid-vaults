@@ -170,4 +170,18 @@ contract CashStrategyVaultTest is BaseTest {
         );
         sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
     }
+
+    function test_CashStrategyVault_maxWithdraw_maxRedeem() public {
+        _deposit(alice, cashStrategyVault, 100e6);
+        _deposit(bob, sizeMetaVault, 30e6);
+
+        uint256 totalSupply = cashStrategyVault.totalSupply();
+        uint256 totalAssets = cashStrategyVault.totalAssets();
+        uint256 deadAssets = cashStrategyVault.deadAssets();
+        assertEq(cashStrategyVault.maxWithdraw(address(sizeMetaVault)), totalAssets - deadAssets);
+        assertEq(
+            cashStrategyVault.maxRedeem(address(sizeMetaVault)),
+            totalSupply - cashStrategyVault.previewWithdraw(deadAssets)
+        );
+    }
 }

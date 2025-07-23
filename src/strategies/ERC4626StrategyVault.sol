@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseVault} from "@src/BaseVault.sol";
+import {BaseStrategy} from "@src/strategies/BaseStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -14,7 +15,7 @@ import {Auth, SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
 /// @author Size (https://size.credit/)
 /// @notice A strategy that invests assets in an external ERC4626-compliant vault
 /// @dev Wraps an external ERC4626 vault to provide strategy functionality for the Size Meta Vault
-contract ERC4626StrategyVault is BaseVault {
+contract ERC4626StrategyVault is BaseStrategy {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////
@@ -87,7 +88,7 @@ contract ERC4626StrategyVault is BaseVault {
     /// @dev Limited by both owner's balance and external vault's withdrawal capacity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return Math.saturatingSub(_convertToAssets(totalSupply(), Math.Rounding.Floor), deadAssets);
+            return _sizeMetaVaultMaxWithdraw();
         } else {
             return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), vault.maxWithdraw(address(this)));
         }
@@ -97,7 +98,7 @@ contract ERC4626StrategyVault is BaseVault {
     /// @dev Limited by both owner's balance and external vault's redemption capacity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return Math.saturatingSub(totalSupply(), _convertToShares(deadAssets, Math.Rounding.Ceil));
+            return _sizeMetaVaultMaxRedeem();
         } else {
             return Math.min(balanceOf(owner), _convertToShares(vault.maxWithdraw(address(this)), Math.Rounding.Floor));
         }

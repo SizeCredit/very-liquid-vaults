@@ -170,22 +170,6 @@ abstract contract BaseVault is
         _deposit(fundingAccount_, receiver, firstDepositAmount_, shares);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                              ERC20 OVERRIDES
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Returns the allowance of the spender for the owner
-    /// @dev Returns type(uint256).max if the spender has SIZE_VAULT_ROLE, since `rebalance` can be called to freely transfer assets between strategies
-    function allowance(address owner, address spender)
-        public
-        view
-        virtual
-        override(ERC20Upgradeable, IERC20)
-        returns (uint256)
-    {
-        return auth.hasRole(SIZE_VAULT_ROLE, spender) ? type(uint256).max : super.allowance(owner, spender);
-    }
-
     /// @notice Returns the number of decimals for the vault token
     function decimals()
         public

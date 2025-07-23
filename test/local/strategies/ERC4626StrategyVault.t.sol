@@ -2,6 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
@@ -380,5 +381,26 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         assertEq(erc4626StrategyVault.maxDeposit(address(alice)), totalAssetsCap - totalAssetsBefore);
         assertEq(erc4626StrategyVault.maxMint(address(alice)), totalAssetsCap - totalAssetsBefore);
+    }
+
+    function test_ERC4626StrategyVault_maxWithdraw_maxRedeem() public {
+        IBaseVault[] memory strategies = new IBaseVault[](3);
+        strategies[0] = erc4626StrategyVault;
+        strategies[1] = cashStrategyVault;
+        strategies[2] = aaveStrategyVault;
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        _deposit(alice, erc4626StrategyVault, 100e6);
+        _deposit(bob, sizeMetaVault, 30e6);
+
+        uint256 totalSupply = erc4626StrategyVault.totalSupply();
+        uint256 totalAssets = erc4626StrategyVault.totalAssets();
+        uint256 deadAssets = erc4626StrategyVault.deadAssets();
+        assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), totalAssets - deadAssets);
+        assertEq(
+            erc4626StrategyVault.maxRedeem(address(sizeMetaVault)),
+            totalSupply - erc4626StrategyVault.previewWithdraw(deadAssets)
+        );
     }
 }

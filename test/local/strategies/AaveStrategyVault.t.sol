@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
+import {IBaseVault} from "@src/IBaseVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {Auth} from "@src/utils/Auth.sol";
@@ -309,5 +310,26 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
 
         assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
         assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
+    }
+
+    function test_AaveStrategyVault_maxWithdraw_maxRedeem() public {
+        IBaseVault[] memory strategies = new IBaseVault[](3);
+        strategies[0] = aaveStrategyVault;
+        strategies[1] = cashStrategyVault;
+        strategies[2] = erc4626StrategyVault;
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        _deposit(alice, aaveStrategyVault, 100e6);
+        _deposit(bob, sizeMetaVault, 30e6);
+
+        uint256 totalSupply = aaveStrategyVault.totalSupply();
+        uint256 totalAssets = aaveStrategyVault.totalAssets();
+        uint256 deadAssets = aaveStrategyVault.deadAssets();
+        assertEq(aaveStrategyVault.maxWithdraw(address(sizeMetaVault)), totalAssets - deadAssets);
+        assertEq(
+            aaveStrategyVault.maxRedeem(address(sizeMetaVault)),
+            totalSupply - aaveStrategyVault.previewWithdraw(deadAssets)
+        );
     }
 }

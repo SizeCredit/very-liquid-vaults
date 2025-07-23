@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseVault} from "@src/BaseVault.sol";
+import {BaseStrategy} from "@src/strategies/BaseStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
@@ -14,7 +15,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 /// @author Size (https://size.credit/)
 /// @notice A strategy that only holds cash assets without investing in external protocols
 /// @dev Extends BaseVault for cash management within the Size Meta Vault system
-contract CashStrategyVault is BaseVault {
+contract CashStrategyVault is BaseStrategy {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////
@@ -34,7 +35,7 @@ contract CashStrategyVault is BaseVault {
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return Math.saturatingSub(_convertToAssets(totalSupply(), Math.Rounding.Floor), deadAssets);
+            return _sizeMetaVaultMaxWithdraw();
         } else {
             return super.maxWithdraw(owner);
         }
@@ -43,7 +44,7 @@ contract CashStrategyVault is BaseVault {
     /// @notice Returns the maximum number of shares that can be redeemed
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (auth.hasRole(SIZE_VAULT_ROLE, owner)) {
-            return Math.saturatingSub(totalSupply(), _convertToShares(deadAssets, Math.Rounding.Ceil));
+            return _sizeMetaVaultMaxRedeem();
         } else {
             return super.maxRedeem(owner);
         }
