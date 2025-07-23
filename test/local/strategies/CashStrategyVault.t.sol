@@ -178,4 +178,19 @@ contract CashStrategyVaultTest is BaseTest {
             cashStrategyVault.maxRedeem(address(sizeMetaVault)), cashStrategyVault.previewRedeem(assetsBefore + 30e6)
         );
     }
+
+    function test_CashStrategyVault_skim() public {
+        _deposit(alice, cashStrategyVault, 100e6);
+        uint256 aliceBalanceBefore = cashStrategyVault.balanceOf(alice);
+        uint256 balanceBefore = erc20Asset.balanceOf(address(cashStrategyVault));
+        uint256 yield = 10e6;
+
+        _mint(erc20Asset, alice, yield);
+        vm.prank(alice);
+        erc20Asset.transfer(address(cashStrategyVault), yield);
+
+        cashStrategyVault.skim();
+        assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), balanceBefore + yield);
+        assertGt(cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(alice)), aliceBalanceBefore);
+    }
 }

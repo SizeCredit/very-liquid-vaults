@@ -34,7 +34,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     event StrategyAdded(address indexed strategy);
     event StrategyRemoved(address indexed strategy);
-    event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 amount);
+    event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 assets);
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -284,7 +284,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
             revert TransferredAmountLessThanMin(transferredAmount, minAmount);
         }
 
-        emit Rebalance(address(strategyFrom), address(strategyTo), amount);
+        emit Rebalance(address(strategyFrom), address(strategyTo), assets);
     }
 
     /// @notice Skims the assets from the vault
