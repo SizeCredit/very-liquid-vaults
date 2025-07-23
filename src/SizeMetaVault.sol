@@ -210,9 +210,13 @@ contract SizeMetaVault is BaseVault, Timelock {
     /// @notice Adds new strategies to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
-    function addStrategies(IStrategy[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _timelocked(this.addStrategies.selector);
-        if (timelocked) {
+    function addStrategies(IStrategy[] calldata strategies_)
+        external
+        notPaused
+        timelocked(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
+        onlyAuth(STRATEGIST_ROLE)
+    {
+        if (_isTimelocked()) {
             return;
         }
 
@@ -227,10 +231,10 @@ contract SizeMetaVault is BaseVault, Timelock {
     function removeStrategies(IStrategy[] calldata strategiesToRemove, IStrategy strategyToReceiveAssets)
         external
         notPaused
+        timelocked(auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender))
         onlyAuth(STRATEGIST_ROLE)
     {
-        bool timelocked = !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _timelocked(this.removeStrategies.selector);
-        if (timelocked) {
+        if (_isTimelocked()) {
             return;
         }
 

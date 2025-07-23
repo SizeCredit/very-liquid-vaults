@@ -11,7 +11,7 @@ help:
 
 # Run coverage and generate HTML report
 coverage:
-	forge coverage --no-match-coverage "(test|script)" --report lcov && genhtml lcov.info -o report --branch-coverage --ignore-errors inconsistent,corrupt && open report/index.html
+	forge coverage --no-match-coverage "(test|script)" --report lcov && genhtml lcov.info -o report --branch-coverage --ignore-errors inconsistent,inconsistent && open report/index.html
 
 # Run medusa for all contracts in test/property/crytic
 medusa:

@@ -57,6 +57,8 @@ contract TimelockTest is BaseTest {
     function test_Timelock_timelocked_twice_same_data() public {
         vm.warp(123 days);
 
+        assertTrue(!sizeMetaVault.isTimelocked(sizeMetaVault.addStrategies.selector));
+
         uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
         assertEq(proposedTimestamp, 0);
 
@@ -68,6 +70,7 @@ contract TimelockTest is BaseTest {
 
         proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
         assertEq(proposedTimestamp, 123 days);
+        assertTrue(sizeMetaVault.isTimelocked(sizeMetaVault.addStrategies.selector));
 
         vm.warp(block.timestamp + 42 seconds);
 
@@ -92,6 +95,12 @@ contract TimelockTest is BaseTest {
 
         proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
         assertEq(proposedTimestamp, 0);
+        assertEq(sizeMetaVault.isTimelocked(sizeMetaVault.addStrategies.selector), false);
+
+        vm.prank(admin);
+        sizeMetaVault.removeStrategies(strategies, cashStrategyVault);
+
+        assertEq(sizeMetaVault.isTimelocked(sizeMetaVault.removeStrategies.selector), false);
     }
 
     function test_Timelock_timelocked_is_reset_after_execution() public {

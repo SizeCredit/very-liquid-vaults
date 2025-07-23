@@ -35,30 +35,51 @@ abstract contract Timelock {
     event TimelockExpired(bytes4 indexed sig);
 
     /*//////////////////////////////////////////////////////////////
+                              MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Modifier to update the timelocked state of a function
+    /// @dev The user must call the function again with the same calldata to execute the function, otherwise it resets the timelock
+    /// @param bypassTimelock If true, the timelock update is not performed
+    modifier timelocked(bool bypassTimelock) {
+        if (bypassTimelock) {
+            _;
+        } else {
+            bytes4 sig = msg.sig;
+            bytes memory data = msg.data;
+
+            uint256 timelockDuration = Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
+
+            if (proposedCalldataHashes[sig] != keccak256(data)) {
+                proposedTimestamps[sig] = block.timestamp;
+                proposedCalldataHashes[sig] = keccak256(data);
+                emit ActionTimelocked(sig, data, timelockDuration + proposedTimestamps[sig]);
+            } else if (block.timestamp >= timelockDuration + proposedTimestamps[sig]) {
+                delete proposedTimestamps[sig];
+                delete proposedCalldataHashes[sig];
+                emit TimelockExpired(sig);
+            }
+
+            _;
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Checks if the function is timelocked and returns true if it is
-    /// @dev The user must call the function again with the same calldata to execute the function, otherwise it resets the timelock
-    /// @dev Updates the timelocked state of the function
-    function _timelocked(bytes4 sig) internal returns (bool timelocked) {
-        bytes memory data = msg.data;
-
+    /// @notice Checks if the function is timelocked
+    /// @dev Returns true if the function is timelocked, false otherwise
+    function isTimelocked(bytes4 sig) public view returns (bool) {
         uint256 timelockDuration = Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
 
-        if (proposedCalldataHashes[sig] != keccak256(data)) {
-            proposedTimestamps[sig] = block.timestamp;
-            proposedCalldataHashes[sig] = keccak256(data);
-            emit ActionTimelocked(sig, data, timelockDuration + proposedTimestamps[sig]);
-            return true;
-        } else if (block.timestamp >= timelockDuration + proposedTimestamps[sig]) {
-            delete proposedTimestamps[sig];
-            delete proposedCalldataHashes[sig];
-            emit TimelockExpired(sig);
-            return false;
-        } else {
-            return true;
-        }
+        return block.timestamp < timelockDuration + proposedTimestamps[sig];
+    }
+
+    /// @notice Checks if the current function is timelocked
+    /// @dev Returns true if the current function is timelocked, false otherwise
+    function _isTimelocked() internal view returns (bool) {
+        return isTimelocked(msg.sig);
     }
 
     /// @notice Sets the timelock duration for a specific function
