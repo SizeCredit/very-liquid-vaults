@@ -10,9 +10,9 @@ import {IBaseVault} from "@src/IBaseVault.sol";
 
 contract TimelockTest is BaseTest {
     function test_Timelock_initialize() public view {
-        assertGt(sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector), 0);
-        assertGt(sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategies.selector), 0);
-        assertEq(sizeMetaVault.timelockDurations(sizeMetaVault.rebalance.selector), 0);
+        assertGt(sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration, 0);
+        assertGt(sizeMetaVault.getTimelockData(sizeMetaVault.removeStrategies.selector).duration, 0);
+        assertEq(sizeMetaVault.getTimelockData(sizeMetaVault.rebalance.selector).duration, 0);
     }
 
     function test_Timelock_setTimelockDuration_auth() public {
@@ -30,7 +30,8 @@ contract TimelockTest is BaseTest {
     function test_Timelock_timelocked_twice_different_data() public {
         vm.warp(15 minutes);
 
-        uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        uint256 proposedTimestamp =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 0);
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
@@ -39,7 +40,7 @@ contract TimelockTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 15 minutes);
 
         vm.warp(30 minutes);
@@ -50,7 +51,7 @@ contract TimelockTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies2);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 30 minutes);
     }
 
@@ -59,7 +60,8 @@ contract TimelockTest is BaseTest {
 
         assertTrue(!sizeMetaVault.isTimelocked(sizeMetaVault.addStrategies.selector));
 
-        uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        uint256 proposedTimestamp =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 0);
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
@@ -68,7 +70,7 @@ contract TimelockTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 123 days);
         assertTrue(sizeMetaVault.isTimelocked(sizeMetaVault.addStrategies.selector));
 
@@ -77,14 +79,15 @@ contract TimelockTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 123 days);
     }
 
     function test_Timelock_timelocked_is_bypassed_by_admin() public {
         vm.warp(123 days);
 
-        uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        uint256 proposedTimestamp =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 0);
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
@@ -93,7 +96,7 @@ contract TimelockTest is BaseTest {
         vm.prank(admin);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 0);
         assertEq(sizeMetaVault.isTimelocked(sizeMetaVault.addStrategies.selector), false);
 
@@ -106,7 +109,8 @@ contract TimelockTest is BaseTest {
     function test_Timelock_timelocked_is_reset_after_execution() public {
         vm.warp(123 days);
 
-        uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        uint256 proposedTimestamp =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 0);
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
@@ -115,17 +119,17 @@ contract TimelockTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 123 days);
 
-        uint256 timelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 timelockDuration = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
 
         vm.warp(timelockDuration + proposedTimestamp);
 
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 0);
 
         vm.warp(1000 days);
@@ -133,7 +137,7 @@ contract TimelockTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 1000 days);
     }
 
@@ -149,7 +153,17 @@ contract TimelockTest is BaseTest {
 
         vm.prank(admin);
         sizeMetaVault.setTimelockDuration(sizeMetaVault.addStrategies.selector, minimumDuration);
-        assertEq(sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector), minimumDuration);
+        assertEq(sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration, minimumDuration);
+    }
+
+    function test_Timelock_setTimelockDuration_not_editable() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Timelock.TimelockNotEditable.selector, sizeMetaVault.setPerformanceFeePercent.selector
+            )
+        );
+        vm.prank(admin);
+        sizeMetaVault.setTimelockDuration(sizeMetaVault.setPerformanceFeePercent.selector, 30 minutes);
     }
 
     function test_Timelock_multicall() public {
@@ -165,17 +179,18 @@ contract TimelockTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.multicall(data);
 
-        uint256 proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        uint256 proposedTimestamp =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 123 days);
 
-        uint256 timelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 timelockDuration = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
 
         vm.warp(timelockDuration + proposedTimestamp);
 
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        proposedTimestamp = sizeMetaVault.proposedTimestamps(sizeMetaVault.addStrategies.selector);
+        proposedTimestamp = sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).proposedTimestamp;
         assertEq(proposedTimestamp, 0);
     }
 }

@@ -15,22 +15,30 @@ abstract contract Timelock {
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    mapping(bytes4 sig => uint256 duration) public timelockDurations;
-    mapping(bytes4 sig => uint256 timestamp) public proposedTimestamps;
-    mapping(bytes4 sig => bytes32 calldataHash) public proposedCalldataHashes;
-    uint256[47] private __gap;
+    struct TimelockData {
+        uint256 duration;
+        uint256 proposedTimestamp;
+        bytes32 proposedCalldataHash;
+        bool isEditable;
+    }
+
+    mapping(bytes4 sig => TimelockData) public timelockData;
+    uint256[49] private __gap;
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
     //////////////////////////////////////////////////////////////*/
 
     error TimelockDurationTooShort(bytes4 sig, uint256 duration, uint256 minimumDuration);
+    error TimelockNotEditable(bytes4 sig);
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event TimelockDurationSet(bytes4 indexed sig, uint256 indexed durationBefore, uint256 indexed durationAfter);
+    event TimelockDurationSet(
+        bytes4 indexed sig, bool indexed isEditable, uint256 durationBefore, uint256 durationAfter
+    );
     event ActionTimelocked(bytes4 indexed sig, bytes indexed data, uint256 indexed unlockTimestamp);
     event TimelockExpired(bytes4 indexed sig);
 
@@ -41,7 +49,12 @@ abstract contract Timelock {
     /// @notice Checks if the function is timelocked
     /// @return True if the function is timelocked, false otherwise
     function isTimelocked(bytes4 sig) public view returns (bool) {
-        return block.timestamp < _getTimelockDuration(sig) + proposedTimestamps[sig];
+        return block.timestamp < _getTimelockDuration(sig) + timelockData[sig].proposedTimestamp;
+    }
+
+    /// @notice Gets the timelock data for a specific function
+    function getTimelockData(bytes4 sig) public view returns (TimelockData memory) {
+        return timelockData[sig];
     }
 
     /// @notice Updates the timelock state and checks if the current function is timelocked
@@ -50,13 +63,13 @@ abstract contract Timelock {
         bytes4 sig = msg.sig;
         bytes memory data = msg.data;
 
-        if (proposedCalldataHashes[sig] != keccak256(data)) {
-            proposedTimestamps[sig] = block.timestamp;
-            proposedCalldataHashes[sig] = keccak256(data);
-            emit ActionTimelocked(sig, data, _getTimelockDuration(sig) + proposedTimestamps[sig]);
-        } else if (block.timestamp >= _getTimelockDuration(sig) + proposedTimestamps[sig]) {
-            delete proposedTimestamps[sig];
-            delete proposedCalldataHashes[sig];
+        if (timelockData[sig].proposedCalldataHash != keccak256(data)) {
+            timelockData[sig].proposedTimestamp = block.timestamp;
+            timelockData[sig].proposedCalldataHash = keccak256(data);
+            emit ActionTimelocked(sig, data, _getTimelockDuration(sig) + timelockData[sig].proposedTimestamp);
+        } else if (block.timestamp >= _getTimelockDuration(sig) + timelockData[sig].proposedTimestamp) {
+            delete timelockData[sig].proposedTimestamp;
+            delete timelockData[sig].proposedCalldataHash;
             emit TimelockExpired(sig);
         }
 
@@ -65,18 +78,28 @@ abstract contract Timelock {
 
     /// @notice Sets the timelock duration for a specific function
     /// @dev Updating the timelock duration has immediate effect on the timelocked functions
-    function _setTimelockDuration(bytes4 sig, uint256 duration) internal {
+    function _setTimelockDuration(bytes4 sig, uint256 duration, bool isEditable) internal {
         if (duration < MINIMUM_TIMELOCK_DURATION) {
             revert TimelockDurationTooShort(sig, duration, MINIMUM_TIMELOCK_DURATION);
         }
+        if (timelockData[sig].duration > 0 && !timelockData[sig].isEditable) {
+            revert TimelockNotEditable(sig);
+        }
 
-        uint256 durationBefore = timelockDurations[sig];
-        timelockDurations[sig] = duration;
-        emit TimelockDurationSet(sig, durationBefore, duration);
+        uint256 durationBefore = timelockData[sig].duration;
+        timelockData[sig].duration = duration;
+        timelockData[sig].isEditable = isEditable;
+        emit TimelockDurationSet(sig, isEditable, durationBefore, duration);
+    }
+
+    /// @notice Sets the timelock duration for a specific function
+    /// @dev Updating the timelock duration has immediate effect on the timelocked functions
+    function _setTimelockDuration(bytes4 sig, uint256 duration) internal {
+        _setTimelockDuration(sig, duration, timelockData[sig].isEditable);
     }
 
     /// @notice Gets the timelock duration for a specific function
     function _getTimelockDuration(bytes4 sig) internal view returns (uint256) {
-        return Math.max(MINIMUM_TIMELOCK_DURATION, timelockDurations[sig]);
+        return Math.max(MINIMUM_TIMELOCK_DURATION, timelockData[sig].duration);
     }
 }

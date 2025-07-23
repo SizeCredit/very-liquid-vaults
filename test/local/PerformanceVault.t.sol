@@ -26,7 +26,7 @@ contract PerformanceVaultTest is BaseTest {
         sizeMetaVault.setPerformanceFeePercent(0.7e19);
 
         uint256 setPerformanceFeePercentTimelockDuration =
-            sizeMetaVault.timelockDurations(sizeMetaVault.setPerformanceFeePercent.selector);
+            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
         vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
 
         uint256 maxPerformanceFeePercent = sizeMetaVault.MAXIMUM_PERFORMANCE_FEE_PERCENT();
@@ -71,7 +71,7 @@ contract PerformanceVaultTest is BaseTest {
         sizeMetaVault.setPerformanceFeePercent(0.2e18);
 
         uint256 setPerformanceFeePercentTimelockDuration =
-            sizeMetaVault.timelockDurations(sizeMetaVault.setPerformanceFeePercent.selector);
+            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
         vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
 
         vm.prank(admin);

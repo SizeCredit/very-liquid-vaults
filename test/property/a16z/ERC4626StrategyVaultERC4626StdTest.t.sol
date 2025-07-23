@@ -175,4 +175,29 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
             vault_convertToAssets(IERC4626(_vault_).balanceOf(caller)) + IERC20(_underlying_).balanceOf(caller);
         assertApproxLeAbs(assetsAfter, assetsBefore, _delta_);
     }
+
+    function test_ERC4626StrategyVaultERC4626Std_test_maxMint_01() public {
+        Init memory init = Init({
+            user: [
+                0x72cbcc0eCF008bd151050f8E8c91810f66526E52,
+                0x872d1165C78Ac0404FE3A285569de46689146476,
+                0x1f9072705e30109f308ba631B1e8f70b1B0CcDD7,
+                0x6da0BeB596b6a57f6870cDFA950D595790B43b1e
+            ],
+            share: [
+                uint256(896314097417655031046185652627229580028727320350350855862752385),
+                uint256(118695560193917510522791774949605613513539074567),
+                uint256(83016169650913169875730119951785497189622),
+                uint256(20757945133893542125523546241623580816704730381761407)
+            ],
+            asset: [
+                uint256(1047670355713124868562994516364),
+                uint256(241758116489151121949361130),
+                uint256(958618297277),
+                uint256(54297745647038787966504255723555531564748753303182781069211629934)
+            ],
+            yield: int256(-14)
+        });
+        test_maxMint(init);
+    }
 }

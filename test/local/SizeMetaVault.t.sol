@@ -16,6 +16,7 @@ import {BaseVault} from "@src/BaseVault.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
 import {console} from "forge-std/console.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     bool public expectRevert = false;
@@ -117,7 +118,8 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_addStrategies_validation() public {
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = IBaseVault(address(0));
@@ -134,7 +136,7 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_removeStrategies_validation() public {
         uint256 removeStrategiesTimelockDuration =
-            sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategies.selector);
+            sizeMetaVault.getTimelockData(sizeMetaVault.removeStrategies.selector).duration;
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = IBaseVault(address(0));
@@ -242,7 +244,7 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.removeStrategies(strategiesToRemove, erc4626StrategyVault);
 
         uint256 removeStrategiesTimelockDuration =
-            sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategies.selector);
+            sizeMetaVault.getTimelockData(sizeMetaVault.removeStrategies.selector).duration;
         vm.warp(block.timestamp + removeStrategiesTimelockDuration);
 
         vm.prank(strategist);
@@ -269,7 +271,7 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.removeStrategies(strategiesToRemove, aaveStrategyVault);
 
         uint256 removeStrategiesTimelockDuration =
-            sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategies.selector);
+            sizeMetaVault.getTimelockData(sizeMetaVault.removeStrategies.selector).duration;
         vm.warp(block.timestamp + removeStrategiesTimelockDuration);
 
         vm.prank(strategist);
@@ -306,9 +308,9 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.reorderStrategies(strategies);
 
-        assertEq(address(sizeMetaVault.getStrategy(0)), address(strategies[0]));
-        assertEq(address(sizeMetaVault.getStrategy(1)), address(strategies[1]));
-        assertEq(address(sizeMetaVault.getStrategy(2)), address(strategies[2]));
+        assertEq(address(sizeMetaVault.strategies(0)), address(strategies[0]));
+        assertEq(address(sizeMetaVault.strategies(1)), address(strategies[1]));
+        assertEq(address(sizeMetaVault.strategies(2)), address(strategies[2]));
 
         assertTrue(sizeMetaVault.isStrategy(strategies[0]));
         assertTrue(sizeMetaVault.isStrategy(strategies[1]));
@@ -326,7 +328,8 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
         vm.warp(block.timestamp + addStrategiesTimelockDuration);
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
@@ -334,7 +337,7 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         uint256 indexLastStrategy = lengthAfter - 1;
 
-        address lastStrategyAdded = address(sizeMetaVault.getStrategy(indexLastStrategy));
+        address lastStrategyAdded = address(sizeMetaVault.strategies(indexLastStrategy));
 
         vm.assertEq(lengthAfter, lengthBefore + 1);
         vm.assertEq(oneStrategy, lastStrategyAdded);
@@ -348,7 +351,8 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
         vm.warp(block.timestamp + addStrategiesTimelockDuration);
         vm.prank(strategist);
         vm.expectRevert(
@@ -358,7 +362,8 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_addStrategies_invalid_asset_must_revert() public {
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
 
         IBaseVault[] memory strategies = new IBaseVault[](1);
         strategies[0] = cashStrategyVaultWETH;
@@ -382,7 +387,8 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
         vm.warp(block.timestamp + addStrategiesTimelockDuration);
 
         vm.mockCall(
@@ -407,7 +413,8 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
         vm.warp(block.timestamp + addStrategiesTimelockDuration);
 
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
@@ -444,7 +451,8 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
         vm.warp(block.timestamp + addStrategiesTimelockDuration);
 
         vm.prank(strategist);
@@ -459,7 +467,7 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.removeStrategies(strategiesToRemove, cryticCashStrategyVault);
 
         uint256 removeStrategiesTimelockDuration =
-            sizeMetaVault.timelockDurations(sizeMetaVault.removeStrategies.selector);
+            sizeMetaVault.getTimelockData(sizeMetaVault.removeStrategies.selector).duration;
         vm.warp(block.timestamp + removeStrategiesTimelockDuration);
 
         sizeMetaVault.removeStrategies(strategiesToRemove, cryticCashStrategyVault);
@@ -583,7 +591,8 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.addStrategies(newStrategies);
 
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
         vm.warp(block.timestamp + addStrategiesTimelockDuration);
         vm.prank(strategist);
         sizeMetaVault.addStrategies(newStrategies);
@@ -683,22 +692,28 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
     }
 
-    function test_SizeMetaVault_setMaxStrategies() public {
-        vm.prank(admin);
-        sizeMetaVault.setMaxStrategies(3);
-        assertEq(sizeMetaVault.maxStrategies(), 3);
-
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = cryticCashStrategyVault;
+    function test_SizeMetaVault_addStrategies_max_strategies_exceeded() public {
+        ERC4626StrategyVaultScript deployer = new ERC4626StrategyVaultScript();
+        IBaseVault[] memory strategies = new IBaseVault[](10);
+        for (uint256 i = 0; i < strategies.length; i++) {
+            ERC4626Mock vault = new ERC4626Mock(address(erc20Asset));
+            _mint(erc20Asset, address(deployer), FIRST_DEPOSIT_AMOUNT);
+            strategies[i] = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault);
+        }
 
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);
 
-        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        uint256 addStrategiesTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.addStrategies.selector).duration;
         vm.warp(block.timestamp + addStrategiesTimelockDuration);
 
+        uint256 maxStrategies = sizeMetaVault.MAX_STRATEGIES();
+
         vm.prank(strategist);
-        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.MaxStrategiesExceeded.selector, 4, 3));
+        vm.expectRevert(
+            abi.encodeWithSelector(SizeMetaVault.MaxStrategiesExceeded.selector, maxStrategies + 1, maxStrategies)
+        );
         sizeMetaVault.addStrategies(strategies);
     }
 

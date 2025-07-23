@@ -20,20 +20,18 @@ import {Timelock} from "@src/utils/Timelock.sol";
 contract SizeMetaVault is PerformanceVault, Timelock {
     using SafeERC20 for IERC20;
 
-    uint256 public constant DEFAULT_MAX_STRATEGIES = 10;
+    uint256 public constant MAX_STRATEGIES = 10;
 
     /*//////////////////////////////////////////////////////////////
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    uint256 public maxStrategies;
     IBaseVault[] public strategies;
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
     //////////////////////////////////////////////////////////////*/
 
-    event MaxStrategiesSet(uint256 indexed maxStrategiesBefore, uint256 indexed maxStrategiesAfter);
     event StrategyAdded(address indexed strategy);
     event StrategyRemoved(address indexed strategy);
     event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 amount);
@@ -42,7 +40,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
                               ERRORS
     //////////////////////////////////////////////////////////////*/
 
-    error InvalidFunction(bytes4 sig);
     error InvalidStrategy(address strategy);
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
@@ -72,14 +69,13 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         IBaseVault[] memory strategies_
     ) public virtual initializer {
         __PerformanceVault_init(auth_.getRoleMember(DEFAULT_ADMIN_ROLE, 0), 0);
-        _setMaxStrategies(DEFAULT_MAX_STRATEGIES);
 
         for (uint256 i = 0; i < strategies_.length; i++) {
             _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
-        _setTimelockDuration(this.addStrategies.selector, 1 days);
-        _setTimelockDuration(this.removeStrategies.selector, 1 hours);
-        _setTimelockDuration(this.setPerformanceFeePercent.selector, 3 days);
+        _setTimelockDuration(this.addStrategies.selector, 1 days, true);
+        _setTimelockDuration(this.removeStrategies.selector, 1 hours, true);
+        _setTimelockDuration(this.setPerformanceFeePercent.selector, 3 days, false);
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -98,7 +94,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 maxDepositAmount = maxDeposit(receiver);
         uint256 maxMintAmount =
-            Math.ternary(maxDepositAmount == type(uint256).max, type(uint256).max, convertToShares(maxDepositAmount));
+            maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
         return Math.min(maxMintAmount, super.maxMint(receiver));
     }
 
@@ -151,19 +147,10 @@ contract SizeMetaVault is PerformanceVault, Timelock {
                               ADMIN FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Sets the maximum number of strategies
-    /// @dev Updating the max strategies does not change the existing strategies
-    function setMaxStrategies(uint256 maxStrategies_) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
-        _setMaxStrategies(maxStrategies_);
-    }
-
     /// @notice Sets the timelock duration for a specific function
     /// @dev Only callable by addresses with DEFAULT_ADMIN_ROLE
     ///      The admin cannot update the timelock duration for setPerformanceFeePercent, except through a contract upgrade
     function setTimelockDuration(bytes4 sig, uint256 duration) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
-        if (sig == this.setPerformanceFeePercent.selector) {
-            revert InvalidFunction(sig);
-        }
         _setTimelockDuration(sig, duration);
     }
 
@@ -318,8 +305,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         }
         strategies.push(strategy_);
         emit StrategyAdded(address(strategy_));
-        if (strategies.length > maxStrategies) {
-            revert MaxStrategiesExceeded(strategies.length, maxStrategies);
+        if (strategies.length > MAX_STRATEGIES) {
+            revert MaxStrategiesExceeded(strategies.length, MAX_STRATEGIES);
         }
     }
 
@@ -363,13 +350,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
             uint256 strategyMaxWithdraw = strategies[i].maxWithdraw(address(this));
             max = Math.saturatingAdd(max, strategyMaxWithdraw);
         }
-    }
-
-    /// @notice Internal function to set the maximum number of strategies
-    function _setMaxStrategies(uint256 maxStrategies_) private {
-        uint256 oldMaxStrategies = maxStrategies;
-        maxStrategies = maxStrategies_;
-        emit MaxStrategiesSet(oldMaxStrategies, maxStrategies);
     }
 
     /// @notice Internal function to deposit assets to strategies
@@ -445,11 +425,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         for (uint256 i = 0; i < length; i++) {
             strategies_[i] = strategies[i];
         }
-    }
-
-    /// @notice Returns the strategy at a specific index
-    function getStrategy(uint256 index) public view returns (IBaseVault) {
-        return strategies[index];
     }
 
     /// @notice Returns true if the strategy is in the vault
