@@ -42,6 +42,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
                               ERRORS
     //////////////////////////////////////////////////////////////*/
 
+    error InvalidFunction(bytes4 sig);
     error InvalidStrategy(address strategy);
     error CannotDepositToStrategies(uint256 assets, uint256 shares, uint256 remainingAssets);
     error CannotWithdrawFromStrategies(uint256 assets, uint256 shares, uint256 missingAssets);
@@ -78,7 +79,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         }
         _setTimelockDuration(this.addStrategies.selector, 1 days);
         _setTimelockDuration(this.removeStrategies.selector, 1 hours);
-        _setTimelockDuration(this.setPerformanceFeePercent.selector, 1 days);
+        _setTimelockDuration(this.setPerformanceFeePercent.selector, 3 days);
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -168,7 +169,11 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Sets the timelock duration for a specific function
     /// @dev Only callable by addresses with DEFAULT_ADMIN_ROLE
+    ///      The admin cannot update the timelock duration for setPerformanceFeePercent, except through a contract upgrade
     function setTimelockDuration(bytes4 sig, uint256 duration) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
+        if (sig == this.setPerformanceFeePercent.selector) {
+            revert InvalidFunction(sig);
+        }
         _setTimelockDuration(sig, duration);
     }
 
@@ -219,7 +224,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Adds new strategies to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
+    ///      If the caller has DEFAULT_ADMIN_ROLE, the timelock state is not updated
     function addStrategies(IStrategy[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
         if (!auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _updateTimelockStateAndCheckIfTimelocked()) {
             return;
@@ -232,7 +237,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Removes strategies from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    ///      If the function is timelocked, it can only be called by addresses with DEFAULT_ADMIN_ROLE
+    ///      If the caller has DEFAULT_ADMIN_ROLE, the timelock state is not updated
     // slither-disable-next-line calls-loop
     function removeStrategies(IStrategy[] calldata strategiesToRemove, IStrategy strategyToReceiveAssets)
         external
@@ -415,9 +420,11 @@ contract SizeMetaVault is PerformanceVault, Timelock {
                 break;
             }
 
+            uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
             // slither-disable-next-line unused-return
             try strategy.withdraw(withdrawAmount, address(this), address(this)) {
-                assetsToWithdraw -= withdrawAmount;
+                uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
+                assetsToWithdraw -= (balanceAfter - balanceBefore);
             } catch {}
         }
         if (assetsToWithdraw > 0) {

@@ -136,8 +136,11 @@ contract ERC4626StrategyVault is BaseVault, IStrategy {
         internal
         override
     {
+        uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
         // slither-disable-next-line unused-return
         vault.withdraw(assets, address(this), address(this));
+        uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
+        assets = balanceAfter - balanceBefore;
         super._withdraw(caller, receiver, owner, assets, shares);
     }
 }

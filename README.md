@@ -1,10 +1,10 @@
 # size-meta-vault [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-meta-vault/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-meta-vault?branch=main) [![CI](https://github.com/SizeCredit/size-meta-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-meta-vault/actions/workflows/ci.yml)
 
-A modular, upgradeable vault system built on ERC4626 that enables flexible asset management through multiple investment strategies.
+A modular, upgradeable ERC4626 vault system that enables flexible asset management through multiple investment strategies.
 
 ## Overview
 
-Size Meta Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management. The design is heavily influenced by [yearn's yVaults v3](https://docs.yearn.fi/developers/v3/overview).
+Size Meta Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management. The design is influenced by [yearn's yVaults v3](https://docs.yearn.fi/developers/v3/overview).
 
 ## Security
 
@@ -12,6 +12,7 @@ This project implements ERC4626 property tests from [A16Z](https://github.com/a1
 
 - OpenZeppelin's implementation with decimals offset ([A Novel Defense Against ERC4626 Inflation Attacks](https://blog.openzeppelin.com/a-novel-defense-against-erc4626-inflation-attacks))
 - First deposit during deployment with dead shares, pioneered by the [Morpho Optimizer](https://github.com/morpho-org/morpho-optimizers-vaults/blob/a74846774afe4f74a75a0470c2984c7d8ea41f35/scripts/aave-v2/eth-mainnet/Deploy.s.sol#L85-L120)
+- Timelock for sensitive operations
 
 ## Audits
 
@@ -41,6 +42,7 @@ Target integrations:
 * **Flexible Strategy Integration**: Easily add or remove ERC4626-compatible strategies
 * **Pause Functionality**: Emergency stop mechanisms for enhanced security
 * **Total Asset Caps**: Maximum asset limits for each strategy and meta vault
+* **Performance Fees**: Performance fee is minted as shares if the overall vault tokens have an appreciated price beyond the previous high water mark
 
 ## Specifications
 
@@ -51,81 +53,33 @@ Target integrations:
   * Aave (yield-bearing lowest risk venue)
   * Morpho/Euler (yield-bearing righer risk/return venues)
 * Liquidity is fungible: all users share average yield
-* Default deposit destination is Cash for instant liquidity
-* Governance-defined deposit/withdrawal priority
+* Default deposit destination is Cash for instant liquidity (as defined by the strategist)
+* Strategist-defined deposit/withdrawal priority
 
 ### Rebalancing
 
 * Allocation is manually managed by a Strategist
 * Percentage allocations are defined off-chain, e.g., 5% Cash, 50% Aave, 45% Euler
-* Strategist uses e.g. `transferAssets` functions to move liquidity between strategies
-
-### Extensibility
-
-* Strategies are ERC4626-compliant vaults or adapters
-* Supports future integrations (e.g., staking, async ERC-7540 venues)
-* Upgradeable via UUPS proxy pattern
-* Role-based access control for safety and flexibility
+* Strategist uses e.g. `rebalance` to move liquidity between strategies
 
 ## Architecture
 
 ### Core Components
 
 * **`SizeMetaVault`**: Main vault contract that manages user deposits and strategy allocation
-* **`BaseVault`**: Base implementation providing core ERC4626 functionality
-* **`BaseStrategyVault`**: Abstract base contract for all investment strategies
-* **`Auth`**: Role-based access control system
+* **`Auth`**: Centralized role-based access control system
 
 ### Available Strategies
 
 1. **`CashStrategyVault`**: Simple cash-holding strategy (no yield generation)
 2. **`AaveStrategyVault`**: Aave lending protocol integration for yield generation
-3. **`ERC4626StrategyVault`**: Generic wrapper for other ERC4626-compliant vaults (e.g., Morpho). Only ERC-4626 vaults passing the [integration checklist](https://github.com/aviggiano/security/blob/v0.1.0/audit-checklists/ERC-4626-integration.md) will be considered.
-
-## Usage
-
-### Strategy Management
-
-```solidity
-// Add a new strategy (requires STRATEGIST_ROLE)
-vault.addStrategy(strategyAddress);
-
-// Remove a strategy
-vault.removeStrategy(strategyAddress);
-
-// Rebalance between strategies
-vault.rebalance(fromStrategy, toStrategy, amount);
-
-// Set strategies list at once
-address[] memory strategies = [strategy1, strategy2];
-vault.setStrategies(strategies);
-```
-
-### User Operations
-
-```solidity
-// Deposit assets (default to Cash strategy)
-vault.deposit(amount, receiver);
-
-// Withdraw assets (follows withdrawal priority list)
-vault.withdraw(amount, receiver, owner);
-
-// Check user balance
-uint256 shares = vault.balanceOf(user);
-uint256 assets = vault.convertToAssets(shares);
-```
+3. **`ERC4626StrategyVault`**: Generic wrapper for other ERC4626 vaults (e.g., Morpho). Only ERC-4626 vaults passing the [integration checklist](https://github.com/aviggiano/security/blob/v0.1.0/audit-checklists/ERC-4626-integration.md) will be considered. If a vault has fees-on-withdrawal in assets, making it not strictly ERC-4626 compliant, the `ERC4626StrategyVault` will also not be strictly ERC-4626 compliant.
 
 ## Roles and Permissions
 
-* **`DEFAULT_ADMIN_ROLE`**: Admin (multisig)
-* **`STRATEGIST_ROLE`**: Rebalance across strategies, configure strategies (timelocked)
+* **`DEFAULT_ADMIN_ROLE`**: Admin (governance multisig)
+* **`STRATEGIST_ROLE`**: Rebalance across strategies, configure strategies through a timelock
 * **`PAUSER_ROLE`**: Emergency pause functionality: per vault or whole protocol
-
-## Future Considerations
-
-* **Performance Fees**: Optional fee mechanism
-* **Async Withdrawals**: Not supported at launch; can be added later via ERC-7540
-* **Venue Flexibility**: Architecture supports delayed withdrawal venues in future
 
 ### Deployment
 
