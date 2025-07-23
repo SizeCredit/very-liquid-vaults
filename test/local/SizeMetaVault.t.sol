@@ -445,7 +445,7 @@ contract SizeMetaVaultTest is BaseTest {
 
         uint256 length = sizeMetaVault.strategiesCount();
         IBaseVault[] memory currentStrategies = new IBaseVault[](length);
-        currentStrategies = sizeMetaVault.getStrategies();
+        currentStrategies = _getStrategies(sizeMetaVault);
 
         for (uint256 i = 0; i < currentStrategies.length; i++) {
             uint256 strategyAssets = currentStrategies[i].totalAssets();
@@ -596,7 +596,7 @@ contract SizeMetaVaultTest is BaseTest {
         }
         vm.label(address(newERC4626StrategyVault), "NewERC4626StrategyVault");
 
-        IBaseVault[] memory oldStrategies = sizeMetaVault.getStrategies();
+        IBaseVault[] memory oldStrategies = _getStrategies(sizeMetaVault);
         IBaseVault[] memory newStrategies = new IBaseVault[](1);
         newStrategies[0] = newERC4626StrategyVault;
 

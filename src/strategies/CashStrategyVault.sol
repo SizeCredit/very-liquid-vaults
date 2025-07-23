@@ -2,19 +2,17 @@
 pragma solidity 0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {BaseVault} from "@src/BaseVault.sol";
 import {BaseStrategy} from "@src/strategies/BaseStrategy.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 /// @title CashStrategyVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A strategy that only holds cash assets without investing in external protocols
-/// @dev Extends BaseVault for cash management within the Size Meta Vault system
+/// @dev Extends BaseStrategy for cash management within the Size Meta Vault system
 contract CashStrategyVault is BaseStrategy {
     using SafeERC20 for IERC20;
 

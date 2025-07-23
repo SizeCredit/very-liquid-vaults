@@ -190,7 +190,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
             }
         }
 
-        IBaseVault[] memory oldStrategiesOrder = getStrategies();
+        IBaseVault[] memory oldStrategiesOrder = strategies;
         for (uint256 i = 0; i < oldStrategiesOrder.length; i++) {
             _removeStrategy(oldStrategiesOrder[i]);
         }
@@ -281,7 +281,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     }
 
     /// @notice Skims the assets from a strategy
-    /// @dev Only callable by addresses with STRATEGIST_ROLE
     function skim() external nonReentrant notPaused {
         uint256 assets = IERC20(asset()).balanceOf(address(this));
         _depositToStrategies(assets, convertToShares(assets));
@@ -417,15 +416,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Returns the number of strategies in the vault
     function strategiesCount() public view returns (uint256) {
         return strategies.length;
-    }
-
-    /// @notice Returns all strategy addresses
-    function getStrategies() public view returns (IBaseVault[] memory strategies_) {
-        uint256 length = strategies.length;
-        strategies_ = new IBaseVault[](length);
-        for (uint256 i = 0; i < length; i++) {
-            strategies_[i] = strategies[i];
-        }
     }
 
     /// @notice Returns true if the strategy is in the vault
