@@ -26,7 +26,9 @@ abstract contract BaseStrategy is BaseVault {
         override(ERC20Upgradeable, IERC20)
         returns (uint256)
     {
-        return auth.hasRole(SIZE_VAULT_ROLE, spender) ? type(uint256).max : super.allowance(owner, spender);
+        return auth.hasRole(SIZE_VAULT_ROLE, spender) && owner == address(this)
+            ? type(uint256).max
+            : super.allowance(owner, spender);
     }
 
     /*//////////////////////////////////////////////////////////////
