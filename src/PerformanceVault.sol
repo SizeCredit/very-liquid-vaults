@@ -26,7 +26,7 @@ abstract contract PerformanceVault is BaseVault {
     uint256 public highWaterMark;
     uint256 public performanceFeePercent;
     address public feeRecipient;
-    uint256[48] private __gap;
+    uint256[47] private __gap;
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
