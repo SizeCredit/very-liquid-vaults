@@ -291,21 +291,21 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_reorderStrategies() public {
-        IStrategy firstStrategy = aaveStrategyVault;
-        IStrategy secondStrategy = erc4626StrategyVault;
-        IStrategy thirdStrategy = cashStrategyVault;
-
         IStrategy[] memory strategies = new IStrategy[](3);
-        strategies[0] = firstStrategy;
-        strategies[1] = secondStrategy;
-        strategies[2] = thirdStrategy;
+        strategies[0] = aaveStrategyVault;
+        strategies[1] = erc4626StrategyVault;
+        strategies[2] = cashStrategyVault;
 
         vm.prank(strategist);
         sizeMetaVault.reorderStrategies(strategies);
 
-        assertEq(sizeMetaVault.getStrategy(0), address(firstStrategy));
-        assertEq(sizeMetaVault.getStrategy(1), address(secondStrategy));
-        assertEq(sizeMetaVault.getStrategy(2), address(thirdStrategy));
+        assertEq(address(sizeMetaVault.getStrategy(0)), address(strategies[0]));
+        assertEq(address(sizeMetaVault.getStrategy(1)), address(strategies[1]));
+        assertEq(address(sizeMetaVault.getStrategy(2)), address(strategies[2]));
+
+        assertTrue(sizeMetaVault.isStrategy(strategies[0]));
+        assertTrue(sizeMetaVault.isStrategy(strategies[1]));
+        assertTrue(sizeMetaVault.isStrategy(strategies[2]));
     }
 
     function test_SizeMetaVault_addStrategies() public {
@@ -327,10 +327,27 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         uint256 indexLastStrategy = lengthAfter - 1;
 
-        address lastStrategyAdded = sizeMetaVault.getStrategy(indexLastStrategy);
+        address lastStrategyAdded = address(sizeMetaVault.getStrategy(indexLastStrategy));
 
         vm.assertEq(lengthAfter, lengthBefore + 1);
         vm.assertEq(oneStrategy, lastStrategyAdded);
+    }
+
+    function test_SizeMetaVault_addStrategies_duplicates_must_revert() public {
+        IStrategy[] memory strategies = new IStrategy[](2);
+        strategies[0] = cryticCashStrategyVault;
+        strategies[1] = cryticCashStrategyVault;
+
+        vm.prank(strategist);
+        sizeMetaVault.addStrategies(strategies);
+
+        uint256 addStrategiesTimelockDuration = sizeMetaVault.timelockDurations(sizeMetaVault.addStrategies.selector);
+        vm.warp(block.timestamp + addStrategiesTimelockDuration);
+        vm.prank(strategist);
+        vm.expectRevert(
+            abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
+        );
+        sizeMetaVault.addStrategies(strategies);
     }
 
     function test_SizeMetaVault_addStrategies_invalid_asset_must_revert() public {
@@ -411,7 +428,7 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_removeStrategies() public {
         uint256 length = sizeMetaVault.strategiesCount();
-        address[] memory currentStrategies = new address[](length);
+        IStrategy[] memory currentStrategies = new IStrategy[](length);
         currentStrategies = sizeMetaVault.getStrategies();
 
         IStrategy[] memory strategies = new IStrategy[](1);
@@ -535,7 +552,7 @@ contract SizeMetaVaultTest is BaseTest {
             vault_decDeposit = new VaultMockDecMaxDeposit(bob, erc20Asset, "VAULTMOCKCUSTOMIZED", "VMC");
             newERC4626StrategyVault = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault_decDeposit);
         }
-        address[] memory oldStrategies = sizeMetaVault.getStrategies();
+        IStrategy[] memory oldStrategies = sizeMetaVault.getStrategies();
         IStrategy[] memory newStrategies = new IStrategy[](1);
         newStrategies[0] = newERC4626StrategyVault;
 

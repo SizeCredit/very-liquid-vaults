@@ -88,7 +88,7 @@ contract TimelockTest is BaseTest {
         assertEq(proposedTimestamp, 0);
 
         IStrategy[] memory strategies = new IStrategy[](1);
-        strategies[0] = aaveStrategyVault;
+        strategies[0] = cryticAaveStrategyVault;
 
         vm.prank(admin);
         sizeMetaVault.addStrategies(strategies);
@@ -110,7 +110,7 @@ contract TimelockTest is BaseTest {
         assertEq(proposedTimestamp, 0);
 
         IStrategy[] memory strategies = new IStrategy[](1);
-        strategies[0] = aaveStrategyVault;
+        strategies[0] = cryticAaveStrategyVault;
 
         vm.prank(strategist);
         sizeMetaVault.addStrategies(strategies);

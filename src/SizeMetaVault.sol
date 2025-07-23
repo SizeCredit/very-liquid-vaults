@@ -4,7 +4,6 @@ pragma solidity 0.8.23;
 import {BaseVault} from "@src/BaseVault.sol";
 import {PerformanceVault} from "@src/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE} from "@src/utils/Auth.sol";
 import {IStrategy} from "@src/strategies/IStrategy.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -20,7 +19,6 @@ import {Timelock} from "@src/utils/Timelock.sol";
 /// @dev Extends PerformanceVault to manage multiple strategy vaults for asset allocation. By default, the performance fee is 0.
 contract SizeMetaVault is PerformanceVault, Timelock {
     using SafeERC20 for IERC20;
-    using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 public constant DEFAULT_MAX_STRATEGIES = 10;
 
@@ -29,7 +27,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     //////////////////////////////////////////////////////////////*/
 
     uint256 public maxStrategies;
-    EnumerableSet.AddressSet internal strategies;
+    IStrategy[] public strategies;
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -92,10 +90,9 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Returns the maximum amount that can be deposited
     // slither-disable-next-line calls-loop
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
-        uint256 length = strategies.length();
         uint256 max = 0;
-        for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = IStrategy(strategies.at(i));
+        for (uint256 i = 0; i < strategies.length; i++) {
+            IStrategy strategy = strategies[i];
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             max = Math.saturatingAdd(max, strategyMaxDeposit);
         }
@@ -125,16 +122,12 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Returns the total assets managed by the vault
     /// @dev Sums the total assets across all strategies
-    /// @return The total assets under management
+    /// @return total The total assets under management
     // slither-disable-next-line calls-loop
-    function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        uint256 length = strategies.length();
-        uint256 total = 0;
-        for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = IStrategy(strategies.at(i));
-            total += strategy.totalAssets();
+    function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
+        for (uint256 i = 0; i < strategies.length; i++) {
+            total += strategies[i].totalAssets();
         }
-        return total;
     }
 
     /// @notice Deposits assets to strategies in order
@@ -200,14 +193,15 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Reorders the strategies
-    /// @dev Verifies that the new strategies order is valid and that there are no duplicates, then clear current strategies and add them in the new order
+    /// @dev Verifies that the new strategies order is valid and that there are no duplicates
+    /// @dev Clears current strategies and adds them in the new order
     function reorderStrategies(IStrategy[] calldata newStrategiesOrder) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        if (strategies.length() != newStrategiesOrder.length) {
-            revert ArrayLengthMismatch(strategies.length(), newStrategiesOrder.length);
+        if (strategies.length != newStrategiesOrder.length) {
+            revert ArrayLengthMismatch(strategies.length, newStrategiesOrder.length);
         }
 
         for (uint256 i = 0; i < newStrategiesOrder.length; i++) {
-            if (!strategies.contains(address(newStrategiesOrder[i]))) {
+            if (!isStrategy(newStrategiesOrder[i])) {
                 revert InvalidStrategy(address(newStrategiesOrder[i]));
             }
             for (uint256 j = i + 1; j < newStrategiesOrder.length; j++) {
@@ -217,9 +211,9 @@ contract SizeMetaVault is PerformanceVault, Timelock {
             }
         }
 
-        address[] memory currentStrategies = strategies.values();
-        for (uint256 i = 0; i < currentStrategies.length; i++) {
-            _removeStrategy(IStrategy(currentStrategies[i]));
+        IStrategy[] memory oldStrategiesOrder = getStrategies();
+        for (uint256 i = 0; i < oldStrategiesOrder.length; i++) {
+            _removeStrategy(oldStrategiesOrder[i]);
         }
         for (uint256 i = 0; i < newStrategiesOrder.length; i++) {
             _addStrategy(newStrategiesOrder[i], asset(), address(auth));
@@ -258,7 +252,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
             return;
         }
 
-        if (!strategies.contains(address(strategyToReceiveAssets))) {
+        if (!isStrategy(strategyToReceiveAssets)) {
             revert InvalidStrategy(address(strategyToReceiveAssets));
         }
         for (uint256 i = 0; i < strategiesToRemove.length; i++) {
@@ -287,7 +281,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
-        if (!strategies.contains(address(strategyTo))) {
+        if (!isStrategy(strategyTo)) {
             revert InvalidStrategy(address(strategyTo));
         }
         if (amount == 0) {
@@ -322,34 +316,38 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Internal function to add a strategy
-    /// @dev Emits StrategyAdded event if the strategy was successfully added
     /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
     // slither-disable-next-line calls-loop
     function _addStrategy(IStrategy strategy_, address asset_, address auth_) private {
         if (address(strategy_) == address(0)) {
             revert NullAddress();
         }
+        if (isStrategy(strategy_)) {
+            revert InvalidStrategy(address(strategy_));
+        }
         if (strategy_.asset() != asset_ || address(strategy_.auth()) != auth_) {
             revert InvalidStrategy(address(strategy_));
         }
-        bool added = strategies.add(address(strategy_));
-        if (added) {
-            emit StrategyAdded(address(strategy_));
-        }
-        if (strategies.length() > maxStrategies) {
-            revert MaxStrategiesExceeded(strategies.length(), maxStrategies);
+        strategies.push(strategy_);
+        emit StrategyAdded(address(strategy_));
+        if (strategies.length > maxStrategies) {
+            revert MaxStrategiesExceeded(strategies.length, maxStrategies);
         }
     }
 
     /// @notice Internal function to remove a strategy
-    /// @dev Emits StrategyRemoved event if the strategy was successfully removed
-    /// @dev Removing a strategy without first withdrawing the assets held in those strategies will no longer include
-    ///        that strategy in its calculations, effectively locking any assets still deposited in the removed strategy
-    ///      No NullAddress check is needed because only whitelisted strategies can be removed, and the strategy is checked for validity in _addStrategy
+    /// @dev No NullAddress check is needed because only whitelisted strategies can be removed, and it is checked in _addStrategy
+    /// @dev Removes the strategy in-place to keep the order
     function _removeStrategy(IStrategy strategy) private {
-        bool removed = strategies.remove(address(strategy));
-        if (removed) {
-            emit StrategyRemoved(address(strategy));
+        for (uint256 i = 0; i < strategies.length; i++) {
+            if (strategies[i] == strategy) {
+                for (uint256 j = i; j < strategies.length - 1; j++) {
+                    strategies[j] = strategies[j + 1];
+                }
+                strategies.pop();
+                emit StrategyRemoved(address(strategy));
+                break;
+            }
         }
     }
 
@@ -358,11 +356,9 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @return The total maximum withdrawable amount
     // slither-disable-next-line calls-loop
     function _maxWithdraw() private view returns (uint256) {
-        uint256 length = strategies.length();
         uint256 max = 0;
-        for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = IStrategy(strategies.at(i));
-            uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
+        for (uint256 i = 0; i < strategies.length; i++) {
+            uint256 strategyMaxWithdraw = strategies[i].maxWithdraw(address(this));
             max = Math.saturatingAdd(max, strategyMaxWithdraw);
         }
         return max;
@@ -380,10 +376,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     function _depositToStrategies(uint256 assets, uint256 shares) private {
         uint256 assetsToDeposit = assets;
 
-        uint256 length = strategies.length();
-        for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = IStrategy(strategies.at(i));
-
+        for (uint256 i = 0; i < strategies.length; i++) {
+            IStrategy strategy = strategies[i];
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
 
@@ -410,9 +404,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     function _withdrawFromStrategies(uint256 assets, uint256 shares) private {
         uint256 assetsToWithdraw = assets;
 
-        uint256 length = strategies.length();
-        for (uint256 i = 0; i < length; i++) {
-            IStrategy strategy = IStrategy(strategies.at(i));
+        for (uint256 i = 0; i < strategies.length; i++) {
+            IStrategy strategy = strategies[i];
 
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
             uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
@@ -438,18 +431,29 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     /// @notice Returns the number of strategies in the vault
     /// @return The count of active strategies
     function strategiesCount() public view returns (uint256) {
-        return strategies.length();
+        return strategies.length;
     }
 
     /// @notice Returns all strategy addresses
-    /// @return Array of all strategy addresses
-    function getStrategies() public view returns (address[] memory) {
-        return strategies.values();
+    function getStrategies() public view returns (IStrategy[] memory strategies_) {
+        strategies_ = new IStrategy[](strategies.length);
+        for (uint256 i = 0; i < strategies.length; i++) {
+            strategies_[i] = strategies[i];
+        }
     }
 
-    /// @notice Returns the strategy address at a specific index
-    /// @return The strategy address at the given index
-    function getStrategy(uint256 index) public view returns (address) {
-        return strategies.at(index);
+    /// @notice Returns the strategy at a specific index
+    function getStrategy(uint256 index) public view returns (IStrategy) {
+        return strategies[index];
+    }
+
+    /// @notice Returns true if the strategy is in the vault
+    function isStrategy(IStrategy strategy) public view returns (bool) {
+        for (uint256 i = 0; i < strategies.length; i++) {
+            if (strategies[i] == strategy) {
+                return true;
+            }
+        }
+        return false;
     }
 }
