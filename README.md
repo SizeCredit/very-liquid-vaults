@@ -83,7 +83,8 @@ Target integrations:
 
 ## Known Limitations
 
-1. When a `removeStrategies` is performed, the `SizeMetaVault` attempts to withdraw assets from the exiting strategies and re-deposits to another strategy. If the deposit fails, the whole operation reverts.
+1. When `removeStrategies` is performed, the `SizeMetaVault` attempts to withdraw assets from the exiting strategies and re-deposit them to another strategy. If the deposit fails, the whole operation reverts
+2. The performance fee can stop being applied during a significant downturn event, which would cause the PPS to never surpass the high-water mark
 
 ### Deployment
 
