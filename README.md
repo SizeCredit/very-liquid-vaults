@@ -49,9 +49,9 @@ Target integrations:
 ### Liquidity Management
 
 * Supports allocation across:
-  * Cash (gas-efficient, instant access)
-  * Aave (yield-bearing lowest risk venue)
-  * Morpho/Euler (yield-bearing righer risk/return venues)
+  * Cash
+  * Aave
+  * Morpho/Euler
 * Liquidity is fungible: all users share average yield
 * Default deposit destination is Cash for instant liquidity (as defined by the strategist)
 * Strategist-defined deposit/withdrawal priority
@@ -59,7 +59,7 @@ Target integrations:
 ### Rebalancing
 
 * Allocation is manually managed by a Strategist
-* Percentage allocations are defined off-chain, e.g., 5% Cash, 50% Aave, 45% Euler
+* Percentage allocations are defined off-chain, e.g., 10% Cash, 30% Aave, 30% Euler, 30% Morpho
 * Strategist uses e.g. `rebalance` to move liquidity between strategies
 
 ## Architecture
@@ -80,6 +80,10 @@ Target integrations:
 * **`DEFAULT_ADMIN_ROLE`**: Admin (governance multisig)
 * **`STRATEGIST_ROLE`**: Rebalance across strategies, configure strategies through a timelock
 * **`PAUSER_ROLE`**: Emergency pause functionality: per vault or whole protocol
+
+## Known Limitations
+
+1. When a `removeStrategies` is performed, the `SizeMetaVault` attempts to withdraw assets from the exiting strategies and re-deposits to another strategy. If the deposit fails, the whole operation reverts.
 
 ### Deployment
 
