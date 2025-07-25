@@ -2,7 +2,9 @@
 pragma solidity 0.8.23;
 
 import {BaseTest} from "@test/BaseTest.t.sol";
+import {IBaseVault} from "@src/IBaseVault.sol";
 import {console} from "forge-std/console.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 contract SecurityTest is BaseTest {
     function test_Security_deposit_directly_to_strategy_should_not_steal_assets() public {
@@ -83,5 +85,57 @@ contract SecurityTest is BaseTest {
         // Assert that the admin was minted shares
         // Even though the vault has not generated any profit, the admin SHOULD NOT get a portion of existing deposits
         assertEq(sharesAfter, sharesBefore);
+    }
+
+    function test_Security_fee_minting_uses_correct_share_conversion() public {
+        IBaseVault[] memory strategies = new IBaseVault[](2);
+        strategies[0] = erc4626StrategyVault;
+        strategies[1] = aaveStrategyVault;
+        vm.prank(admin);
+        sizeMetaVault.removeStrategies(strategies, cashStrategyVault);
+
+        uint256 amount = 100e6;
+
+        // 1. Set performance fee to 20%
+        uint256 feePercent = 0.2e18;
+        vm.prank(admin);
+        sizeMetaVault.setPerformanceFeePercent(feePercent);
+
+        uint256 setPerformanceFeePercentTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
+        vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
+
+        vm.prank(admin);
+        sizeMetaVault.setPerformanceFeePercent(feePercent);
+
+        // 2. Deposit 100 USDC from Alice => initial PPS = 1.0
+        _deposit(alice, sizeMetaVault, amount);
+        assertEq(Math.mulDiv(sizeMetaVault.totalAssets(), 1e18, sizeMetaVault.totalSupply()), 1e18, "PPS should be 1");
+
+        // 3. Simulate vault profit: 100% profit to the strategy
+        uint256 profit = cashStrategyVault.totalAssets() + 1;
+        _mint(erc20Asset, address(charlie), profit);
+        vm.prank(charlie);
+        erc20Asset.transfer(address(cashStrategyVault), profit);
+        assertEq(Math.mulDiv(sizeMetaVault.totalAssets(), 1e18, sizeMetaVault.totalSupply()), 2e18, "PPS should be 2");
+
+        assertEq(sizeMetaVault.balanceOf(admin), 0, "Admin should not have any shares");
+
+        uint256 aliceBalanceBefore = erc20Asset.balanceOf(alice);
+        uint256 totalSupplyBefore = sizeMetaVault.totalSupply();
+        // 4. Trigger _update()
+        vm.prank(alice);
+        sizeMetaVault.transfer(bob, aliceBalanceBefore);
+
+        // 5. Compute expected fee shares:
+        // - The vault made a 100% profit
+        // - Profit = 100%, and performance fee is 20% => fee = 20% profit
+        // - PPS = 200% assets / 100% shares = 2
+        // - To compute how many shares the feeRecipient should receive for 20 USDC:
+        //      feeShares = convertToShares(feeAssets) = 20% / 2 = 10% shares
+        uint256 expectedFeeShares = totalSupplyBefore / 10;
+
+        uint256 actualFeeShares = sizeMetaVault.balanceOf(admin);
+        assertEq(actualFeeShares, expectedFeeShares, "Fee shares minted incorrectly");
     }
 }

@@ -103,16 +103,17 @@ abstract contract PerformanceVault is BaseVault {
         uint256 currentPPS = _pps();
         uint256 highWaterMarkBefore = highWaterMark;
         if (currentPPS > highWaterMarkBefore) {
-            uint256 profitPerSharePercent = currentPPS - highWaterMarkBefore;
-            uint256 totalProfitShares = Math.mulDiv(profitPerSharePercent, totalSupply(), PERCENT);
-            uint256 feeShares = Math.mulDiv(totalProfitShares, performanceFeePercent, PERCENT);
+            uint256 profitPerShare = currentPPS - highWaterMarkBefore;
+            uint256 totalProfitAssets = Math.mulDiv(profitPerShare, totalSupply(), PERCENT);
+            uint256 feeAssets = Math.mulDiv(totalProfitAssets, performanceFeePercent, PERCENT);
+            uint256 feeShares = convertToShares(feeAssets);
 
             if (feeShares > 0) {
                 highWaterMark = currentPPS;
                 emit HighWaterMarkUpdated(highWaterMarkBefore, currentPPS);
 
                 _mint(feeRecipient, feeShares);
-                emit PerformanceFeeMinted(feeRecipient, feeShares, convertToAssets(feeShares));
+                emit PerformanceFeeMinted(feeRecipient, feeShares, feeAssets);
             }
         }
     }
