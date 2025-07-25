@@ -114,7 +114,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
-            total += strategies[i].totalAssets();
+            total += strategies[i].convertToAssets(strategies[i].balanceOf(address(this)));
         }
     }
 
