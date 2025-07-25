@@ -74,6 +74,9 @@ abstract contract PerformanceVault is BaseVault {
 
     /// @notice Sets the fee recipient
     function _setFeeRecipient(address feeRecipient_) internal {
+        if (feeRecipient_ == address(0)) {
+            revert NullAddress();
+        }
         address feeRecipientBefore = feeRecipient;
         feeRecipient = feeRecipient_;
         emit FeeRecipientSet(feeRecipientBefore, feeRecipient_);

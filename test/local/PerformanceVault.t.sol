@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
+import {BaseVault} from "@src/BaseVault.sol";
 import {PerformanceVault} from "@src/PerformanceVault.sol";
 
 contract PerformanceVaultTest is BaseTest {
@@ -51,6 +52,10 @@ contract PerformanceVaultTest is BaseTest {
     }
 
     function test_PerformanceVault_setFeeRecipient() public {
+        vm.prank(admin);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
+        sizeMetaVault.setFeeRecipient(address(0));
+
         assertEq(sizeMetaVault.feeRecipient(), admin);
 
         vm.expectRevert(
