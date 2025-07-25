@@ -15,9 +15,6 @@ interface IBaseVault is IERC4626 {
     /// @notice Returns the address of the auth contract
     function auth() external view returns (Auth);
 
-    /// @notice Returns the amount of assets that are dead and cannot be withdrawn
-    function deadAssets() external view returns (uint256);
-
     /// @notice Returns the total assets cap of the vault
     function totalAssetsCap() external view returns (uint256);
 

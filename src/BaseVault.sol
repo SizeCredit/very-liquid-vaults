@@ -37,9 +37,8 @@ abstract contract BaseVault is
     //////////////////////////////////////////////////////////////*/
 
     Auth public auth;
-    uint256 public deadAssets;
     uint256 public totalAssetsCap;
-    uint256[47] private __gap;
+    uint256[48] private __gap;
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -54,7 +53,6 @@ abstract contract BaseVault is
     //////////////////////////////////////////////////////////////*/
 
     event AuthSet(address indexed auth);
-    event DeadAssetsSet(uint256 indexed deadAssets);
     event TotalAssetsCapSet(uint256 indexed totalAssetsCapBefore, uint256 indexed totalAssetsCapAfter);
     event VaultStatus(uint256 indexed timestamp, uint256 totalShares, uint256 totalAssets);
 
@@ -94,9 +92,6 @@ abstract contract BaseVault is
 
         auth = auth_;
         emit AuthSet(address(auth_));
-
-        deadAssets = firstDepositAmount_;
-        emit DeadAssetsSet(firstDepositAmount_);
 
         _setTotalAssetsCap(type(uint256).max);
 

@@ -44,21 +44,19 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_rebalance_cashStrategy_to_erc4626() public {
-        uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
+        uint256 cashAssetsBefore =
+            cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
-        uint256 cashStrategyDeadAssetsBefore = cashStrategyVault.deadAssets();
 
-        uint256 amount = cashAssetsBefore - cashStrategyDeadAssetsBefore;
+        uint256 amount = cashAssetsBefore;
 
         vm.prank(strategist);
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0);
 
-        uint256 cashAssetsAfter = cashStrategyVault.totalAssets();
+        uint256 cashAssetsAfter = cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
         uint256 erc4626AssetsAfter = erc4626StrategyVault.totalAssets();
-        uint256 cashStrategyDeadAssetsAfter = cashStrategyVault.deadAssets();
 
-        assertEq(cashAssetsAfter, cashStrategyDeadAssetsAfter);
-        assertEq(cashStrategyDeadAssetsBefore, cashStrategyDeadAssetsAfter);
+        assertEq(cashAssetsAfter, 0);
         assertEq(erc4626AssetsAfter, erc4626AssetsBefore + amount);
     }
 
@@ -73,21 +71,21 @@ contract SizeMetaVaultTest is BaseTest {
 
         _deposit(alice, sizeMetaVault, 100e6);
 
-        uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
-        uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
-        uint256 erc4626StrategyDeadAssetsBefore = cashStrategyVault.deadAssets();
+        uint256 erc4626AssetsBefore =
+            erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(address(sizeMetaVault)));
+        uint256 cashAssetsBefore =
+            cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
 
-        uint256 amount = erc4626AssetsBefore - erc4626StrategyDeadAssetsBefore;
+        uint256 amount = erc4626AssetsBefore;
 
         vm.prank(strategist);
         sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, amount, 0);
 
-        uint256 erc4626AssetsAfter = erc4626StrategyVault.totalAssets();
-        uint256 cashAssetsAfter = cashStrategyVault.totalAssets();
-        uint256 erc4626StrategyDeadAssetsAfter = cashStrategyVault.deadAssets();
+        uint256 erc4626AssetsAfter =
+            erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(address(sizeMetaVault)));
+        uint256 cashAssetsAfter = cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
 
-        assertEq(erc4626AssetsAfter, erc4626StrategyDeadAssetsAfter);
-        assertEq(erc4626StrategyDeadAssetsBefore, erc4626StrategyDeadAssetsAfter);
+        assertEq(erc4626AssetsAfter, 0);
         assertEq(cashAssetsAfter, cashAssetsBefore + amount);
     }
 
@@ -95,7 +93,7 @@ contract SizeMetaVaultTest is BaseTest {
         IBaseVault strategyFrom = cashStrategyVault;
         IBaseVault strategyTo = aaveStrategyVault;
 
-        amount = bound(amount, strategyFrom.deadAssets(), 100e6);
+        amount = bound(amount, 10e6, 100e6);
         index = bound(index, 1e27, 1.3e27);
 
         _mint(erc20Asset, address(strategyFrom), amount * 2);
