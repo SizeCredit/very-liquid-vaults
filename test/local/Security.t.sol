@@ -53,4 +53,35 @@ contract SecurityTest is BaseTest {
         console.log("alice loss: %e", aliceBalanceBefore - aliceBalanceAfter);
         console.log("attacker profit: %e", erc20Asset.balanceOf(attacker) - attackerBalanceBefore);
     }
+
+    function test_Security_setting_fee_later_should_not_steal_from_existing_depositors() public {
+        // Alice deposits 6e7
+        _deposit(alice, sizeMetaVault, 6e7);
+
+        // Log admin shares before setting the fee
+        uint256 sharesBefore = sizeMetaVault.balanceOf(admin);
+        console.log("Admin shares before: %e", sharesBefore);
+
+        // Set performance fee of 10%
+        vm.prank(admin);
+        sizeMetaVault.setPerformanceFeePercent(0.1e18);
+
+        uint256 setPerformanceFeePercentTimelockDuration =
+            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
+        vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
+
+        vm.prank(admin);
+        sizeMetaVault.setPerformanceFeePercent(0.1e18);
+
+        // Alice deposits 1 wei
+        _deposit(alice, sizeMetaVault, 1);
+
+        // Log admin shares after setting the fee
+        uint256 sharesAfter = sizeMetaVault.balanceOf(admin);
+        console.log("Admin shares after: %e", sharesAfter);
+
+        // Assert that the admin was minted shares
+        // Even though the vault has not generated any profit, the admin SHOULD NOT get a portion of existing deposits
+        assertEq(sharesAfter, sharesBefore);
+    }
 }

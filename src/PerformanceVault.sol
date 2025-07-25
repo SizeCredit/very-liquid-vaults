@@ -68,6 +68,11 @@ abstract contract PerformanceVault is BaseVault {
         }
 
         uint256 performanceFeePercentBefore = performanceFeePercent;
+
+        if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0) {
+            highWaterMark = _pps();
+        }
+
         performanceFeePercent = performanceFeePercent_;
         emit PerformanceFeePercentSet(performanceFeePercentBefore, performanceFeePercent_);
     }
@@ -82,6 +87,11 @@ abstract contract PerformanceVault is BaseVault {
         emit FeeRecipientSet(feeRecipientBefore, feeRecipient_);
     }
 
+    /// @notice Returns the price per share
+    function _pps() internal view returns (uint256) {
+        return Math.mulDiv(totalAssets(), PERCENT, totalSupply());
+    }
+
     /// @notice Updates the high water mark and mints performance fees if applicable
     function _update(address from, address to, uint256 value) internal override {
         super._update(from, to, value);
@@ -90,7 +100,7 @@ abstract contract PerformanceVault is BaseVault {
             return;
         }
 
-        uint256 currentPPS = Math.mulDiv(totalAssets(), PERCENT, totalSupply());
+        uint256 currentPPS = _pps();
         uint256 highWaterMarkBefore = highWaterMark;
         if (currentPPS > highWaterMarkBefore) {
             uint256 profitPerSharePercent = currentPPS - highWaterMarkBefore;
