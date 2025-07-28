@@ -227,14 +227,19 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Rebalances assets between two strategies
     /// @dev Transfers assets from one strategy to another
-    ///      Does not check that the strategyFrom is a whitelisted strategy to allow for rebalancing from removed strategies
     function rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 minAmount)
         external
         nonReentrant
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
+        if (!isStrategy(strategyFrom)) {
+            revert InvalidStrategy(address(strategyFrom));
+        }
         if (!isStrategy(strategyTo)) {
+            revert InvalidStrategy(address(strategyTo));
+        }
+        if (strategyFrom == strategyTo) {
             revert InvalidStrategy(address(strategyTo));
         }
         if (amount == 0) {
