@@ -85,24 +85,18 @@ contract SizeMetaVault is PerformanceVault {
     }
 
     /// @notice Returns the maximum number of shares that can be minted
-    /// @dev Converts the max deposit amount to shares
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
-        uint256 maxDepositAmount = maxDeposit(receiver);
-        uint256 maxMintAmount =
-            maxDepositAmount == type(uint256).max ? type(uint256).max : convertToShares(maxDepositAmount);
-        return Math.min(maxMintAmount, super.maxMint(receiver));
+        return Math.min(_maxMint(), super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
-    /// @dev Limited by both owner's balance and total withdrawable assets
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), _maxWithdraw());
+        return Math.min(_maxWithdraw(), super.maxWithdraw(owner));
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
-    /// @dev Limited by both owner's balance and total withdrawable assets
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(balanceOf(owner), _convertToShares(_maxWithdraw(), Math.Rounding.Floor));
+        return Math.min(_maxRedeem(), super.maxRedeem(owner));
     }
 
     /// @notice Returns the total assets managed by the vault
@@ -314,22 +308,42 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to calculate maximum depositable amount in all strategies
     // slither-disable-next-line calls-loop
-    function _maxDeposit() private view returns (uint256 max) {
+    function _maxDeposit() private view returns (uint256 maxAssets) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             IBaseVault strategy = strategies[i];
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
-            max = Math.saturatingAdd(max, strategyMaxDeposit);
+            maxAssets = Math.saturatingAdd(maxAssets, strategyMaxDeposit);
+        }
+    }
+
+    /// @notice Internal function to calculate maximum mintable amount from all strategies
+    // slither-disable-next-line calls-loop
+    function _maxMint() private view returns (uint256 maxShares) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
+            uint256 strategyMaxMint = strategies[i].maxMint(address(this));
+            maxShares = Math.saturatingAdd(maxShares, strategyMaxMint);
         }
     }
 
     /// @notice Internal function to calculate maximum withdrawable amount from all strategies
     // slither-disable-next-line calls-loop
-    function _maxWithdraw() private view returns (uint256 max) {
+    function _maxWithdraw() private view returns (uint256 maxAssets) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             uint256 strategyMaxWithdraw = strategies[i].maxWithdraw(address(this));
-            max = Math.saturatingAdd(max, strategyMaxWithdraw);
+            maxAssets = Math.saturatingAdd(maxAssets, strategyMaxWithdraw);
+        }
+    }
+
+    /// @notice Internal function to calculate maximum redeemable amount from all strategies
+    // slither-disable-next-line calls-loop
+    function _maxRedeem() private view returns (uint256 maxShares) {
+        uint256 length = strategies.length;
+        for (uint256 i = 0; i < length; i++) {
+            uint256 strategyMaxRedeem = strategies[i].maxRedeem(address(this));
+            maxShares = Math.saturatingAdd(maxShares, strategyMaxRedeem);
         }
     }
 

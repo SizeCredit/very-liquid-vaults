@@ -58,27 +58,23 @@ contract ERC4626StrategyVault is BaseVault {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the maximum amount that can be deposited
-    /// @dev Limited by the external vault's maxDeposit function
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxDeposit(address(this)), super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
-    /// @dev Limited by the external vault's maxMint function
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxMint(address(this)), super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
-    /// @dev Limited by both owner's balance and external vault's withdrawal capacity
     function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(_convertToAssets(balanceOf(owner), Math.Rounding.Floor), vault.maxWithdraw(address(this)));
+        return Math.min(vault.maxWithdraw(address(this)), super.maxWithdraw(owner));
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
-    /// @dev Limited by both owner's balance and external vault's redemption capacity
     function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return Math.min(balanceOf(owner), _convertToShares(vault.maxWithdraw(address(this)), Math.Rounding.Floor));
+        return Math.min(vault.maxRedeem(address(this)), super.maxRedeem(owner));
     }
 
     /// @notice Returns the total assets managed by this strategy
