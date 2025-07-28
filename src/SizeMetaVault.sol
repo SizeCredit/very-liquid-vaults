@@ -4,20 +4,19 @@ pragma solidity 0.8.23;
 import {BaseVault} from "@src/BaseVault.sol";
 import {PerformanceVault} from "@src/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE} from "@src/utils/Auth.sol";
+import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Timelock} from "@src/utils/Timelock.sol";
 
 /// @title SizeMetaVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Meta vault that distributes assets across multiple strategies
 /// @dev Extends PerformanceVault to manage multiple strategy vaults for asset allocation. By default, the performance fee is 0.
-contract SizeMetaVault is PerformanceVault, Timelock {
+contract SizeMetaVault is PerformanceVault {
     using SafeERC20 for IERC20;
 
     uint256 public constant MAX_STRATEGIES = 10;
@@ -72,9 +71,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         for (uint256 i = 0; i < strategies_.length; i++) {
             _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
-        _setTimelockDuration(this.addStrategies.selector, 1 days, true);
-        _setTimelockDuration(this.removeStrategies.selector, 1 hours, true);
-        _setTimelockDuration(this.setPerformanceFeePercent.selector, 3 days, false);
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -146,18 +142,8 @@ contract SizeMetaVault is PerformanceVault, Timelock {
                               ADMIN FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Sets the timelock duration for a specific function
-    /// @dev Only callable by addresses with DEFAULT_ADMIN_ROLE
-    ///      The admin cannot update the timelock duration for setPerformanceFeePercent, except through a contract upgrade
-    function setTimelockDuration(bytes4 sig, uint256 duration) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
-        _setTimelockDuration(sig, duration);
-    }
-
     /// @notice Sets the performance fee percent
     function setPerformanceFeePercent(uint256 performanceFeePercent_) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
-        if (_updateTimelockStateAndCheckIfTimelocked()) {
-            return;
-        }
         _setPerformanceFeePercent(performanceFeePercent_);
     }
 
@@ -200,12 +186,7 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Adds new strategies to the vault
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    ///      If the caller has DEFAULT_ADMIN_ROLE, the timelock state is not updated
     function addStrategies(IBaseVault[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        if (!auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _updateTimelockStateAndCheckIfTimelocked()) {
-            return;
-        }
-
         for (uint256 i = 0; i < strategies_.length; i++) {
             _addStrategy(strategies_[i], asset(), address(auth));
         }
@@ -213,7 +194,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
 
     /// @notice Removes strategies from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with STRATEGIST_ROLE
-    ///      If the caller has DEFAULT_ADMIN_ROLE, the timelock state is not updated
     // slither-disable-next-line calls-loop
     function removeStrategies(IBaseVault[] calldata strategiesToRemove, IBaseVault strategyToReceiveAssets)
         external
@@ -221,10 +201,6 @@ contract SizeMetaVault is PerformanceVault, Timelock {
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
-        if (!auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && _updateTimelockStateAndCheckIfTimelocked()) {
-            return;
-        }
-
         if (!isStrategy(strategyToReceiveAssets)) {
             revert InvalidStrategy(address(strategyToReceiveAssets));
         }

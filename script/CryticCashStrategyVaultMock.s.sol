@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Auth} from "@src/utils/Auth.sol";
+import {Auth} from "@src/Auth.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
 
 contract CryticCashStrategyVaultMockScript is BaseScript {

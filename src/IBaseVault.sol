@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {Auth} from "@src/utils/Auth.sol";
+import {Auth} from "@src/Auth.sol";
 
 /// @title IBaseVault
 /// @custom:security-contact security@size.credit

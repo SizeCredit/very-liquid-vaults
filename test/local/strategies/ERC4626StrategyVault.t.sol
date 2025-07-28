@@ -8,7 +8,7 @@ import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {Auth, SIZE_VAULT_ROLE} from "@src/utils/Auth.sol";
+import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";

@@ -7,7 +7,7 @@ import {BaseVault} from "@src/BaseVault.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import {Auth} from "@src/utils/Auth.sol";
+import {Auth} from "@src/Auth.sol";
 
 /// @title ERC4626StrategyVault
 /// @custom:security-contact security@size.credit

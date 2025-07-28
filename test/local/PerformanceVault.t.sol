@@ -23,13 +23,6 @@ contract PerformanceVaultTest is BaseTest {
         );
         sizeMetaVault.setPerformanceFeePercent(0.2e18);
 
-        vm.prank(admin);
-        sizeMetaVault.setPerformanceFeePercent(0.7e19);
-
-        uint256 setPerformanceFeePercentTimelockDuration =
-            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
-        vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
-
         uint256 maxPerformanceFeePercent = sizeMetaVault.MAXIMUM_PERFORMANCE_FEE_PERCENT();
 
         vm.prank(admin);
@@ -39,11 +32,6 @@ contract PerformanceVaultTest is BaseTest {
             )
         );
         sizeMetaVault.setPerformanceFeePercent(0.7e19);
-
-        vm.prank(admin);
-        sizeMetaVault.setPerformanceFeePercent(0.2e18);
-
-        vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
 
         vm.prank(admin);
         sizeMetaVault.setPerformanceFeePercent(0.2e18);
@@ -72,13 +60,6 @@ contract PerformanceVaultTest is BaseTest {
     }
 
     function test_PerformanceVault_performace_fee_is_minted_as_shares_to_the_feeRecipient() public {
-        vm.prank(admin);
-        sizeMetaVault.setPerformanceFeePercent(0.2e18);
-
-        uint256 setPerformanceFeePercentTimelockDuration =
-            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
-        vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
-
         vm.prank(admin);
         sizeMetaVault.setPerformanceFeePercent(0.2e18);
 

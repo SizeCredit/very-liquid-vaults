@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {IBaseVault} from "@src/IBaseVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
-import {Auth} from "@src/utils/Auth.sol";
+import {Auth} from "@src/Auth.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";

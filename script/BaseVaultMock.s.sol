@@ -6,7 +6,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {BaseVault} from "@src/BaseVault.sol";
 import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Auth} from "@src/utils/Auth.sol";
+import {Auth} from "@src/Auth.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
 

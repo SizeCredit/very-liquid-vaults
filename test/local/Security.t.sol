@@ -68,13 +68,6 @@ contract SecurityTest is BaseTest {
         vm.prank(admin);
         sizeMetaVault.setPerformanceFeePercent(0.1e18);
 
-        uint256 setPerformanceFeePercentTimelockDuration =
-            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
-        vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
-
-        vm.prank(admin);
-        sizeMetaVault.setPerformanceFeePercent(0.1e18);
-
         // Alice deposits 1 wei
         _deposit(alice, sizeMetaVault, 1);
 
@@ -98,13 +91,6 @@ contract SecurityTest is BaseTest {
 
         // 1. Set performance fee to 20%
         uint256 feePercent = 0.2e18;
-        vm.prank(admin);
-        sizeMetaVault.setPerformanceFeePercent(feePercent);
-
-        uint256 setPerformanceFeePercentTimelockDuration =
-            sizeMetaVault.getTimelockData(sizeMetaVault.setPerformanceFeePercent.selector).duration;
-        vm.warp(block.timestamp + setPerformanceFeePercentTimelockDuration);
-
         vm.prank(admin);
         sizeMetaVault.setPerformanceFeePercent(feePercent);
 
