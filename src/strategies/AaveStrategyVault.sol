@@ -114,7 +114,7 @@ contract AaveStrategyVault is BaseVault {
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     /// @dev Limited by both owner's balance and Aave pool liquidity
-    function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {
@@ -123,13 +123,13 @@ contract AaveStrategyVault is BaseVault {
 
         uint256 cash = IERC20(asset()).balanceOf(address(aToken));
         uint256 assetsBalance = convertToAssets(balanceOf(owner));
-        return cash < assetsBalance ? cash : assetsBalance;
+        return Math.min(cash < assetsBalance ? cash : assetsBalance, super.maxWithdraw(owner));
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
     /// @dev Updates Superform implementation to allow the SizeMetaVault to redeem all
     /// @dev Limited by both owner's balance and Aave pool liquidity
-    function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {
@@ -139,7 +139,7 @@ contract AaveStrategyVault is BaseVault {
         uint256 cash = IERC20(asset()).balanceOf(address(aToken));
         uint256 cashInShares = convertToShares(cash);
         uint256 shareBalance = balanceOf(owner);
-        return cashInShares < shareBalance ? cashInShares : shareBalance;
+        return Math.min(cashInShares < shareBalance ? cashInShares : shareBalance, super.maxRedeem(owner));
     }
 
     /// @notice Returns the total assets managed by this strategy

@@ -68,12 +68,12 @@ contract ERC4626StrategyVault is BaseVault {
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
-    function maxWithdraw(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxWithdraw(address(this)), super.maxWithdraw(owner));
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
-    function maxRedeem(address owner) public view override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
         return Math.min(vault.maxRedeem(address(this)), super.maxRedeem(owner));
     }
 

@@ -105,7 +105,7 @@ contract BaseVaultTest is BaseTest {
         baseVault.pause();
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        vm.expectRevert(abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector, alice, amount, 0));
         baseVault.deposit(amount, alice);
     }
 
@@ -118,7 +118,7 @@ contract BaseVaultTest is BaseTest {
         auth.pause();
 
         vm.prank(alice);
-        vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
+        vm.expectRevert(abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector, alice, amount, 0));
         baseVault.deposit(amount, alice);
 
         vm.prank(admin);
@@ -247,5 +247,34 @@ contract BaseVaultTest is BaseTest {
             abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector, alice, depositAmount, 0)
         );
         baseVault.deposit(depositAmount, alice);
+    }
+
+    function test_BaseVault_paused() public {
+        uint256 amount = 100e6;
+        _deposit(alice, baseVault, amount);
+
+        vm.prank(admin);
+        baseVault.pause();
+
+        assertEq(baseVault.maxDeposit(alice), 0);
+        assertEq(baseVault.maxMint(alice), 0);
+        assertEq(baseVault.maxWithdraw(alice), 0);
+        assertEq(baseVault.maxRedeem(alice), 0);
+
+        vm.prank(admin);
+        baseVault.unpause();
+
+        assertEq(baseVault.maxDeposit(alice), type(uint256).max);
+        assertEq(baseVault.maxMint(alice), type(uint256).max);
+        assertEq(baseVault.maxWithdraw(alice), amount);
+        assertEq(baseVault.maxRedeem(alice), amount);
+
+        vm.prank(admin);
+        auth.pause();
+
+        assertEq(baseVault.maxDeposit(alice), 0);
+        assertEq(baseVault.maxMint(alice), 0);
+        assertEq(baseVault.maxWithdraw(alice), 0);
+        assertEq(baseVault.maxRedeem(alice), 0);
     }
 }

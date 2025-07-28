@@ -113,7 +113,7 @@ abstract contract BaseVault is
     /// @notice Modifier to ensure the contract is not paused
     /// @dev Checks both local pause state and global pause state from Auth
     modifier notPaused() {
-        if (paused() || auth.paused()) revert EnforcedPause();
+        if (_isPaused()) revert EnforcedPause();
         _;
     }
 
@@ -164,6 +164,11 @@ abstract contract BaseVault is
         _deposit(fundingAccount_, receiver, firstDepositAmount_, shares);
     }
 
+    /// @notice Returns true if the vault is paused
+    function _isPaused() private view returns (bool) {
+        return paused() || auth.paused();
+    }
+
     /// @notice Returns the number of decimals for the vault token
     function decimals()
         public
@@ -187,15 +192,42 @@ abstract contract BaseVault is
     }
 
     /// @notice Returns the maximum amount that can be deposited
-    /// @dev Returns type(uint256).max if no total assets cap is set
     function maxDeposit(address) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return
-            totalAssetsCap == type(uint256).max ? type(uint256).max : Math.saturatingSub(totalAssetsCap, totalAssets());
+        if (_isPaused()) {
+            return 0;
+        } else if (totalAssetsCap == type(uint256).max) {
+            return type(uint256).max;
+        } else {
+            return Math.saturatingSub(totalAssetsCap, totalAssets());
+        }
     }
 
     /// @notice Returns the maximum amount that can be minted
-    /// @dev Returns type(uint256).max if no total assets cap is set
     function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return totalAssetsCap == type(uint256).max ? type(uint256).max : convertToShares(maxDeposit(receiver));
+        if (_isPaused()) {
+            return 0;
+        } else if (totalAssetsCap == type(uint256).max) {
+            return type(uint256).max;
+        } else {
+            return convertToShares(maxDeposit(receiver));
+        }
+    }
+
+    /// @notice Returns the maximum amount that can be withdrawn
+    function maxWithdraw(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        if (_isPaused()) {
+            return 0;
+        } else {
+            return super.maxWithdraw(owner);
+        }
+    }
+
+    /// @notice Returns the maximum amount that can be redeemed
+    function maxRedeem(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+        if (_isPaused()) {
+            return 0;
+        } else {
+            return super.maxRedeem(owner);
+        }
     }
 }
