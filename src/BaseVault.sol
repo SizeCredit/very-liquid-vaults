@@ -192,13 +192,19 @@ abstract contract BaseVault is
     }
 
     /// @notice Returns the maximum amount that can be deposited
-    function maxDeposit(address) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
+    function maxDeposit(address receiver)
+        public
+        view
+        virtual
+        override(ERC4626Upgradeable, IERC4626)
+        returns (uint256)
+    {
         if (_isPaused()) {
             return 0;
         } else if (totalAssetsCap == type(uint256).max) {
-            return type(uint256).max;
+            return super.maxDeposit(receiver);
         } else {
-            return Math.saturatingSub(totalAssetsCap, totalAssets());
+            return _maxDeposit();
         }
     }
 
@@ -207,9 +213,9 @@ abstract contract BaseVault is
         if (_isPaused()) {
             return 0;
         } else if (totalAssetsCap == type(uint256).max) {
-            return type(uint256).max;
+            return super.maxMint(receiver);
         } else {
-            return convertToShares(maxDeposit(receiver));
+            return convertToShares(_maxDeposit());
         }
     }
 
@@ -229,5 +235,15 @@ abstract contract BaseVault is
         } else {
             return super.maxRedeem(owner);
         }
+    }
+
+    /// @notice Returns the maximum amount that can be deposited
+    function _maxDeposit() private view returns (uint256) {
+        return Math.saturatingSub(totalAssetsCap, totalAssets());
+    }
+
+    /// @notice Returns the maximum amount that can be minted
+    function _maxMint() private view returns (uint256) {
+        return convertToShares(_maxDeposit());
     }
 }

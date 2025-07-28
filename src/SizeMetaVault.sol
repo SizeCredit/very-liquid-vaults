@@ -87,22 +87,22 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Returns the maximum amount that can be deposited
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
-        return Math.min(_maxDeposit(), super.maxDeposit(receiver));
+        return Math.min(_maxDepositToStrategies(), super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
-        return Math.min(_maxMint(), super.maxMint(receiver));
+        return Math.min(_maxMintToStrategies(), super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
-        return Math.min(_maxWithdraw(), super.maxWithdraw(owner));
+        return Math.min(_maxWithdrawFromStrategies(), super.maxWithdraw(owner));
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
     function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
-        return Math.min(_maxRedeem(), super.maxRedeem(owner));
+        return Math.min(_maxRedeemFromStrategies(), super.maxRedeem(owner));
     }
 
     /// @notice Returns the total assets managed by the vault
@@ -295,7 +295,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to calculate maximum depositable amount in all strategies
     // slither-disable-next-line calls-loop
-    function _maxDeposit() private view returns (uint256 maxAssets) {
+    function _maxDepositToStrategies() private view returns (uint256 maxAssets) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             IBaseVault strategy = strategies[i];
@@ -306,7 +306,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to calculate maximum mintable amount from all strategies
     // slither-disable-next-line calls-loop
-    function _maxMint() private view returns (uint256 maxShares) {
+    function _maxMintToStrategies() private view returns (uint256 maxShares) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             uint256 strategyMaxMint = strategies[i].maxMint(address(this));
@@ -316,7 +316,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to calculate maximum withdrawable amount from all strategies
     // slither-disable-next-line calls-loop
-    function _maxWithdraw() private view returns (uint256 maxAssets) {
+    function _maxWithdrawFromStrategies() private view returns (uint256 maxAssets) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             uint256 strategyMaxWithdraw = strategies[i].maxWithdraw(address(this));
@@ -326,7 +326,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to calculate maximum redeemable amount from all strategies
     // slither-disable-next-line calls-loop
-    function _maxRedeem() private view returns (uint256 maxShares) {
+    function _maxRedeemFromStrategies() private view returns (uint256 maxShares) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
             uint256 strategyMaxRedeem = strategies[i].maxRedeem(address(this));
