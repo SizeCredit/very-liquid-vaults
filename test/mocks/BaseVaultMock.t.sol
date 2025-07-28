@@ -3,8 +3,4 @@ pragma solidity 0.8.23;
 
 import {BaseVault} from "@src/BaseVault.sol";
 
-contract BaseVaultMock is BaseVault {
-    function skim() external override {
-        emit Skim();
-    }
-}
+contract BaseVaultMock is BaseVault {}

@@ -421,19 +421,4 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), 30e6);
         assertEq(erc4626StrategyVault.maxRedeem(address(sizeMetaVault)), erc4626StrategyVault.previewRedeem(30e6));
     }
-
-    function test_ERC4626StrategyVault_skim() public {
-        _deposit(alice, erc4626StrategyVault, 100e6);
-        uint256 aliceBalanceBefore = erc4626StrategyVault.balanceOf(alice);
-        uint256 balanceBefore = erc20Asset.balanceOf(address(erc4626Vault));
-        uint256 yield = 10e6;
-
-        _mint(erc20Asset, alice, yield);
-        vm.prank(alice);
-        erc20Asset.transfer(address(erc4626Vault), yield);
-
-        erc4626StrategyVault.skim();
-        assertEq(erc20Asset.balanceOf(address(erc4626Vault)), balanceBefore + yield);
-        assertGt(erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(alice)), aliceBalanceBefore);
-    }
 }

@@ -232,7 +232,7 @@ contract SizeMetaVault is PerformanceVault {
     }
 
     /// @notice Rebalances assets between two strategies
-    /// @dev Transfers assets from one strategy to another and skims the destination
+    /// @dev Transfers assets from one strategy to another
     ///      Does not check that the strategyFrom is a whitelisted strategy to allow for rebalancing from removed strategies
     function rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 minAmount)
         external
@@ -265,12 +265,6 @@ contract SizeMetaVault is PerformanceVault {
         }
 
         emit Rebalance(address(strategyFrom), address(strategyTo), assets);
-    }
-
-    /// @notice Skims the assets from the vault
-    function skim() external nonReentrant notPaused {
-        uint256 assets = IERC20(asset()).balanceOf(address(this));
-        _depositToStrategies(assets, convertToShares(assets));
     }
 
     /*//////////////////////////////////////////////////////////////

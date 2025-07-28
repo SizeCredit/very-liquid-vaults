@@ -323,19 +323,4 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         assertEq(aaveStrategyVault.maxWithdraw(address(sizeMetaVault)), 30e6);
         assertEq(aaveStrategyVault.maxRedeem(address(sizeMetaVault)), aaveStrategyVault.previewRedeem(30e6));
     }
-
-    function test_AaveStrategyVault_skim() public {
-        _deposit(alice, aaveStrategyVault, 100e6);
-        uint256 aliceBalanceBefore = aaveStrategyVault.balanceOf(alice);
-        uint256 balanceBefore = erc20Asset.balanceOf(address(aToken));
-        uint256 yield = 10e6;
-
-        _mint(erc20Asset, alice, yield);
-        vm.prank(alice);
-        erc20Asset.transfer(address(aaveStrategyVault), yield);
-
-        aaveStrategyVault.skim();
-        assertEq(erc20Asset.balanceOf(address(aToken)), balanceBefore + yield);
-        assertGt(aaveStrategyVault.convertToAssets(aaveStrategyVault.balanceOf(alice)), aliceBalanceBefore);
-    }
 }

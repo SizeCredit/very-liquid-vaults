@@ -54,19 +54,6 @@ contract ERC4626StrategyVault is BaseVault {
     }
 
     /*//////////////////////////////////////////////////////////////
-                              EXTERNAL FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Invests any idle assets sitting in this contract into the external vault
-    function skim() external override nonReentrant notPaused {
-        uint256 assets = IERC20(asset()).balanceOf(address(this));
-        IERC20(asset()).forceApprove(address(vault), assets);
-        // slither-disable-next-line unused-return
-        vault.deposit(assets, address(this));
-        emit Skim();
-    }
-
-    /*//////////////////////////////////////////////////////////////
                               ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
