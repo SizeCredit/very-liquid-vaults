@@ -11,7 +11,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Auth} from "@src/Auth.sol";
-import {DEFAULT_ADMIN_ROLE, PAUSER_ROLE, STRATEGIST_ROLE} from "@src/Auth.sol";
+import {DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
@@ -127,21 +127,21 @@ abstract contract BaseVault is
     function _authorizeUpgrade(address newImplementation) internal override onlyAuth(DEFAULT_ADMIN_ROLE) {}
 
     /// @notice Pauses the vault
-    /// @dev Only addresses with PAUSER_ROLE can pause the vault
-    function pause() external onlyAuth(PAUSER_ROLE) {
+    /// @dev Only addresses with GUARDIAN_ROLE can pause the vault
+    function pause() external onlyAuth(GUARDIAN_ROLE) {
         _pause();
     }
 
     /// @notice Unpauses the vault
-    /// @dev Only addresses with PAUSER_ROLE can unpause the vault
-    function unpause() external onlyAuth(PAUSER_ROLE) {
+    /// @dev Only addresses with VAULT_MANAGER_ROLE can unpause the vault
+    function unpause() external onlyAuth(VAULT_MANAGER_ROLE) {
         _unpause();
     }
 
     /// @notice Sets the maximum total assets of the vault
     /// @dev Only callable by the auth contract
     /// @dev Lowering the total assets cap does not affect existing deposited assets
-    function setTotalAssetsCap(uint256 totalAssetsCap_) external onlyAuth(STRATEGIST_ROLE) {
+    function setTotalAssetsCap(uint256 totalAssetsCap_) external onlyAuth(VAULT_MANAGER_ROLE) {
         _setTotalAssetsCap(totalAssetsCap_);
     }
 

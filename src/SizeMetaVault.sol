@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {BaseVault} from "@src/BaseVault.sol";
 import {PerformanceVault} from "@src/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
+import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
@@ -153,6 +153,53 @@ contract SizeMetaVault is PerformanceVault {
     }
 
     /*//////////////////////////////////////////////////////////////
+                              VAULT MANAGER FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Adds new strategies to the vault
+    /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
+    function addStrategies(IBaseVault[] calldata strategies_) external notPaused onlyAuth(VAULT_MANAGER_ROLE) {
+        for (uint256 i = 0; i < strategies_.length; i++) {
+            _addStrategy(strategies_[i], asset(), address(auth));
+        }
+    }
+
+    /// @notice Removes strategies from the vault and transfers all assets, if any, to another strategy
+    /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
+    // slither-disable-next-line calls-loop
+    function removeStrategies(IBaseVault[] calldata strategiesToRemove, IBaseVault strategyToReceiveAssets)
+        external
+        nonReentrant
+        notPaused
+        onlyAuth(VAULT_MANAGER_ROLE)
+    {
+        if (!isStrategy(strategyToReceiveAssets)) {
+            revert InvalidStrategy(address(strategyToReceiveAssets));
+        }
+        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
+            if (strategiesToRemove[i] == strategyToReceiveAssets) {
+                revert InvalidStrategy(address(strategyToReceiveAssets));
+            }
+        }
+
+        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
+            IBaseVault strategyToRemove = strategiesToRemove[i];
+            uint256 maxWithdrawAmount = strategyToRemove.maxWithdraw(address(this));
+            if (maxWithdrawAmount > 0) {
+                uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
+                // slither-disable-next-line unused-return
+                strategyToRemove.withdraw(maxWithdrawAmount, address(this), address(this));
+                uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
+                uint256 assets = balanceAfter - balanceBefore;
+                IERC20(asset()).forceApprove(address(strategyToReceiveAssets), assets);
+                // slither-disable-next-line unused-return
+                strategyToReceiveAssets.deposit(assets, address(this));
+            }
+            _removeStrategy(strategyToRemove);
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               STRATEGST FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -181,49 +228,6 @@ contract SizeMetaVault is PerformanceVault {
         }
         for (uint256 i = 0; i < newStrategiesOrder.length; i++) {
             _addStrategy(newStrategiesOrder[i], asset(), address(auth));
-        }
-    }
-
-    /// @notice Adds new strategies to the vault
-    /// @dev Only callable by addresses with STRATEGIST_ROLE
-    function addStrategies(IBaseVault[] calldata strategies_) external notPaused onlyAuth(STRATEGIST_ROLE) {
-        for (uint256 i = 0; i < strategies_.length; i++) {
-            _addStrategy(strategies_[i], asset(), address(auth));
-        }
-    }
-
-    /// @notice Removes strategies from the vault and transfers all assets, if any, to another strategy
-    /// @dev Only callable by addresses with STRATEGIST_ROLE
-    // slither-disable-next-line calls-loop
-    function removeStrategies(IBaseVault[] calldata strategiesToRemove, IBaseVault strategyToReceiveAssets)
-        external
-        nonReentrant
-        notPaused
-        onlyAuth(STRATEGIST_ROLE)
-    {
-        if (!isStrategy(strategyToReceiveAssets)) {
-            revert InvalidStrategy(address(strategyToReceiveAssets));
-        }
-        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
-            if (strategiesToRemove[i] == strategyToReceiveAssets) {
-                revert InvalidStrategy(address(strategyToReceiveAssets));
-            }
-        }
-
-        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
-            IBaseVault strategyToRemove = strategiesToRemove[i];
-            uint256 maxWithdrawAmount = strategyToRemove.maxWithdraw(address(this));
-            if (maxWithdrawAmount > 0) {
-                uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
-                // slither-disable-next-line unused-return
-                strategyToRemove.withdraw(maxWithdrawAmount, address(this), address(this));
-                uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
-                uint256 assets = balanceAfter - balanceBefore;
-                IERC20(asset()).forceApprove(address(strategyToReceiveAssets), assets);
-                // slither-disable-next-line unused-return
-                strategyToReceiveAssets.deposit(assets, address(this));
-            }
-            _removeStrategy(strategyToRemove);
         }
     }
 

@@ -78,12 +78,12 @@ Target integrations:
 ## Roles and Permissions
 
 ```md
-| Role                | Timelock | Actions                                         |
-|---------------------|----------|-------------------------------------------------|
-| DEFAULT_ADMIN_ROLE  | 7d       | upgrade, assign all other roles, set fees       |
-| VAULT_MANAGER_ROLE  | 1d       | unpause, addStrategies, removeStrategies        |
-| STRATEGIST_ROLE     | 0        | rebalance, reorderStrategies                    |
-| GUARDIAN_ROLE       | 0        | cancel any pending proposals, pause             |
+| Role                | Timelock | Actions                                                     |
+|---------------------|----------|-------------------------------------------------------------|
+| DEFAULT_ADMIN_ROLE  | 7d       | upgrade, grantRole, revokeRole, setPerformanceFeePercent    |
+| VAULT_MANAGER_ROLE  | 1d       | unpause, addStrategies, removeStrategies, setTotalAssetsCap |
+| STRATEGIST_ROLE     | 0        | rebalance, reorderStrategies                                |
+| GUARDIAN_ROLE       | 0        | cancel any pending proposals, pause                         |
 ```
 
 ## Known Limitations

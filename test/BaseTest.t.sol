@@ -19,7 +19,7 @@ import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
-import {Auth, STRATEGIST_ROLE, SIZE_VAULT_ROLE} from "@src/Auth.sol";
+import {Auth, STRATEGIST_ROLE, SIZE_VAULT_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
 
@@ -31,6 +31,7 @@ contract BaseTest is Test, Setup, BaseScript {
     address internal charlie = address(0x30000);
     address internal admin = address(0x40000);
     address internal strategist = address(0x50000);
+    address internal manager = address(0x60000);
 
     function setUp() public virtual override {
         super.setUp();
@@ -64,6 +65,8 @@ contract BaseTest is Test, Setup, BaseScript {
 
         vm.prank(admin);
         auth.grantRole(STRATEGIST_ROLE, strategist);
+        vm.prank(admin);
+        auth.grantRole(VAULT_MANAGER_ROLE, manager);
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {
