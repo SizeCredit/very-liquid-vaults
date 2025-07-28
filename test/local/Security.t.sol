@@ -87,7 +87,7 @@ contract SecurityTest is BaseTest {
         vm.prank(admin);
         sizeMetaVault.removeStrategies(strategies, cashStrategyVault, 0);
 
-        uint256 amount = 100e6;
+        uint256 totalAssets = sizeMetaVault.totalAssets();
 
         // 1. Set performance fee to 20%
         uint256 feePercent = 0.2e18;
@@ -95,7 +95,7 @@ contract SecurityTest is BaseTest {
         sizeMetaVault.setPerformanceFeePercent(feePercent);
 
         // 2. Deposit 100 USDC from Alice => initial PPS = 1.0
-        _deposit(alice, sizeMetaVault, amount);
+        _deposit(alice, sizeMetaVault, totalAssets);
         assertEq(Math.mulDiv(sizeMetaVault.totalAssets(), 1e18, sizeMetaVault.totalSupply()), 1e18, "PPS should be 1");
 
         // 3. Simulate vault profit: 100% profit to the strategy
@@ -107,19 +107,20 @@ contract SecurityTest is BaseTest {
 
         assertEq(sizeMetaVault.balanceOf(admin), 0, "Admin should not have any shares");
 
-        uint256 aliceBalanceBefore = erc20Asset.balanceOf(alice);
-        uint256 totalSupplyBefore = sizeMetaVault.totalSupply();
-        // 4. Trigger _update()
-        vm.prank(alice);
-        sizeMetaVault.transfer(bob, aliceBalanceBefore);
+        console.log("totalSupplyBefore", sizeMetaVault.totalSupply());
+        console.log("totalAssetsBefore", sizeMetaVault.totalAssets());
+        console.log("balanceOf(alice)", sizeMetaVault.balanceOf(alice));
 
-        // 5. Compute expected fee shares:
-        // - The vault made a 100% profit
-        // - Profit = 100%, and performance fee is 20% => fee = 20% profit
-        // - PPS = 200% assets / 100% shares = 2
-        // - To compute how many shares the feeRecipient should receive for 20 USDC:
-        //      feeShares = convertToShares(feeAssets) = 20% / 2 = 10% shares
-        uint256 expectedFeeShares = totalSupplyBefore / 10;
+        uint256 totalSupplyBefore = sizeMetaVault.totalSupply();
+        uint256 balance = sizeMetaVault.maxWithdraw(alice);
+        _withdraw(alice, sizeMetaVault, balance);
+
+        console.log("totalSupplyAfter", sizeMetaVault.totalSupply());
+        console.log("totalAssetsAfter", sizeMetaVault.totalAssets());
+        console.log("balanceOf(alice)", sizeMetaVault.balanceOf(alice));
+
+        // 5. Compute expected fee shares
+        uint256 expectedFeeShares = totalSupplyBefore / 10 / 2;
 
         uint256 actualFeeShares = sizeMetaVault.balanceOf(admin);
         assertEq(actualFeeShares, expectedFeeShares, "Fee shares minted incorrectly");

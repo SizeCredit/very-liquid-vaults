@@ -11,4 +11,10 @@ abstract contract PropertiesSpecifications {
     string constant STRATEGY_02 = "STRATEGY_02: The SizeMetaVault always has at least 1 strategy";
     string constant TOTAL_ASSETS_CAP_01 =
         "TOTAL_ASSETS_CAP_01: Deposit reverts if amount + totalAssets() >= totalAssetsCap()";
+    string constant DEPOSIT_01 = "DEPOSIT_01: deposit(maxDeposit) should not revert";
+    string constant MINT_01 = "MINT_01: mint(maxMint) should not revert";
+    string constant WITHDRAW_01 = "WITHDRAW_01: withdraw(maxWithdraw) should not revert";
+    string constant WITHDRAW_02 = "WITHDRAW_02: withdraw(maxWithdraw) should leave balanceOf == 0";
+    string constant REDEEM_01 = "REDEEM_01: redeem(maxRedeem) should not revert";
+    string constant REDEEM_02 = "REDEEM_02: redeem(maxRedeem) should leave balanceOf == 0";
 }

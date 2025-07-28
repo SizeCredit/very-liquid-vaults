@@ -92,10 +92,8 @@ abstract contract PerformanceVault is BaseVault {
         return Math.mulDiv(totalAssets(), PERCENT, totalSupply());
     }
 
-    /// @notice Updates the high water mark and mints performance fees if applicable
-    function _update(address from, address to, uint256 value) internal override {
-        super._update(from, to, value);
-
+    /// @notice Mints performance fees if applicable
+    function _mintPerformanceFee() private {
         if (performanceFeePercent == 0) {
             return;
         }
@@ -116,5 +114,25 @@ abstract contract PerformanceVault is BaseVault {
                 emit PerformanceFeeMinted(feeRecipient, feeShares, feeAssets);
             }
         }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              ERC4626 OVERRIDES
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Deposits assets and mints shares, then mints performance fees if applicable
+    function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
+        super._deposit(caller, receiver, assets, shares);
+        _mintPerformanceFee();
+    }
+
+    /// @notice Withdraws assets and burns shares, then mints performance fees if applicable
+    function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
+        internal
+        virtual
+        override
+    {
+        super._withdraw(caller, receiver, owner, assets, shares);
+        _mintPerformanceFee();
     }
 }
