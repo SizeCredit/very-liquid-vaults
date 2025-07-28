@@ -344,17 +344,14 @@ contract SizeMetaVault is PerformanceVault {
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
 
-            // slither-disable-next-line incorrect-equality
-            if (depositAmount == 0) {
-                break;
-            }
-
-            IERC20(asset()).forceApprove(address(strategy), depositAmount);
-            // slither-disable-next-line unused-return
-            try strategy.deposit(depositAmount, address(this)) {
-                assetsToDeposit -= depositAmount;
-            } catch {
-                IERC20(asset()).forceApprove(address(strategy), 0);
+            if (depositAmount > 0) {
+                IERC20(asset()).forceApprove(address(strategy), depositAmount);
+                // slither-disable-next-line unused-return
+                try strategy.deposit(depositAmount, address(this)) {
+                    assetsToDeposit -= depositAmount;
+                } catch {
+                    IERC20(asset()).forceApprove(address(strategy), 0);
+                }
             }
         }
         if (assetsToDeposit > 0) {
@@ -374,16 +371,14 @@ contract SizeMetaVault is PerformanceVault {
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
             uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
 
-            if (withdrawAmount == 0) {
-                break;
+            if (withdrawAmount > 0) {
+                uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
+                // slither-disable-next-line unused-return
+                try strategy.withdraw(withdrawAmount, address(this), address(this)) {
+                    uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
+                    assetsToWithdraw -= (balanceAfter - balanceBefore);
+                } catch {}
             }
-
-            uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
-            // slither-disable-next-line unused-return
-            try strategy.withdraw(withdrawAmount, address(this), address(this)) {
-                uint256 balanceAfter = IERC20(asset()).balanceOf(address(this));
-                assetsToWithdraw -= (balanceAfter - balanceBefore);
-            } catch {}
         }
         if (assetsToWithdraw > 0) {
             revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);

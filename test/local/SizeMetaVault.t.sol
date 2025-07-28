@@ -17,6 +17,7 @@ import {IBaseVault} from "@src/IBaseVault.sol";
 import {console} from "forge-std/console.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     bool public expectRevert = false;
@@ -637,5 +638,53 @@ contract SizeMetaVaultTest is BaseTest {
             abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxWithdraw.selector, alice, 150e6, maxWithdraw)
         );
         _withdraw(alice, sizeMetaVault, 150e6);
+    }
+
+    function test_SizeMetaVault_deposit_continues_trying_from_other_strategies() public {
+        IBaseVault[] memory strategies = new IBaseVault[](3);
+        strategies[0] = erc4626StrategyVault;
+        strategies[1] = cashStrategyVault;
+        strategies[2] = aaveStrategyVault;
+
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        IERC4626 vault = erc4626StrategyVault.vault();
+        vm.mockCall(
+            address(vault),
+            abi.encodeWithSelector(IERC4626.maxDeposit.selector, address(erc4626StrategyVault)),
+            abi.encode(0)
+        );
+
+        _deposit(alice, sizeMetaVault, 100e6);
+
+        assertEq(sizeMetaVault.balanceOf(alice), 100e6);
+    }
+
+    function test_SizeMetaVault_withdraw_continues_trying_from_other_strategies() public {
+        IBaseVault[] memory strategies = new IBaseVault[](3);
+        strategies[0] = cashStrategyVault;
+        strategies[1] = erc4626StrategyVault;
+        strategies[2] = aaveStrategyVault;
+
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        _deposit(alice, sizeMetaVault, 100e6);
+        _deposit(bob, sizeMetaVault, 200e6);
+
+        vm.prank(strategist);
+        sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, 150e6, 0);
+
+        IERC4626 vault = erc4626StrategyVault.vault();
+        vm.mockCall(
+            address(vault),
+            abi.encodeWithSelector(IERC4626.maxWithdraw.selector, address(erc4626StrategyVault)),
+            abi.encode(0)
+        );
+
+        vm.prank(alice);
+        sizeMetaVault.withdraw(100e6, alice, alice);
+        assertEq(erc20Asset.balanceOf(alice), 100e6);
     }
 }
