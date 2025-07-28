@@ -80,7 +80,7 @@ contract CashStrategyVaultTest is BaseTest {
 
         uint256 pullAmount = 30e6;
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
+        sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0.01e18);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
         assertEq(cashStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalance + depositAmount - pullAmount);

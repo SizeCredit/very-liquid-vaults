@@ -79,7 +79,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         uint256 pullAmount = 30e6;
         vm.prank(strategist);
-        sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0);
+        sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0.01e18);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(
             erc20Asset.balanceOf(address(erc4626Vault)), balanceBeforeERC4626StrategyVault + depositAmount - pullAmount
@@ -111,7 +111,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         uint256 pullAmount = 30e6;
         vm.prank(strategist);
-        sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0);
+        sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0.01e18);
         assertEq(erc4626StrategyVault.balanceOf(alice), shares);
         assertEq(
             erc20Asset.balanceOf(address(erc4626Vault)), balanceBeforeERC4626StrategyVault + depositAmount - pullAmount

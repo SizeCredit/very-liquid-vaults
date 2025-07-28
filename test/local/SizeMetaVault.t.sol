@@ -101,12 +101,10 @@ contract SizeMetaVaultTest is BaseTest {
         _setLiquidityIndex(erc20Asset, index);
 
         vm.prank(strategist);
-        try sizeMetaVault.rebalance(strategyFrom, strategyTo, amount, amount) {
+        try sizeMetaVault.rebalance(strategyFrom, strategyTo, amount, 0) {
             assertEq(expectRevert, false);
         } catch (bytes memory err) {
-            assertEq(
-                err, abi.encodeWithSelector(SizeMetaVault.TransferredAmountLessThanMin.selector, amount - 1, amount)
-            );
+            assertEq(bytes4(err), SizeMetaVault.TransferredAmountLessThanMin.selector);
         }
     }
 
@@ -121,7 +119,7 @@ contract SizeMetaVaultTest is BaseTest {
         _mint(erc20Asset, address(cashStrategyVault), amount * 2);
 
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, amount);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0.01e18);
     }
 
     function test_SizeMetaVault_addStrategies_validation() public {
@@ -139,7 +137,7 @@ contract SizeMetaVaultTest is BaseTest {
 
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(0)));
-        sizeMetaVault.removeStrategies(strategies, IBaseVault(address(0)));
+        sizeMetaVault.removeStrategies(strategies, IBaseVault(address(0)), 0);
     }
 
     function test_SizeMetaVault_reorderStrategies_validation() public {
@@ -224,7 +222,7 @@ contract SizeMetaVaultTest is BaseTest {
         strategiesToRemove[0] = cashStrategyVault;
 
         vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, erc4626StrategyVault);
+        sizeMetaVault.removeStrategies(strategiesToRemove, erc4626StrategyVault, 0);
 
         _mint(erc20Asset, address(cashStrategyVault), 2 * cashAssets);
 
@@ -252,7 +250,7 @@ contract SizeMetaVaultTest is BaseTest {
         strategiesToRemove[0] = erc4626StrategyVault;
 
         vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, aaveStrategyVault);
+        sizeMetaVault.removeStrategies(strategiesToRemove, aaveStrategyVault, 0);
 
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         assertEq(lengthBefore - 1, lengthAfter);
@@ -375,7 +373,7 @@ contract SizeMetaVaultTest is BaseTest {
         strategiesToRemove[0] = cryticCashStrategyVault;
 
         vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategies, erc4626StrategyVault);
+        sizeMetaVault.removeStrategies(strategies, erc4626StrategyVault, 0);
     }
 
     function test_SizeMetaVault_removeStrategies() public {
@@ -403,12 +401,12 @@ contract SizeMetaVaultTest is BaseTest {
         }
 
         vm.startPrank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, cryticCashStrategyVault);
+        sizeMetaVault.removeStrategies(strategiesToRemove, cryticCashStrategyVault, 0);
 
         vm.expectRevert(
             abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
         );
-        sizeMetaVault.removeStrategies(strategies, cryticCashStrategyVault);
+        sizeMetaVault.removeStrategies(strategies, cryticCashStrategyVault, 0);
         vm.stopPrank();
 
         for (uint256 i = 0; i < strategiesToRemove.length; i++) {
@@ -424,7 +422,7 @@ contract SizeMetaVaultTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
         );
-        sizeMetaVault.removeStrategies(strategiesToRemove, cashStrategyVault);
+        sizeMetaVault.removeStrategies(strategiesToRemove, cashStrategyVault, 0);
     }
 
     function test_SizeMetaVault_deposit_withdraw() public {
@@ -531,7 +529,7 @@ contract SizeMetaVaultTest is BaseTest {
         }
 
         vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, newERC4626StrategyVault);
+        sizeMetaVault.removeStrategies(strategiesToRemove, newERC4626StrategyVault, 0);
 
         return newERC4626StrategyVault;
     }
@@ -611,7 +609,7 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.addStrategies(strategies);
 
         vm.prank(strategist);
-        sizeMetaVault.rebalance(newStrategy, cashStrategyVault, depositAmount / 2, 0);
+        sizeMetaVault.rebalance(newStrategy, cashStrategyVault, depositAmount / 2, 0.01e18);
 
         vm.prank(alice);
         sizeMetaVault.withdraw(withdrawAmount, alice, alice);
