@@ -46,7 +46,6 @@ abstract contract BaseVault is
 
     error NullAddress();
     error NullAmount();
-    error InvalidAsset(address asset);
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS

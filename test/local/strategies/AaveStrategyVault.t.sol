@@ -27,7 +27,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     function test_AaveStrategyVault_initialize_invalid_asset() public {
         vm.store(address(aaveStrategyVault), _initializableStorageSlot(), bytes32(uint256(0)));
         vm.prank(admin);
-        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(weth)));
+        vm.expectRevert(abi.encodeWithSelector(AaveStrategyVault.InvalidAsset.selector, address(weth)));
         aaveStrategyVault.initialize(
             auth, IERC20(address(weth)), "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, pool
         );
