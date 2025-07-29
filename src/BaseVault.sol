@@ -289,9 +289,4 @@ abstract contract BaseVault is
     function _maxDeposit() private view returns (uint256) {
         return Math.saturatingSub(totalAssetsCap, totalAssets());
     }
-
-    /// @notice Returns the maximum amount that can be minted
-    function _maxMint() private view returns (uint256) {
-        return convertToShares(_maxDeposit());
-    }
 }

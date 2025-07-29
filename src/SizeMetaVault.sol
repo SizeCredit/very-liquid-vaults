@@ -280,9 +280,6 @@ contract SizeMetaVault is PerformanceVault {
                 break;
             }
         }
-        if (!removed) {
-            revert InvalidStrategy(address(strategy));
-        }
     }
 
     /// @notice Internal function to set the default max slippage percent
@@ -370,6 +367,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to rebalance assets between two strategies
     /// @dev If before - after > maxSlippagePercent * amount, the _rebalance operation reverts
+    /// @dev We have maxSlippagePercent <= PERCENT since defaultMaxSlippagePercent has already been checked in setDefaultMaxSlippagePercent
     function _rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 maxSlippagePercent)
         private
     {
@@ -386,9 +384,6 @@ contract SizeMetaVault is PerformanceVault {
         }
         if (amount == 0) {
             revert NullAmount();
-        }
-        if (maxSlippagePercent > PERCENT) {
-            revert InvalidMaxSlippagePercent(maxSlippagePercent);
         }
 
         uint256 assetsBefore = _strategyAssets(strategyFrom) + _strategyAssets(strategyTo);

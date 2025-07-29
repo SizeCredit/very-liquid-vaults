@@ -118,6 +118,13 @@ contract SizeMetaVaultTest is BaseTest {
 
         _mint(erc20Asset, address(cashStrategyVault), amount * 2);
 
+        vm.prank(admin);
+        sizeMetaVault.setDefaultMaxSlippagePercent(0.02e18);
+
+        vm.prank(admin);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidMaxSlippagePercent.selector, 1.5e18));
+        sizeMetaVault.setDefaultMaxSlippagePercent(1.5e18);
+
         vm.prank(strategist);
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0.01e18);
     }
@@ -126,6 +133,10 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         sizeMetaVault.addStrategy(IBaseVault(address(0)));
+
+        vm.prank(manager);
+        vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(erc4626StrategyVault)));
+        sizeMetaVault.addStrategy(erc4626StrategyVault);
     }
 
     function test_SizeMetaVault_removeStrategy_validation() public {
