@@ -93,7 +93,7 @@ contract AaveStrategyVault is BaseVault {
         // handle supply cap
         uint256 supplyCapInWholeTokens = config.getSupplyCap();
         if (supplyCapInWholeTokens == 0) {
-            return type(uint256).max;
+            return super.maxDeposit(receiver);
         }
 
         uint256 tokenDecimals = config.getDecimals();

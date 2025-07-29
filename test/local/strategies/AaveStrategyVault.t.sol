@@ -262,6 +262,26 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         assertEq(aaveStrategyVault.maxRedeem(address(erc20Asset)), 0);
     }
 
+    function test_AaveStrategyVault_maxDeposit_supply_cap_0() public {
+        uint8 decimals = erc20Asset.decimals();
+        uint256 totalAssetsBefore = aaveStrategyVault.totalAssets();
+
+        vm.prank(admin);
+        pool.setConfiguration(
+            address(erc20Asset), DataTypes.ReserveConfigurationMap({data: (1 << 56) | (decimals << 48)})
+        );
+
+        assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), type(uint256).max);
+        assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), type(uint256).max);
+
+        uint256 totalAssetsCap = 30e6;
+        vm.prank(admin);
+        aaveStrategyVault.setTotalAssetsCap(totalAssetsCap);
+
+        assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
+        assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
+    }
+
     function test_AaveStrategyVault_maxDeposit_supply_cap() public {
         uint8 decimals = erc20Asset.decimals();
         uint256 supplyCap = 42;
