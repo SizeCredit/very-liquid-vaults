@@ -17,6 +17,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract AaveStrategyVaultTest is BaseTest, Initializable {
     uint256 initialBalance;
     uint256 initialTotalAssets;
+    bool expectRevert = false;
 
     function setUp() public override {
         super.setUp();
@@ -342,5 +343,31 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
 
         assertEq(aaveStrategyVault.maxWithdraw(address(sizeMetaVault)), 30e6);
         assertEq(aaveStrategyVault.maxRedeem(address(sizeMetaVault)), aaveStrategyVault.previewRedeem(30e6));
+    }
+
+    function testFuzz_AaveStrategyVault_deposit_assets_shares_0_reverts(uint256 amount, uint256 index1) public {
+        amount = bound(amount, 1, 100e6);
+        index1 = bound(index1, 1e27, 1.3e27);
+
+        _mint(erc20Asset, address(aaveStrategyVault), amount * 2);
+        _setLiquidityIndex(erc20Asset, index1);
+
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(aaveStrategyVault), amount);
+
+        vm.prank(alice);
+        try aaveStrategyVault.deposit(amount, alice) {
+            index1 = bound(index1, 2 * index1, 10 * index1);
+            _setLiquidityIndex(erc20Asset, index1);
+
+            vm.prank(alice);
+            aaveStrategyVault.redeem(1, alice, alice);
+        } catch (bytes memory err) {
+            assertEq(bytes4(err), BaseVault.NullAmount.selector);
+        }
+    }
+
+    function test_AaveStrategyVault_deposit_assets_shares_0_reverts_concrete() public {
+        testFuzz_AaveStrategyVault_deposit_assets_shares_0_reverts(1, 1198633698108951810697775384);
     }
 }

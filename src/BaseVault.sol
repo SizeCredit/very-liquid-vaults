@@ -184,6 +184,28 @@ abstract contract BaseVault is
                               ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Deposits assets into the vault
+    /// @dev Prevents deposits that would result in 0 shares received
+    function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
+        if (assets > 0 && shares == 0) {
+            revert NullAmount();
+        }
+        super._deposit(caller, receiver, assets, shares);
+    }
+
+    /// @notice Withdraws assets from the vault
+    /// @dev Prevents withdrawals that would result in 0 assets taken
+    function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
+        internal
+        virtual
+        override
+    {
+        if (shares > 0 && assets == 0) {
+            revert NullAmount();
+        }
+        super._withdraw(caller, receiver, owner, assets, shares);
+    }
+
     /// @notice Internal function called during token transfers
     /// @dev This function is overridden to ensure that the vault is not paused
     function _update(address from, address to, uint256 value) internal virtual override notPaused {

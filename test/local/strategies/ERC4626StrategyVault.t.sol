@@ -427,4 +427,32 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         assertEq(erc4626StrategyVault.maxRedeem(address(alice)), shares - 2);
     }
+
+    function testFuzz_ERC4626StrategyVault_deposit_assets_shares_0_reverts(uint256 amount) public {
+        amount = bound(amount, 1, 100e6);
+
+        _mint(erc20Asset, address(erc4626StrategyVault.vault()), amount * 2);
+
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(erc4626StrategyVault), amount);
+
+        vm.prank(alice);
+        try erc4626StrategyVault.deposit(amount, alice) {
+            _mint(erc20Asset, address(erc4626StrategyVault.vault()), amount / 10);
+
+            vm.prank(alice);
+            try erc4626StrategyVault.redeem(1, alice, alice) {}
+            catch (bytes memory err) {
+                assertEq(bytes4(err), BaseVault.NullAmount.selector);
+            }
+        } catch (bytes memory err) {
+            assertEq(bytes4(err), BaseVault.NullAmount.selector);
+        }
+    }
+
+    function test_ERC4626StrategyVault_deposit_assets_shares_0_reverts_concrete() public {
+        testFuzz_ERC4626StrategyVault_deposit_assets_shares_0_reverts(
+            1108790381926929861836164074425007624709311183104891332381950016717928201
+        );
+    }
 }
