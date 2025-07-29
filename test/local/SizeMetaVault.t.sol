@@ -122,22 +122,16 @@ contract SizeMetaVaultTest is BaseTest {
         sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0.01e18);
     }
 
-    function test_SizeMetaVault_addStrategies_validation() public {
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = IBaseVault(address(0));
-
+    function test_SizeMetaVault_addStrategy_validation() public {
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
-        sizeMetaVault.addStrategies(strategies);
+        sizeMetaVault.addStrategy(IBaseVault(address(0)));
     }
 
-    function test_SizeMetaVault_removeStrategies_validation() public {
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = IBaseVault(address(0));
-
+    function test_SizeMetaVault_removeStrategy_validation() public {
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(0)));
-        sizeMetaVault.removeStrategies(strategies, IBaseVault(address(0)), 0);
+        sizeMetaVault.removeStrategy(IBaseVault(address(0)), IBaseVault(address(0)), 0);
     }
 
     function test_SizeMetaVault_reorderStrategies_validation() public {
@@ -218,11 +212,8 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
         uint256 cashAssets = cashStrategyVault.totalAssets();
 
-        IBaseVault[] memory strategiesToRemove = new IBaseVault[](1);
-        strategiesToRemove[0] = cashStrategyVault;
-
         vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, erc4626StrategyVault, 0);
+        sizeMetaVault.removeStrategy(cashStrategyVault, erc4626StrategyVault, 0);
 
         _mint(erc20Asset, address(cashStrategyVault), 2 * cashAssets);
 
@@ -246,11 +237,8 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
         uint256 cashAssets = cashStrategyVault.totalAssets();
 
-        IBaseVault[] memory strategiesToRemove = new IBaseVault[](1);
-        strategiesToRemove[0] = erc4626StrategyVault;
-
         vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, aaveStrategyVault, 0);
+        sizeMetaVault.removeStrategy(erc4626StrategyVault, aaveStrategyVault, 0);
 
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         assertEq(lengthBefore - 1, lengthAfter);
@@ -287,16 +275,13 @@ contract SizeMetaVaultTest is BaseTest {
         assertTrue(sizeMetaVault.isStrategy(strategies[2]));
     }
 
-    function test_SizeMetaVault_addStrategies() public {
+    function test_SizeMetaVault_addStrategy() public {
         address oneStrategy = address(cryticCashStrategyVault);
 
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
 
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = IBaseVault(oneStrategy);
-
         vm.prank(manager);
-        sizeMetaVault.addStrategies(strategies);
+        sizeMetaVault.addStrategy(IBaseVault(oneStrategy));
 
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         uint256 indexLastStrategy = lengthAfter - 1;
@@ -307,32 +292,14 @@ contract SizeMetaVaultTest is BaseTest {
         vm.assertEq(oneStrategy, lastStrategyAdded);
     }
 
-    function test_SizeMetaVault_addStrategies_duplicates_must_revert() public {
-        IBaseVault[] memory strategies = new IBaseVault[](2);
-        strategies[0] = cryticCashStrategyVault;
-        strategies[1] = cryticCashStrategyVault;
-
-        vm.prank(manager);
-        vm.expectRevert(
-            abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
-        );
-        sizeMetaVault.addStrategies(strategies);
-    }
-
-    function test_SizeMetaVault_addStrategies_invalid_asset_must_revert() public {
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = cashStrategyVaultWETH;
-
+    function test_SizeMetaVault_addStrategy_invalid_asset_must_revert() public {
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cashStrategyVaultWETH)));
-        sizeMetaVault.addStrategies(strategies);
+        sizeMetaVault.addStrategy(cashStrategyVaultWETH);
     }
 
-    function test_SizeMetaVault_addStrategies_invalid_auth_must_revert() public {
+    function test_SizeMetaVault_addStrategy_invalid_auth_must_revert() public {
         address invalidAuth = address(0xDEAD);
-
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = cryticCashStrategyVault;
 
         vm.mockCall(
             address(cryticCashStrategyVault), abi.encodeWithSelector(IBaseVault.auth.selector), abi.encode(invalidAuth)
@@ -342,41 +309,30 @@ contract SizeMetaVaultTest is BaseTest {
         vm.expectRevert(
             abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
         );
-        sizeMetaVault.addStrategies(strategies);
+        sizeMetaVault.addStrategy(cryticCashStrategyVault);
     }
 
-    function test_SizeMetaVault_addStrategies_address_zero_must_revert() public {
-        address addressZero = address(0);
-
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = IBaseVault(addressZero);
-
+    function test_SizeMetaVault_addStrategy_address_zero_must_revert() public {
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
 
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         vm.prank(manager);
-        sizeMetaVault.addStrategies(strategies);
+        sizeMetaVault.addStrategy(IBaseVault(address(0)));
 
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
 
         assertEq(lengthBefore, lengthAfter);
     }
 
-    function test_SizeMetaVault_addStrategies_removeStrategies_admin_is_not_timelocked() public {
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = cryticCashStrategyVault;
-
-        vm.prank(admin);
-        sizeMetaVault.addStrategies(strategies);
-
-        IBaseVault[] memory strategiesToRemove = new IBaseVault[](1);
-        strategiesToRemove[0] = cryticCashStrategyVault;
+    function test_SizeMetaVault_addStrategy_removeStrategy() public {
+        vm.prank(manager);
+        sizeMetaVault.addStrategy(cryticCashStrategyVault);
 
         vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategies, erc4626StrategyVault, 0);
+        sizeMetaVault.removeStrategy(erc4626StrategyVault, cashStrategyVault, 0);
     }
 
-    function test_SizeMetaVault_removeStrategies() public {
+    function test_SizeMetaVault_removeStrategy() public {
         _deposit(alice, sizeMetaVault, 100e6);
 
         uint256 length = sizeMetaVault.strategiesCount();
@@ -389,40 +345,29 @@ contract SizeMetaVaultTest is BaseTest {
             sizeMetaVault.rebalance(currentStrategies[i], currentStrategies[(i + 1) % length], strategyAssets / 2, 0);
         }
 
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = cryticCashStrategyVault;
-
         vm.prank(manager);
-        sizeMetaVault.addStrategies(strategies);
+        sizeMetaVault.addStrategy(cryticCashStrategyVault);
 
-        IBaseVault[] memory strategiesToRemove = new IBaseVault[](currentStrategies.length);
         for (uint256 i = 0; i < currentStrategies.length; i++) {
-            strategiesToRemove[i] = IBaseVault(currentStrategies[i]);
+            vm.startPrank(manager);
+            sizeMetaVault.removeStrategy(currentStrategies[i], cryticCashStrategyVault, 0);
         }
-
-        vm.startPrank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, cryticCashStrategyVault, 0);
 
         vm.expectRevert(
             abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
         );
-        sizeMetaVault.removeStrategies(strategies, cryticCashStrategyVault, 0);
+        sizeMetaVault.removeStrategy(cryticCashStrategyVault, cryticCashStrategyVault, 0);
         vm.stopPrank();
 
-        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
-            assertGt(strategiesToRemove[i].totalAssets(), 0);
-        }
+        assertGt(cryticCashStrategyVault.totalAssets(), 0);
     }
 
-    function test_SizeMetaVault_removeStrategies_invalid_strategy_must_revert() public {
-        IBaseVault[] memory strategiesToRemove = new IBaseVault[](1);
-        strategiesToRemove[0] = cryticCashStrategyVault;
-
+    function test_SizeMetaVault_removeStrategy_invalid_strategy_must_revert() public {
         vm.prank(admin);
         vm.expectRevert(
             abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(cryticCashStrategyVault))
         );
-        sizeMetaVault.removeStrategies(strategiesToRemove, cashStrategyVault, 0);
+        sizeMetaVault.removeStrategy(cryticCashStrategyVault, cashStrategyVault, 0);
     }
 
     function test_SizeMetaVault_deposit_withdraw() public {
@@ -521,15 +466,12 @@ contract SizeMetaVaultTest is BaseTest {
         newStrategies[0] = newERC4626StrategyVault;
 
         vm.prank(manager);
-        sizeMetaVault.addStrategies(newStrategies);
+        sizeMetaVault.addStrategy(newERC4626StrategyVault);
 
-        IBaseVault[] memory strategiesToRemove = new IBaseVault[](oldStrategies.length);
         for (uint256 i = 0; i < oldStrategies.length; i++) {
-            strategiesToRemove[i] = IBaseVault(oldStrategies[i]);
+            vm.prank(manager);
+            sizeMetaVault.removeStrategy(oldStrategies[i], newERC4626StrategyVault, 0);
         }
-
-        vm.prank(manager);
-        sizeMetaVault.removeStrategies(strategiesToRemove, newERC4626StrategyVault, 0);
 
         return newERC4626StrategyVault;
     }
@@ -603,10 +545,8 @@ contract SizeMetaVaultTest is BaseTest {
         );
         sizeMetaVault.withdraw(withdrawAmount, alice, alice);
 
-        IBaseVault[] memory strategies = new IBaseVault[](1);
-        strategies[0] = cashStrategyVault;
-        vm.prank(admin);
-        sizeMetaVault.addStrategies(strategies);
+        vm.prank(manager);
+        sizeMetaVault.addStrategy(cashStrategyVault);
 
         vm.prank(strategist);
         sizeMetaVault.rebalance(newStrategy, cashStrategyVault, depositAmount / 2, 0.01e18);
@@ -618,22 +558,25 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(erc20Asset.balanceOf(alice), withdrawAmount);
     }
 
-    function test_SizeMetaVault_addStrategies_max_strategies_exceeded() public {
+    function test_SizeMetaVault_addStrategy_max_strategies_exceeded() public {
         ERC4626StrategyVaultScript deployer = new ERC4626StrategyVaultScript();
-        IBaseVault[] memory strategies = new IBaseVault[](10);
-        for (uint256 i = 0; i < strategies.length; i++) {
+        uint256 maxStrategies = sizeMetaVault.MAX_STRATEGIES();
+        uint256 currentStrategiesCount = sizeMetaVault.strategiesCount();
+        uint256 length = maxStrategies * 2;
+        for (uint256 i = currentStrategiesCount; i <= length; i++) {
             ERC4626Mock vault = new ERC4626Mock(address(erc20Asset));
             _mint(erc20Asset, address(deployer), FIRST_DEPOSIT_AMOUNT);
-            strategies[i] = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault);
+            IBaseVault strategy = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault);
+            if (i >= maxStrategies) {
+                vm.expectRevert(
+                    abi.encodeWithSelector(
+                        SizeMetaVault.MaxStrategiesExceeded.selector, maxStrategies + 1, maxStrategies
+                    )
+                );
+            }
+            vm.prank(manager);
+            sizeMetaVault.addStrategy(strategy);
         }
-
-        uint256 maxStrategies = sizeMetaVault.MAX_STRATEGIES();
-
-        vm.prank(manager);
-        vm.expectRevert(
-            abi.encodeWithSelector(SizeMetaVault.MaxStrategiesExceeded.selector, maxStrategies + 1, maxStrategies)
-        );
-        sizeMetaVault.addStrategies(strategies);
     }
 
     function test_SizeMetaVault_maxWithdraw_cannot_be_used_to_steal_assets() public {

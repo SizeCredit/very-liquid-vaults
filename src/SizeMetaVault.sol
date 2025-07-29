@@ -164,33 +164,27 @@ contract SizeMetaVault is PerformanceVault {
                               VAULT MANAGER FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Adds new strategies to the vault
+    /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
-    function addStrategies(IBaseVault[] calldata strategies_) external notPaused onlyAuth(VAULT_MANAGER_ROLE) {
-        for (uint256 i = 0; i < strategies_.length; i++) {
-            _addStrategy(strategies_[i], asset(), address(auth));
-        }
+    function addStrategy(IBaseVault strategy_) external notPaused onlyAuth(VAULT_MANAGER_ROLE) {
+        _addStrategy(strategy_, asset(), address(auth));
     }
 
-    /// @notice Removes strategies from the vault and transfers all assets, if any, to another strategy
+    /// @notice Removes a strategy from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
-    // slither-disable-next-line calls-loop
-    function removeStrategies(
-        IBaseVault[] calldata strategiesToRemove,
-        IBaseVault strategyToReceiveAssets,
-        uint256 maxSlippagePercent
-    ) external nonReentrant notPaused onlyAuth(VAULT_MANAGER_ROLE) {
-        for (uint256 i = 0; i < strategiesToRemove.length; i++) {
-            IBaseVault strategyToRemove = strategiesToRemove[i];
-            if (!isStrategy(strategyToRemove)) {
-                revert InvalidStrategy(address(strategyToRemove));
-            }
-            uint256 strategyAssets = _strategyAssets(strategyToRemove);
-            if (strategyAssets > 0) {
-                _rebalance(strategyToRemove, strategyToReceiveAssets, strategyAssets, maxSlippagePercent);
-            }
-            _removeStrategy(strategyToRemove);
+    function removeStrategy(IBaseVault strategyToRemove, IBaseVault strategyToReceiveAssets, uint256 maxSlippagePercent)
+        external
+        notPaused
+        onlyAuth(VAULT_MANAGER_ROLE)
+    {
+        if (!isStrategy(strategyToRemove)) {
+            revert InvalidStrategy(address(strategyToRemove));
         }
+        uint256 strategyMaxWithdraw = strategyToRemove.maxWithdraw(address(this));
+        if (strategyMaxWithdraw > 0) {
+            _rebalance(strategyToRemove, strategyToReceiveAssets, strategyMaxWithdraw, maxSlippagePercent);
+        }
+        _removeStrategy(strategyToRemove);
     }
 
     /// @notice Sets the default max slippage percent

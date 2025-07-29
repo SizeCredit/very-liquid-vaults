@@ -81,11 +81,10 @@ contract SecurityTest is BaseTest {
     }
 
     function test_Security_fee_minting_uses_correct_share_conversion() public {
-        IBaseVault[] memory strategies = new IBaseVault[](2);
-        strategies[0] = erc4626StrategyVault;
-        strategies[1] = aaveStrategyVault;
         vm.prank(admin);
-        sizeMetaVault.removeStrategies(strategies, cashStrategyVault, 0);
+        sizeMetaVault.removeStrategy(erc4626StrategyVault, cashStrategyVault, 0);
+        vm.prank(admin);
+        sizeMetaVault.removeStrategy(aaveStrategyVault, cashStrategyVault, 0);
 
         uint256 totalAssets = sizeMetaVault.totalAssets();
 
