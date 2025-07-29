@@ -64,7 +64,11 @@ contract ERC4626StrategyVault is BaseVault {
 
     /// @notice Returns the maximum number of shares that can be minted
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
-        return Math.min(vault.maxMint(address(this)), super.maxMint(receiver));
+        uint256 maxDepositReceiver = maxDeposit(receiver);
+        uint256 maxDepositInShares = maxDepositReceiver == type(uint256).max
+            ? type(uint256).max
+            : _convertToShares(maxDepositReceiver, Math.Rounding.Floor);
+        return Math.min(maxDepositInShares, super.maxMint(receiver));
     }
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
@@ -74,7 +78,11 @@ contract ERC4626StrategyVault is BaseVault {
 
     /// @notice Returns the maximum number of shares that can be redeemed
     function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
-        return Math.min(vault.maxRedeem(address(this)), super.maxRedeem(owner));
+        uint256 maxWithdrawOwner = maxWithdraw(owner);
+        uint256 maxWithdrawInShares = maxWithdrawOwner == type(uint256).max
+            ? type(uint256).max
+            : _convertToShares(maxWithdrawOwner, Math.Rounding.Floor);
+        return Math.min(maxWithdrawInShares, super.maxRedeem(owner));
     }
 
     /// @notice Returns the total assets managed by this strategy
