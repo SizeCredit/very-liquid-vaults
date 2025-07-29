@@ -109,7 +109,7 @@ contract BaseVaultTest is BaseTest {
         baseVault.deposit(amount, alice);
     }
 
-    function test_BaseVault_deposit_whenAuthPaused_reverts() public {
+    function test_BaseVault_deposit_when_auth_paused_reverts() public {
         uint256 amount = 100e6;
         _mint(erc20Asset, alice, amount);
         _approve(alice, erc20Asset, address(baseVault), amount);
