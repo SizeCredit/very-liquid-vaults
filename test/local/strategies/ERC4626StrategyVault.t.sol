@@ -8,7 +8,7 @@ import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {Auth, SIZE_VAULT_ROLE} from "@src/Auth.sol";
+import {Auth} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
@@ -440,6 +440,9 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         try erc4626StrategyVault.deposit(amount, alice) {
             _mint(erc20Asset, address(erc4626StrategyVault.vault()), amount / 10);
 
+            uint256 maxRedeem = erc4626StrategyVault.maxRedeem(alice);
+            vm.assume(maxRedeem >= 1);
+
             vm.prank(alice);
             try erc4626StrategyVault.redeem(1, alice, alice) {}
             catch (bytes memory err) {
@@ -450,7 +453,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         }
     }
 
-    function test_ERC4626StrategyVault_deposit_assets_shares_0_reverts_concrete() public {
+    function test_ERC4626StrategyVault_deposit_assets_shares_0_reverts_concrete_01() public {
         testFuzz_ERC4626StrategyVault_deposit_assets_shares_0_reverts(
             1108790381926929861836164074425007624709311183104891332381950016717928201
         );

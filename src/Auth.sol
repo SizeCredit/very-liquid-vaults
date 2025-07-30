@@ -12,8 +12,6 @@ bytes32 constant VAULT_MANAGER_ROLE = keccak256("VAULT_MANAGER_ROLE");
 bytes32 constant STRATEGIST_ROLE = keccak256("STRATEGIST_ROLE");
 bytes32 constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
 
-bytes32 constant SIZE_VAULT_ROLE = keccak256("SIZE_VAULT_ROLE");
-
 /// @title Auth
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
