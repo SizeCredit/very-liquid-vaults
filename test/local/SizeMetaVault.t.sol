@@ -11,6 +11,7 @@ import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
 import {VaultMockRevertOnDeposit} from "@test/mocks/VaultMockRevertOnDeposit.t.sol";
 import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
 import {VaultMockAssetFeeOnWithdraw} from "@test/mocks/VaultMockAssetFeeOnWithdraw.t.sol";
+import {VaultMockAssetFeeOnDeposit} from "@test/mocks/VaultMockAssetFeeOnDeposit.t.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
 import {BaseVault} from "@src/BaseVault.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
@@ -25,11 +26,13 @@ contract SizeMetaVaultTest is BaseTest {
     enum VaultType {
         REVERT_ON_DEPOSIT,
         REVERT_ON_WITHDRAW,
+        ASSET_FEE_ON_DEPOSIT,
         ASSET_FEE_ON_WITHDRAW
     }
 
     VaultMockRevertOnDeposit vault_revertDeposit;
     VaultMockRevertOnWithdraw vault_revertWithdraw;
+    VaultMockAssetFeeOnDeposit vault_assetFeeOnDeposit;
     VaultMockAssetFeeOnWithdraw vault_assetFeeOnWithdraw;
 
     function test_SizeMetaVault_initialize() public view {
@@ -462,6 +465,11 @@ contract SizeMetaVaultTest is BaseTest {
             vault_revertWithdraw = new VaultMockRevertOnWithdraw(bob, erc20Asset, "VaultMockRevertOnWithdraw", "VMO");
             vm.label(address(vault_revertWithdraw), "VaultMockRevertOnWithdraw");
             newERC4626StrategyVault = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault_revertWithdraw);
+        } else if (vaultType == VaultType.ASSET_FEE_ON_DEPOSIT) {
+            vault_assetFeeOnDeposit =
+                new VaultMockAssetFeeOnDeposit(bob, erc20Asset, "VaultMockAssetFeeOnDeposit", "VMO");
+            vm.label(address(vault_assetFeeOnDeposit), "VaultMockAssetFeeOnDeposit");
+            newERC4626StrategyVault = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault_assetFeeOnDeposit);
         } else if (vaultType == VaultType.ASSET_FEE_ON_WITHDRAW) {
             vault_assetFeeOnWithdraw =
                 new VaultMockAssetFeeOnWithdraw(bob, erc20Asset, "VaultMockAssetFeeOnWithdraw", "VMO");
@@ -479,10 +487,15 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(manager);
         sizeMetaVault.addStrategy(newERC4626StrategyVault);
 
+        uint256 defaultMaxSlippagePercent = sizeMetaVault.defaultMaxSlippagePercent();
+        vm.prank(manager);
+        sizeMetaVault.setDefaultMaxSlippagePercent(1e18);
         for (uint256 i = 0; i < oldStrategies.length; i++) {
             vm.prank(manager);
-            sizeMetaVault.removeStrategy(oldStrategies[i], newERC4626StrategyVault, 0);
+            sizeMetaVault.removeStrategy(oldStrategies[i], newERC4626StrategyVault, 1e18);
         }
+        vm.prank(manager);
+        sizeMetaVault.setDefaultMaxSlippagePercent(defaultMaxSlippagePercent);
 
         return newERC4626StrategyVault;
     }
@@ -530,6 +543,25 @@ contract SizeMetaVaultTest is BaseTest {
             )
         );
         sizeMetaVault.withdraw(withdrawableAssets, alice, alice);
+    }
+
+    function test_SizeMetaVault_deposit_does_not_revert_if_asset_fee_on_deposit() public {
+        IBaseVault newStrategy = _deploy_new_ERC4626StrategyVault(VaultType.ASSET_FEE_ON_DEPOSIT);
+
+        uint256 depositAmount = 1000e6;
+
+        _mint(erc20Asset, alice, depositAmount);
+        _approve(alice, erc20Asset, address(sizeMetaVault), depositAmount);
+
+        uint256 depositFee =
+            depositAmount * vault_assetFeeOnDeposit.ASSET_FEE_PERCENT() / vault_assetFeeOnDeposit.PERCENT();
+        uint256 shares = sizeMetaVault.previewDeposit(depositAmount);
+
+        vm.prank(alice);
+        sizeMetaVault.deposit(depositAmount, alice);
+
+        assertGt(sizeMetaVault.balanceOf(alice), 0);
+        assertLt(sizeMetaVault.convertToAssets(sizeMetaVault.balanceOf(alice)), depositAmount);
     }
 
     function test_SizeMetaVault_withdraw_does_not_revert_if_asset_fee_on_withdraw() public {

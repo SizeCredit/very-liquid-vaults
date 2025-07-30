@@ -187,9 +187,7 @@ abstract contract BaseVault is
     /// @notice Deposits assets into the vault
     /// @dev Prevents deposits that would result in 0 shares received
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
-        if (assets > 0 && shares == 0) {
-            revert NullAmount();
-        }
+        __BaseVault_deposit_check(caller, receiver, assets, shares);
         super._deposit(caller, receiver, assets, shares);
     }
 
@@ -200,9 +198,7 @@ abstract contract BaseVault is
         virtual
         override
     {
-        if (shares > 0 && assets == 0) {
-            revert NullAmount();
-        }
+        __BaseVault_withdraw_check(caller, receiver, owner, assets, shares);
         super._withdraw(caller, receiver, owner, assets, shares);
     }
 
@@ -310,5 +306,26 @@ abstract contract BaseVault is
     /// @notice Returns the maximum amount that can be deposited
     function _maxDeposit() private view returns (uint256) {
         return Math.saturatingSub(totalAssetsCap, totalAssets());
+    }
+
+    function __BaseVault_deposit_check(address, /*caller*/ address, /*receiver*/ uint256 assets, uint256 shares)
+        internal
+        pure
+    {
+        if (assets > 0 && shares == 0) {
+            revert NullAmount();
+        }
+    }
+
+    function __BaseVault_withdraw_check(
+        address, /*caller*/
+        address, /*receiver*/
+        address, /*owner*/
+        uint256 assets,
+        uint256 shares
+    ) internal pure {
+        if (shares > 0 && assets == 0) {
+            revert NullAmount();
+        }
     }
 }
