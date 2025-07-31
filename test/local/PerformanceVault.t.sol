@@ -65,17 +65,18 @@ contract PerformanceVaultTest is BaseTest {
 
         _deposit(alice, sizeMetaVault, 100e6);
 
-        vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, 100e6, 0);
-
-        _mint(erc20Asset, address(cashStrategyVault), 300e6);
-        _deposit(alice, sizeMetaVault, 200e6);
-
         uint256 sharesBefore = sizeMetaVault.balanceOf(admin);
 
-        _withdraw(alice, sizeMetaVault, 50e6);
+        _mint(erc20Asset, address(cashStrategyVault), 300e6);
+        _deposit(alice, sizeMetaVault, 70e6);
 
         uint256 sharesAfter = sizeMetaVault.balanceOf(admin);
+
         assertGt(sharesAfter, sharesBefore);
+
+        _deposit(alice, sizeMetaVault, 40e6);
+
+        uint256 sharesFinal = sizeMetaVault.balanceOf(admin);
+        assertEq(sharesFinal, sharesAfter);
     }
 }

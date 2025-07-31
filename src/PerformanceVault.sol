@@ -122,8 +122,8 @@ abstract contract PerformanceVault is BaseVault {
 
     /// @notice Deposits assets and mints shares, then mints performance fees if applicable
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
-        super._deposit(caller, receiver, assets, shares);
         _mintPerformanceFee();
+        super._deposit(caller, receiver, assets, shares);
     }
 
     /// @notice Withdraws assets and burns shares, then mints performance fees if applicable
@@ -132,7 +132,7 @@ abstract contract PerformanceVault is BaseVault {
         virtual
         override
     {
-        super._withdraw(caller, receiver, owner, assets, shares);
         _mintPerformanceFee();
+        super._withdraw(caller, receiver, owner, assets, shares);
     }
 }
