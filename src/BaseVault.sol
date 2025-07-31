@@ -187,6 +187,7 @@ abstract contract BaseVault is
     /// @notice Deposits assets into the vault
     /// @dev Prevents deposits that would result in 0 shares received
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
+        // slither-disable-next-line incorrect-equality
         if (assets > 0 && shares == 0) {
             revert NullAmount();
         }
@@ -200,6 +201,7 @@ abstract contract BaseVault is
         virtual
         override
     {
+        // slither-disable-next-line incorrect-equality
         if (shares > 0 && assets == 0) {
             revert NullAmount();
         }

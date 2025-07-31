@@ -65,6 +65,7 @@ contract ERC4626StrategyVault is BaseVault {
     /// @notice Returns the maximum number of shares that can be minted
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 maxDepositReceiver = maxDeposit(receiver);
+        // slither-disable-next-line incorrect-equality
         uint256 maxDepositInShares = maxDepositReceiver == type(uint256).max
             ? type(uint256).max
             : _convertToShares(maxDepositReceiver, Math.Rounding.Floor);
@@ -79,6 +80,7 @@ contract ERC4626StrategyVault is BaseVault {
     /// @notice Returns the maximum number of shares that can be redeemed
     function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
         uint256 maxWithdrawOwner = maxWithdraw(owner);
+        // slither-disable-next-line incorrect-equality
         uint256 maxWithdrawInShares = maxWithdrawOwner == type(uint256).max
             ? type(uint256).max
             : _convertToShares(maxWithdrawOwner, Math.Rounding.Floor);

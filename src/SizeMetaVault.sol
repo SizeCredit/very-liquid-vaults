@@ -93,6 +93,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Returns the maximum number of shares that can be minted
     function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
         uint256 maxDepositReceiver = maxDeposit(receiver);
+        // slither-disable-next-line incorrect-equality
         uint256 maxDepositInShares = maxDepositReceiver == type(uint256).max
             ? type(uint256).max
             : _convertToShares(maxDepositReceiver, Math.Rounding.Floor);
@@ -107,6 +108,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Returns the maximum number of shares that can be redeemed
     function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
         uint256 maxWithdrawOwner = maxWithdraw(owner);
+        // slither-disable-next-line incorrect-equality
         uint256 maxWithdrawInShares = maxWithdrawOwner == type(uint256).max
             ? type(uint256).max
             : _convertToShares(maxWithdrawOwner, Math.Rounding.Floor);
@@ -118,7 +120,8 @@ contract SizeMetaVault is PerformanceVault {
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
         uint256 length = strategies.length;
         for (uint256 i = 0; i < length; i++) {
-            total += _strategyAssets(strategies[i]);
+            IBaseVault strategy = strategies[i];
+            total += strategy.convertToAssets(strategy.balanceOf(address(this)));
         }
     }
 
@@ -172,8 +175,10 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Removes a strategy from the vault and transfers all assets, if any, to another strategy
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
+    // slither-disable-next-line reentrancy-no-eth
     function removeStrategy(IBaseVault strategyToRemove, IBaseVault strategyToReceiveAssets, uint256 maxSlippagePercent)
         external
+        nonReentrant
         notPaused
         onlyAuth(VAULT_MANAGER_ROLE)
     {
@@ -386,7 +391,8 @@ contract SizeMetaVault is PerformanceVault {
             revert NullAmount();
         }
 
-        uint256 assetsBefore = _strategyAssets(strategyFrom) + _strategyAssets(strategyTo);
+        uint256 assetsBefore = strategyFrom.convertToAssets(strategyFrom.balanceOf(address(this)))
+            + strategyTo.convertToAssets(strategyTo.balanceOf(address(this)));
 
         uint256 balanceBefore = IERC20(asset()).balanceOf(address(this));
         // slither-disable-next-line unused-return
@@ -398,7 +404,8 @@ contract SizeMetaVault is PerformanceVault {
         // slither-disable-next-line unused-return
         strategyTo.deposit(assets, address(this));
 
-        uint256 assetsAfter = _strategyAssets(strategyFrom) + _strategyAssets(strategyTo);
+        uint256 assetsAfter = strategyFrom.convertToAssets(strategyFrom.balanceOf(address(this)))
+            + strategyTo.convertToAssets(strategyTo.balanceOf(address(this)));
 
         uint256 slippage = Math.mulDiv(maxSlippagePercent, amount, PERCENT);
         if (assetsBefore > slippage + assetsAfter) {
