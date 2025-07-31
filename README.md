@@ -73,7 +73,7 @@ Target integrations:
 
 1. **`CashStrategyVault`**: Simple cash-holding strategy (no yield generation)
 2. **`AaveStrategyVault`**: Aave lending protocol integration for yield generation
-3. **`ERC4626StrategyVault`**: Generic wrapper for other ERC4626 vaults (e.g., Morpho). Only ERC-4626 vaults passing the [integration checklist](https://github.com/aviggiano/security/blob/v0.1.0/audit-checklists/ERC-4626-integration.md) will be considered. If a vault has fees-on-withdrawal or fees-on-deposit in assets, making it not strictly ERC-4626 compliant, the `ERC4626StrategyVault` will also not be strictly ERC-4626 compliant, and so will the `SizeMetaVault`
+3. **`ERC4626StrategyVault`**: Generic wrapper for other ERC4626 vaults (e.g., Morpho). Only ERC-4626 vaults passing the [integration checklist](https://github.com/aviggiano/security/blob/v0.1.0/audit-checklists/ERC-4626-integration.md) will be considered.
 
 ## Roles and Permissions
 
@@ -92,6 +92,7 @@ Target integrations:
 2. The performance fee can stop being applied during a significant downturn event, which would cause the PPS to never surpass the high-water mark
 3. Assets donated to the vaults may be lost
 4. The vaults are not compatible with fee-on-transfer assets
+5. The `ERC4626StrategyVault` is not compliant with vaults that take fees in assets on deposits or withdrawals, as they are not strictly ERC-4626 compliant
 
 ### Deployment
 

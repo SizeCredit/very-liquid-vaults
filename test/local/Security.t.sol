@@ -82,9 +82,9 @@ contract SecurityTest is BaseTest {
 
     function test_Security_fee_minting_uses_correct_share_conversion() public {
         vm.prank(admin);
-        sizeMetaVault.removeStrategy(erc4626StrategyVault, cashStrategyVault, 0);
+        sizeMetaVault.removeStrategy(erc4626StrategyVault, cashStrategyVault, type(uint256).max, 0);
         vm.prank(admin);
-        sizeMetaVault.removeStrategy(aaveStrategyVault, cashStrategyVault, 0);
+        sizeMetaVault.removeStrategy(aaveStrategyVault, cashStrategyVault, type(uint256).max, 0);
 
         uint256 totalAssets = sizeMetaVault.totalAssets();
 
