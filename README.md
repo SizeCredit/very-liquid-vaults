@@ -104,6 +104,4 @@ forge script script/AaveStrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000
 forge script script/ERC4626StrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
 export STRATEGIES=XXX
 forge script script/SizeMetaVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
-export SIZE_META_VAULT=XXX
-cast send $AUTH "grantRole(bytes32,address)" $(cast k SIZE_VAULT_ROLE) $SIZE_META_VAULT --rpc-url $RPC_URL --account $DEPLOYER_ACCOUNT -vvvvv
 ```
