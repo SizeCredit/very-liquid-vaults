@@ -216,7 +216,6 @@ abstract contract BaseVault is
     /// @dev This function is overridden to ensure that the vault is not paused
     function _update(address from, address to, uint256 value) internal virtual override notPaused {
         super._update(from, to, value);
-        emit VaultStatus(totalSupply(), totalAssets());
     }
 
     /// @notice Returns the maximum amount that can be deposited
