@@ -173,7 +173,13 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
-    function addStrategy(IBaseVault strategy_) external notPaused onlyAuth(VAULT_MANAGER_ROLE) {
+    function addStrategy(IBaseVault strategy_)
+        external
+        nonReentrant
+        notPaused
+        emitVaultStatus
+        onlyAuth(VAULT_MANAGER_ROLE)
+    {
         _addStrategy(strategy_, asset(), address(auth));
     }
 
@@ -188,7 +194,7 @@ contract SizeMetaVault is PerformanceVault {
         IBaseVault strategyToReceiveAssets,
         uint256 amount,
         uint256 maxSlippagePercent
-    ) external nonReentrant notPaused onlyAuth(GUARDIAN_ROLE) {
+    ) external nonReentrant notPaused emitVaultStatus onlyAuth(GUARDIAN_ROLE) {
         if (!isStrategy(strategyToRemove)) {
             revert InvalidStrategy(address(strategyToRemove));
         }
@@ -254,6 +260,7 @@ contract SizeMetaVault is PerformanceVault {
         external
         nonReentrant
         notPaused
+        emitVaultStatus
         onlyAuth(STRATEGIST_ROLE)
     {
         maxSlippagePercent = Math.min(maxSlippagePercent, rebalanceMaxSlippagePercent);
