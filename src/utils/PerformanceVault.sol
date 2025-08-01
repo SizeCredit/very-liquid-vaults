@@ -70,9 +70,9 @@ abstract contract PerformanceVault is BaseVault {
         }
 
         uint256 performanceFeePercentBefore = performanceFeePercent;
-
-        if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0) {
-            highWaterMark = _pps();
+        // slither-disable-next-line incorrect-equality
+        if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0 && highWaterMark == 0) {
+            _setHighWaterMark(_pps());
         }
 
         performanceFeePercent = performanceFeePercent_;
@@ -91,7 +91,9 @@ abstract contract PerformanceVault is BaseVault {
 
     /// @notice Returns the price per share
     function _pps() internal view returns (uint256) {
-        return Math.mulDiv(totalAssets(), PERCENT, totalSupply());
+        uint256 totalAssets_ = totalAssets();
+        uint256 totalSupply_ = totalSupply();
+        return totalSupply_ > 0 ? Math.mulDiv(totalAssets_, PERCENT, totalSupply_) : PERCENT;
     }
 
     /// @notice Mints performance fees if applicable
@@ -114,13 +116,18 @@ abstract contract PerformanceVault is BaseVault {
                 Math.mulDiv(feeAssets, totalSupply() + 10 ** _decimalsOffset(), totalAssets() + 1 - feeAssets);
 
             if (feeShares > 0) {
-                highWaterMark = currentPPS;
-                emit HighWaterMarkUpdated(highWaterMarkBefore, currentPPS);
-
+                _setHighWaterMark(currentPPS);
                 _mint(feeRecipient, feeShares);
                 emit PerformanceFeeMinted(feeRecipient, feeShares, feeAssets);
             }
         }
+    }
+
+    /// @notice Sets the high water mark
+    function _setHighWaterMark(uint256 highWaterMark_) internal {
+        uint256 highWaterMarkBefore = highWaterMark;
+        highWaterMark = highWaterMark_;
+        emit HighWaterMarkUpdated(highWaterMarkBefore, highWaterMark_);
     }
 
     /*//////////////////////////////////////////////////////////////
