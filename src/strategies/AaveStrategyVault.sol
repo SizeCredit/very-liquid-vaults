@@ -4,7 +4,8 @@ pragma solidity 0.8.23;
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {BaseVault} from "@src/BaseVault.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {NonReentrantVault} from "@src/utils/NonReentrantVault.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
@@ -18,9 +19,9 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A strategy that invests assets in Aave v3 lending pools
-/// @dev Extends BaseVault for Aave v3 integration within the Size Meta Vault system
+/// @dev Extends NonReentrantVault for Aave v3 integration within the Size Meta Vault system
 /// @dev Reference https://github.com/superform-xyz/super-vaults/blob/8bc1d1bd1579f6fb9a047802256ed3a2bf15f602/src/aave-v3/AaveV3ERC4626Reinvest.sol
-contract AaveStrategyVault is BaseVault {
+contract AaveStrategyVault is NonReentrantVault {
     using SafeERC20 for IERC20;
     using WadRayMath for uint256;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;

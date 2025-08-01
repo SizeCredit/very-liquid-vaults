@@ -3,7 +3,8 @@ pragma solidity 0.8.23;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {BaseVault} from "@src/BaseVault.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {NonReentrantVault} from "@src/utils/NonReentrantVault.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
@@ -14,7 +15,7 @@ import {Auth} from "@src/Auth.sol";
 /// @author Size (https://size.credit/)
 /// @notice A strategy that invests assets in an external ERC4626-compliant vault
 /// @dev Wraps an external ERC4626 vault to provide strategy functionality for the Size Meta Vault
-contract ERC4626StrategyVault is BaseVault {
+contract ERC4626StrategyVault is NonReentrantVault {
     using SafeERC20 for IERC20;
 
     /*//////////////////////////////////////////////////////////////

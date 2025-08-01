@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {BaseVault} from "@src/BaseVault.sol";
-import {PerformanceVault} from "@src/PerformanceVault.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";

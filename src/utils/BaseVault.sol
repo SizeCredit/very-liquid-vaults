@@ -169,6 +169,10 @@ abstract contract BaseVault is
         return paused() || auth.paused();
     }
 
+    /*//////////////////////////////////////////////////////////////
+                              ERC20 OVERRIDES
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Returns the number of decimals for the vault token
     function decimals()
         public
@@ -213,54 +217,6 @@ abstract contract BaseVault is
     function _update(address from, address to, uint256 value) internal virtual override notPaused {
         super._update(from, to, value);
         emit VaultStatus(totalSupply(), totalAssets());
-    }
-
-    /// @notice Deposits assets into the vault
-    /// @dev This function is overridden to ensure that no reentrancy is possible (notPaused already checked in _update)
-    function deposit(uint256 assets, address receiver)
-        public
-        virtual
-        override(ERC4626Upgradeable, IERC4626)
-        nonReentrant
-        returns (uint256)
-    {
-        return super.deposit(assets, receiver);
-    }
-
-    /// @notice Mints shares into the vault
-    /// @dev This function is overridden to ensure that no reentrancy is possible (notPaused already checked in _update)
-    function mint(uint256 shares, address receiver)
-        public
-        virtual
-        override(ERC4626Upgradeable, IERC4626)
-        nonReentrant
-        returns (uint256)
-    {
-        return super.mint(shares, receiver);
-    }
-
-    /// @notice Withdraws assets from the vault
-    /// @dev This function is overridden to ensure that no reentrancy is possible (notPaused already checked in _update)
-    function withdraw(uint256 assets, address receiver, address owner)
-        public
-        virtual
-        override(ERC4626Upgradeable, IERC4626)
-        nonReentrant
-        returns (uint256)
-    {
-        return super.withdraw(assets, receiver, owner);
-    }
-
-    /// @notice Redeems shares from the vault
-    /// @dev This function is overridden to ensure that no reentrancy is possible (notPaused already checked in _update)
-    function redeem(uint256 shares, address receiver, address owner)
-        public
-        virtual
-        override(ERC4626Upgradeable, IERC4626)
-        nonReentrant
-        returns (uint256)
-    {
-        return super.redeem(shares, receiver, owner);
     }
 
     /// @notice Returns the maximum amount that can be deposited

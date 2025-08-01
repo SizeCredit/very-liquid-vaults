@@ -3,8 +3,8 @@ pragma solidity 0.8.23;
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
-import {BaseVault} from "@src/BaseVault.sol";
-import {PerformanceVault} from "@src/PerformanceVault.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 
 contract PerformanceVaultTest is BaseTest {
     function test_PerformanceVault_initialize() public view {
