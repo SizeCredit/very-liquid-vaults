@@ -80,6 +80,38 @@ contract SecurityTest is BaseTest {
         assertEq(sharesAfter, sharesBefore);
     }
 
+    function test_Security_fee_minting_example() public {
+        // Set performance fee of 10%
+        vm.prank(admin);
+        sizeMetaVault.setPerformanceFeePercent(0.1e18);
+
+        uint256 cashVaultAssetsBefore =
+            cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
+
+        // Donate 4 * totalAssets to the vault
+        _mint(erc20Asset, alice, 4 * cashVaultAssetsBefore);
+        vm.prank(alice);
+        erc20Asset.transfer(address(cashStrategyVault), 4 * cashVaultAssetsBefore);
+
+        // Alice deposits dust to trigger fee minting on the donated amount
+        _deposit(alice, sizeMetaVault, 10);
+
+        // Check fee recipient's shares
+        uint256 feeRecipientShares = sizeMetaVault.balanceOf(sizeMetaVault.feeRecipient());
+        console.log("Fee recipient shares: %e", feeRecipientShares);
+
+        // Preview redeem those shares
+        uint256 previewRedeemAmount = sizeMetaVault.previewRedeem(feeRecipientShares);
+        console.log("Preview redeem fee recipient shares: %e", previewRedeemAmount);
+
+        // Log total assets after everything is done
+        uint256 finalTotalAssets = sizeMetaVault.totalAssets();
+        console.log("Final total assets: %e", finalTotalAssets);
+
+        // Assert that the fee recipient is minted enough shares to withdraw 10% of the profit
+        assertApproxEqAbs(previewRedeemAmount, (4 * cashVaultAssetsBefore - cashVaultAssetsBefore) * 1 / 10, 0.001e6);
+    }
+
     function test_Security_fee_minting_uses_correct_share_conversion() public {
         vm.prank(admin);
         sizeMetaVault.removeStrategy(erc4626StrategyVault, cashStrategyVault, type(uint256).max, 0);
@@ -93,9 +125,17 @@ contract SecurityTest is BaseTest {
         vm.prank(admin);
         sizeMetaVault.setPerformanceFeePercent(feePercent);
 
+        console.log("1. totalSupplyBefore", sizeMetaVault.totalSupply());
+        console.log("1. totalAssetsBefore", sizeMetaVault.totalAssets());
+
         // 2. Deposit 100 USDC from Alice => initial PPS = 1.0
         _deposit(alice, sizeMetaVault, totalAssets);
         assertEq(Math.mulDiv(sizeMetaVault.totalAssets(), 1e18, sizeMetaVault.totalSupply()), 1e18, "PPS should be 1");
+
+        console.log("2. totalSupplyAfter", sizeMetaVault.totalSupply());
+        console.log("2. totalAssetsAfter", sizeMetaVault.totalAssets());
+
+        uint256 totalAssetsBeforeProfit = sizeMetaVault.totalAssets();
 
         // 3. Simulate vault profit: 100% profit to the strategy
         uint256 profit = cashStrategyVault.totalAssets() + 1;
@@ -106,20 +146,19 @@ contract SecurityTest is BaseTest {
 
         assertEq(sizeMetaVault.balanceOf(admin), 0, "Admin should not have any shares");
 
+        uint256 totalAssetsAfterProfit = sizeMetaVault.totalAssets();
         console.log("totalSupplyBefore", sizeMetaVault.totalSupply());
         console.log("totalAssetsBefore", sizeMetaVault.totalAssets());
-        console.log("balanceOf(alice)", sizeMetaVault.balanceOf(alice));
 
-        uint256 totalSupplyBefore = sizeMetaVault.totalSupply();
-        uint256 withdrawAmount = sizeMetaVault.balanceOf(alice) / 2;
-        _withdraw(alice, sizeMetaVault, withdrawAmount);
+        _deposit(alice, sizeMetaVault, 10);
 
         console.log("totalSupplyAfter", sizeMetaVault.totalSupply());
         console.log("totalAssetsAfter", sizeMetaVault.totalAssets());
-        console.log("balanceOf(alice)", sizeMetaVault.balanceOf(alice));
 
         // 5. Compute expected fee shares
         uint256 actualFeeShares = sizeMetaVault.balanceOf(admin);
-        assertGt(actualFeeShares, 0, "Fee shares minted incorrectly");
+        uint256 assetsFee = sizeMetaVault.previewRedeem(actualFeeShares);
+        uint256 assetsExpectedFee = (totalAssetsAfterProfit - totalAssetsBeforeProfit) * 20 / 100;
+        assertApproxEqAbs(assetsFee, assetsExpectedFee, 0.001e6, "Fee shares minted incorrectly");
     }
 }

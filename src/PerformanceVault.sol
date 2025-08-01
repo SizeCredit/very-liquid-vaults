@@ -93,6 +93,10 @@ abstract contract PerformanceVault is BaseVault {
     }
 
     /// @notice Mints performance fees if applicable
+    /// @dev Using `convertToShares(feeShares)` would not be correct because once those shares are minted, the PPS changes,
+    ///        and the asset value of the minted shares is different to feeAssets.
+    ///        We solve the equation: feeAssets = feeShares * (totalAssets + 1) / (totalSupply + 1 + feeShares)
+    ///        Basically feeAssets = convertToAssets(feeShares), but adding feeShares to the totalSupply part during the calculation
     function _mintPerformanceFee() private {
         if (performanceFeePercent == 0) {
             return;
@@ -101,10 +105,11 @@ abstract contract PerformanceVault is BaseVault {
         uint256 currentPPS = _pps();
         uint256 highWaterMarkBefore = highWaterMark;
         if (currentPPS > highWaterMarkBefore) {
-            uint256 profitPerShare = currentPPS - highWaterMarkBefore;
-            uint256 totalProfitAssets = Math.mulDiv(profitPerShare, totalSupply(), PERCENT);
+            uint256 profitPerSharePercent = currentPPS - highWaterMarkBefore;
+            uint256 totalProfitAssets = Math.mulDiv(profitPerSharePercent, totalSupply(), PERCENT);
             uint256 feeAssets = Math.mulDiv(totalProfitAssets, performanceFeePercent, PERCENT);
-            uint256 feeShares = convertToShares(feeAssets);
+            uint256 feeShares =
+                Math.mulDiv(feeAssets, totalSupply() + 10 ** _decimalsOffset(), totalAssets() + 1 - feeAssets);
 
             if (feeShares > 0) {
                 highWaterMark = currentPPS;
@@ -120,19 +125,23 @@ abstract contract PerformanceVault is BaseVault {
                               ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Deposits assets and mints shares, then mints performance fees if applicable
-    function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
+    function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
         _mintPerformanceFee();
-        super._deposit(caller, receiver, assets, shares);
+        return super.deposit(assets, receiver);
     }
 
-    /// @notice Withdraws assets and burns shares, then mints performance fees if applicable
-    function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
-        internal
-        virtual
-        override
-    {
+    function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
         _mintPerformanceFee();
-        super._withdraw(caller, receiver, owner, assets, shares);
+        return super.mint(shares, receiver);
+    }
+
+    function withdraw(uint256 assets, address receiver, address owner) public virtual override returns (uint256) {
+        _mintPerformanceFee();
+        return super.withdraw(assets, receiver, owner);
+    }
+
+    function redeem(uint256 shares, address receiver, address owner) public virtual override returns (uint256) {
+        _mintPerformanceFee();
+        return super.redeem(shares, receiver, owner);
     }
 }
