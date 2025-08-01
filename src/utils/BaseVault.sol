@@ -117,6 +117,13 @@ abstract contract BaseVault is
         _;
     }
 
+    /// @notice Modifier to emit the vault status
+    /// @dev Emits the vault status after the function is executed
+    modifier emitVaultStatus() {
+        _;
+        emit VaultStatus(totalSupply(), totalAssets());
+    }
+
     /*//////////////////////////////////////////////////////////////
                               FUNCTIONS
     //////////////////////////////////////////////////////////////*/

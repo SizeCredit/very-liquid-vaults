@@ -20,10 +20,10 @@ abstract contract NonReentrantVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 shares)
+        emitVaultStatus
+        returns (uint256)
     {
-        shares = super.deposit(assets, receiver);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.deposit(assets, receiver);
     }
 
     function mint(uint256 shares, address receiver)
@@ -31,10 +31,10 @@ abstract contract NonReentrantVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 assets)
+        emitVaultStatus
+        returns (uint256)
     {
-        assets = super.mint(shares, receiver);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.mint(shares, receiver);
     }
 
     function withdraw(uint256 assets, address receiver, address owner)
@@ -42,10 +42,10 @@ abstract contract NonReentrantVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 shares)
+        emitVaultStatus
+        returns (uint256)
     {
-        shares = super.withdraw(assets, receiver, owner);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.withdraw(assets, receiver, owner);
     }
 
     function redeem(uint256 shares, address receiver, address owner)
@@ -53,9 +53,9 @@ abstract contract NonReentrantVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 assets)
+        emitVaultStatus
+        returns (uint256)
     {
-        assets = super.redeem(shares, receiver, owner);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.redeem(shares, receiver, owner);
     }
 }

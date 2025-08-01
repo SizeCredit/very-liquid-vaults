@@ -59,6 +59,16 @@ abstract contract PerformanceVault is BaseVault {
     }
 
     /*//////////////////////////////////////////////////////////////
+                              MODIFIERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Modifier to ensure the performance fee is minted before the function is executed
+    modifier mintPerformanceFee() {
+        _mintPerformanceFee();
+        _;
+    }
+
+    /*//////////////////////////////////////////////////////////////
                               FUNCTIONS
     //////////////////////////////////////////////////////////////*/
 
@@ -139,11 +149,11 @@ abstract contract PerformanceVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 shares)
+        mintPerformanceFee
+        emitVaultStatus
+        returns (uint256)
     {
-        _mintPerformanceFee();
-        shares = super.deposit(assets, receiver);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.deposit(assets, receiver);
     }
 
     function mint(uint256 shares, address receiver)
@@ -151,11 +161,11 @@ abstract contract PerformanceVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 assets)
+        mintPerformanceFee
+        emitVaultStatus
+        returns (uint256)
     {
-        _mintPerformanceFee();
-        assets = super.mint(shares, receiver);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.mint(shares, receiver);
     }
 
     function withdraw(uint256 assets, address receiver, address owner)
@@ -163,11 +173,11 @@ abstract contract PerformanceVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 shares)
+        mintPerformanceFee
+        emitVaultStatus
+        returns (uint256)
     {
-        _mintPerformanceFee();
-        shares = super.withdraw(assets, receiver, owner);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.withdraw(assets, receiver, owner);
     }
 
     function redeem(uint256 shares, address receiver, address owner)
@@ -175,10 +185,10 @@ abstract contract PerformanceVault is BaseVault {
         virtual
         override(ERC4626Upgradeable, IERC4626)
         nonReentrant
-        returns (uint256 assets)
+        mintPerformanceFee
+        emitVaultStatus
+        returns (uint256)
     {
-        _mintPerformanceFee();
-        assets = super.redeem(shares, receiver, owner);
-        emit VaultStatus(totalSupply(), totalAssets());
+        return super.redeem(shares, receiver, owner);
     }
 }
