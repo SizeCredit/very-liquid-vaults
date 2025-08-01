@@ -81,9 +81,9 @@ Target integrations:
 | Role                | Timelock | Actions                                                     |
 |---------------------|----------|-------------------------------------------------------------|
 | DEFAULT_ADMIN_ROLE  | 7d       | upgrade, grantRole, revokeRole, setPerformanceFeePercent    |
-| VAULT_MANAGER_ROLE  | 1d       | unpause, addStrategies, removeStrategies, setTotalAssetsCap |
+| VAULT_MANAGER_ROLE  | 1d       | unpause, addStrategy, setTotalAssetsCap                     |
 | STRATEGIST_ROLE     | 0        | rebalance, reorderStrategies                                |
-| GUARDIAN_ROLE       | 0        | cancel any pending proposals, pause                         |
+| GUARDIAN_ROLE       | 0        | cancel any pending proposals, pause, removeStrategy         |
 ```
 
 ## Known Limitations

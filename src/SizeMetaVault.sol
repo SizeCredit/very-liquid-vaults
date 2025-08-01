@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
+import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
 import {IBaseVault} from "@src/IBaseVault.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
@@ -26,7 +26,7 @@ contract SizeMetaVault is PerformanceVault {
     //////////////////////////////////////////////////////////////*/
 
     IBaseVault[] public strategies;
-    uint256 public defaultMaxSlippagePercent;
+    uint256 public rebalanceMaxSlippagePercent;
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -35,7 +35,9 @@ contract SizeMetaVault is PerformanceVault {
     event StrategyAdded(address indexed strategy);
     event StrategyRemoved(address indexed strategy);
     event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 rebalancedAmount);
-    event DefaultMaxSlippagePercentSet(uint256 oldDefaultMaxSlippagePercent, uint256 newDefaultMaxSlippagePercent);
+    event RebalanceMaxSlippagePercentSet(
+        uint256 oldRebalanceMaxSlippagePercent, uint256 newRebalanceMaxSlippagePercent
+    );
     event DepositFailed(address indexed strategy, uint256 amount);
     event WithdrawFailed(address indexed strategy, uint256 amount);
 
@@ -78,7 +80,7 @@ contract SizeMetaVault is PerformanceVault {
         for (uint256 i = 0; i < strategies_.length; i++) {
             _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
-        _setDefaultMaxSlippagePercent(0.01e18);
+        _setRebalanceMaxSlippagePercent(0.01e18);
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -186,9 +188,7 @@ contract SizeMetaVault is PerformanceVault {
         IBaseVault strategyToReceiveAssets,
         uint256 amount,
         uint256 maxSlippagePercent
-    ) external nonReentrant notPaused onlyAuth(VAULT_MANAGER_ROLE) {
-        maxSlippagePercent = Math.min(maxSlippagePercent, defaultMaxSlippagePercent);
-
+    ) external nonReentrant notPaused onlyAuth(GUARDIAN_ROLE) {
         if (!isStrategy(strategyToRemove)) {
             revert InvalidStrategy(address(strategyToRemove));
         }
@@ -205,14 +205,14 @@ contract SizeMetaVault is PerformanceVault {
         _removeStrategy(strategyToRemove);
     }
 
-    /// @notice Sets the default max slippage percent
+    /// @notice Sets the rebalance max slippage percent
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
-    function setDefaultMaxSlippagePercent(uint256 defaultMaxSlippagePercent_)
+    function setRebalanceMaxSlippagePercent(uint256 rebalanceMaxSlippagePercent_)
         external
         notPaused
         onlyAuth(VAULT_MANAGER_ROLE)
     {
-        _setDefaultMaxSlippagePercent(defaultMaxSlippagePercent_);
+        _setRebalanceMaxSlippagePercent(rebalanceMaxSlippagePercent_);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -249,13 +249,14 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Rebalances assets between two strategies
     /// @dev Transfers assets from one strategy to another
+    /// @dev We have maxSlippagePercent <= PERCENT since rebalanceMaxSlippagePercent has already been checked in setRebalanceMaxSlippagePercent
     function rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 maxSlippagePercent)
         external
         nonReentrant
         notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
-        maxSlippagePercent = Math.min(maxSlippagePercent, defaultMaxSlippagePercent);
+        maxSlippagePercent = Math.min(maxSlippagePercent, rebalanceMaxSlippagePercent);
 
         if (!isStrategy(strategyFrom)) {
             revert InvalidStrategy(address(strategyFrom));
@@ -316,13 +317,13 @@ contract SizeMetaVault is PerformanceVault {
     }
 
     /// @notice Internal function to set the default max slippage percent
-    function _setDefaultMaxSlippagePercent(uint256 defaultMaxSlippagePercent_) private {
-        if (defaultMaxSlippagePercent_ > PERCENT) {
-            revert InvalidMaxSlippagePercent(defaultMaxSlippagePercent_);
+    function _setRebalanceMaxSlippagePercent(uint256 rebalanceMaxSlippagePercent_) private {
+        if (rebalanceMaxSlippagePercent_ > PERCENT) {
+            revert InvalidMaxSlippagePercent(rebalanceMaxSlippagePercent_);
         }
-        uint256 oldDefaultMaxSlippagePercent = defaultMaxSlippagePercent;
-        defaultMaxSlippagePercent = defaultMaxSlippagePercent_;
-        emit DefaultMaxSlippagePercentSet(oldDefaultMaxSlippagePercent, defaultMaxSlippagePercent_);
+        uint256 oldRebalanceMaxSlippagePercent = rebalanceMaxSlippagePercent;
+        rebalanceMaxSlippagePercent = rebalanceMaxSlippagePercent_;
+        emit RebalanceMaxSlippagePercentSet(oldRebalanceMaxSlippagePercent, rebalanceMaxSlippagePercent_);
     }
 
     /// @notice Internal function to calculate maximum depositable amount in all strategies
@@ -401,7 +402,6 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to rebalance assets between two strategies
     /// @dev If before - after > maxSlippagePercent * amount, the _rebalance operation reverts
-    /// @dev We have maxSlippagePercent <= PERCENT since defaultMaxSlippagePercent has already been checked in setDefaultMaxSlippagePercent
     /// @dev Assumes input is validated by caller functions
     function _rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 maxSlippagePercent)
         private
