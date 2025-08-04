@@ -80,9 +80,10 @@ abstract contract PerformanceVault is BaseVault {
         }
 
         uint256 performanceFeePercentBefore = performanceFeePercent;
+        uint256 currentPPS = _pps();
         // slither-disable-next-line incorrect-equality
-        if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0 && highWaterMark == 0) {
-            _setHighWaterMark(_pps());
+        if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0 && highWaterMark < currentPPS) {
+            _setHighWaterMark(currentPPS);
         }
 
         performanceFeePercent = performanceFeePercent_;
