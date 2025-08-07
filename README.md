@@ -33,9 +33,10 @@ Target integrations:
 
 ## Key Features
 
-* **ERC4626 Compliance**: Standard vault interface for seamless DeFi integration
+* **ERC-4626 Compliance**: Standard vault interface for seamless DeFi integration
 * **Multi-Strategy Architecture**: Support for multiple investment strategies with dynamic allocation
 * **Upgradeable Design**: Built with OpenZeppelin's UUPS upgradeable contracts pattern
+* **ERC-7201**: Namespaced Storage Layout to facilitate inheritance and upgradeability
 * **Role-Based Access Control**: Granular permissions for different system operations
 * **Strategy Rebalancing**: Manual fund movement between strategies by Strategist
 * **Deposit/Withdrawal Priority Logic**: Configurable priority list for liquidity deposit/withdrawals
