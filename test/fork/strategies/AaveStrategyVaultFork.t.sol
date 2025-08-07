@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity 0.8.26;
 
 import {ForkTest} from "@test/fork/ForkTest.t.sol";
 import {IPoolConfigurator} from "@aave/contracts/interfaces/IPoolConfigurator.sol";

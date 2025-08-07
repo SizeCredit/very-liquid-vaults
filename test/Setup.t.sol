@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity 0.8.26;
 
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";

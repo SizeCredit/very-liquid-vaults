@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.23;
+pragma solidity 0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
 import {IBaseVault} from "@src/utils/IBaseVault.sol";
