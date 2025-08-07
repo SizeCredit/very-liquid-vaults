@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import {BaseTest} from "@test/BaseTest.t.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {console} from "forge-std/console.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 

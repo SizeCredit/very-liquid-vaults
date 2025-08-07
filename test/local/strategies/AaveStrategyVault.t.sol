@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {Auth} from "@src/Auth.sol";
@@ -35,7 +35,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_AaveStrategyVault_rebalance() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = aaveStrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = erc4626StrategyVault;
@@ -95,7 +95,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_AaveStrategyVault_deposit_rebalance_does_not_change_balanceOf() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = aaveStrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = erc4626StrategyVault;
@@ -125,7 +125,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_AaveStrategyVault_deposit_rebalance_redeem() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = aaveStrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = erc4626StrategyVault;
@@ -331,7 +331,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_AaveStrategyVault_maxWithdraw_maxRedeem() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = aaveStrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = erc4626StrategyVault;

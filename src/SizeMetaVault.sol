@@ -5,7 +5,7 @@ import {BaseVault} from "@src/utils/BaseVault.sol";
 import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
@@ -27,7 +27,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @custom:storage-location erc7201:size.storage.SizeMetaVault
     struct SizeMetaVaultStorage {
-        IBaseVault[] _strategies;
+        IVault[] _strategies;
         uint256 _rebalanceMaxSlippagePercent;
     }
 
@@ -86,7 +86,7 @@ contract SizeMetaVault is PerformanceVault {
         string memory symbol_,
         address fundingAccount,
         uint256 firstDepositAmount,
-        IBaseVault[] memory strategies_
+        IVault[] memory strategies_
     ) public virtual initializer {
         __PerformanceVault_init(auth_.getRoleMember(DEFAULT_ADMIN_ROLE, 0), 0);
 
@@ -137,7 +137,7 @@ contract SizeMetaVault is PerformanceVault {
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
         uint256 length = strategies().length;
         for (uint256 i = 0; i < length; i++) {
-            IBaseVault strategy = strategies(i);
+            IVault strategy = strategies(i);
             total += strategy.convertToAssets(strategy.balanceOf(address(this)));
         }
     }
@@ -186,7 +186,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Adds a new strategy to the vault
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
-    function addStrategy(IBaseVault strategy_)
+    function addStrategy(IVault strategy_)
         external
         nonReentrant
         notPaused
@@ -203,8 +203,8 @@ contract SizeMetaVault is PerformanceVault {
     /// @dev If `convertToAssets(balanceOf)` > `maxWithdraw`, e.g. due to pause/withdraw limits, the _rebalance step will revert, so `amount` should be used
     // slither-disable-next-line reentrancy-no-eth
     function removeStrategy(
-        IBaseVault strategyToRemove,
-        IBaseVault strategyToReceiveAssets,
+        IVault strategyToRemove,
+        IVault strategyToReceiveAssets,
         uint256 amount,
         uint256 maxSlippagePercent
     ) external nonReentrant notPaused emitVaultStatus onlyAuth(GUARDIAN_ROLE) {
@@ -241,7 +241,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Reorders the strategies
     /// @dev Verifies that the new strategies order is valid and that there are no duplicates
     /// @dev Clears current strategies and adds them in the new order
-    function reorderStrategies(IBaseVault[] calldata newStrategiesOrder) external notPaused onlyAuth(STRATEGIST_ROLE) {
+    function reorderStrategies(IVault[] calldata newStrategiesOrder) external notPaused onlyAuth(STRATEGIST_ROLE) {
         if (strategies().length != newStrategiesOrder.length) {
             revert ArrayLengthMismatch(strategies().length, newStrategiesOrder.length);
         }
@@ -257,7 +257,7 @@ contract SizeMetaVault is PerformanceVault {
             }
         }
 
-        IBaseVault[] memory oldStrategiesOrder = strategies();
+        IVault[] memory oldStrategiesOrder = strategies();
         for (uint256 i = 0; i < oldStrategiesOrder.length; i++) {
             _removeStrategy(oldStrategiesOrder[i]);
         }
@@ -269,7 +269,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Rebalances assets between two strategies
     /// @dev Transfers assets from one strategy to another
     /// @dev We have maxSlippagePercent <= PERCENT since rebalanceMaxSlippagePercent has already been checked in setRebalanceMaxSlippagePercent
-    function rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 maxSlippagePercent)
+    function rebalance(IVault strategyFrom, IVault strategyTo, uint256 amount, uint256 maxSlippagePercent)
         external
         nonReentrant
         notPaused
@@ -301,7 +301,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Internal function to add a strategy
     /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
     // slither-disable-next-line calls-loop
-    function _addStrategy(IBaseVault strategy_, address asset_, address auth_) private {
+    function _addStrategy(IVault strategy_, address asset_, address auth_) private {
         if (address(strategy_) == address(0)) {
             revert NullAddress();
         }
@@ -322,7 +322,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Internal function to remove a strategy
     /// @dev No NullAddress check is needed because only whitelisted strategies can be removed, and it is checked in _addStrategy
     /// @dev Removes the strategy in-place to keep the order
-    function _removeStrategy(IBaseVault strategy) private {
+    function _removeStrategy(IVault strategy) private {
         SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
         bool removed = false;
         for (uint256 i = 0; i < $._strategies.length; i++) {
@@ -354,7 +354,7 @@ contract SizeMetaVault is PerformanceVault {
     function _maxDepositToStrategies() private view returns (uint256 maxAssets) {
         uint256 length = strategies().length;
         for (uint256 i = 0; i < length; i++) {
-            IBaseVault strategy = strategies(i);
+            IVault strategy = strategies(i);
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             maxAssets = Math.saturatingAdd(maxAssets, strategyMaxDeposit);
         }
@@ -377,7 +377,7 @@ contract SizeMetaVault is PerformanceVault {
 
         uint256 length = strategies().length;
         for (uint256 i = 0; i < length; i++) {
-            IBaseVault strategy = strategies(i);
+            IVault strategy = strategies(i);
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
 
@@ -404,7 +404,7 @@ contract SizeMetaVault is PerformanceVault {
 
         uint256 length = strategies().length;
         for (uint256 i = 0; i < length; i++) {
-            IBaseVault strategy = strategies(i);
+            IVault strategy = strategies(i);
 
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
             uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
@@ -426,9 +426,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Internal function to rebalance assets between two strategies
     /// @dev If before - after > maxSlippagePercent * amount, the _rebalance operation reverts
     /// @dev Assumes input is validated by caller functions
-    function _rebalance(IBaseVault strategyFrom, IBaseVault strategyTo, uint256 amount, uint256 maxSlippagePercent)
-        private
-    {
+    function _rebalance(IVault strategyFrom, IVault strategyTo, uint256 amount, uint256 maxSlippagePercent) private {
         uint256 assetsBefore = strategyFrom.convertToAssets(strategyFrom.balanceOf(address(this)))
             + strategyTo.convertToAssets(strategyTo.balanceOf(address(this)));
 
@@ -462,7 +460,7 @@ contract SizeMetaVault is PerformanceVault {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Returns the strategies in the vault
-    function strategies() public view returns (IBaseVault[] memory) {
+    function strategies() public view returns (IVault[] memory) {
         return _getSizeMetaVaultStorage()._strategies;
     }
 
@@ -477,12 +475,12 @@ contract SizeMetaVault is PerformanceVault {
     }
 
     /// @notice Returns the strategy at the given index
-    function strategies(uint256 index) public view returns (IBaseVault) {
+    function strategies(uint256 index) public view returns (IVault) {
         return _getSizeMetaVaultStorage()._strategies[index];
     }
 
     /// @notice Returns true if the strategy is in the vault
-    function isStrategy(IBaseVault strategy) public view returns (bool) {
+    function isStrategy(IVault strategy) public view returns (bool) {
         uint256 length = strategies().length;
         for (uint256 i = 0; i < length; i++) {
             if (strategies(i) == strategy) {

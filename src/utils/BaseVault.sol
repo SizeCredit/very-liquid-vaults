@@ -14,7 +14,7 @@ import {Auth} from "@src/Auth.sol";
 import {DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
@@ -24,7 +24,7 @@ import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 /// @notice Abstract base contract for all vaults in the Size Meta Vault system
 /// @dev Provides common functionality including ERC4626 compliance, access control, and upgradeability
 abstract contract BaseVault is
-    IBaseVault,
+    IVault,
     ERC4626Upgradeable,
     ERC20PermitUpgradeable,
     ReentrancyGuardUpgradeable,

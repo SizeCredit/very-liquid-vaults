@@ -4,7 +4,7 @@ pragma solidity 0.8.26;
 import {CryticERC4626PropertyTests} from "@crytic/properties/contracts/ERC4626/ERC4626PropertyTests.sol";
 import {Setup} from "@test/Setup.t.sol";
 import {hevm} from "@crytic/properties/contracts/util/Hevm.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 
 contract SizeMetaVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
     constructor() {
@@ -14,6 +14,6 @@ contract SizeMetaVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup 
 
     function rebalance(address strategyFrom, address strategyTo, uint256 amount, uint256 maxSlippagePercent) public {
         hevm.prank(address(this));
-        sizeMetaVault.rebalance(IBaseVault(strategyFrom), IBaseVault(strategyTo), amount, maxSlippagePercent);
+        sizeMetaVault.rebalance(IVault(strategyFrom), IVault(strategyTo), amount, maxSlippagePercent);
     }
 }

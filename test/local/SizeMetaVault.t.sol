@@ -12,9 +12,9 @@ import {VaultMockRevertOnDeposit} from "@test/mocks/VaultMockRevertOnDeposit.t.s
 import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
 import {VaultMockAssetFeeOnDeposit} from "@test/mocks/VaultMockAssetFeeOnDeposit.t.sol";
 import {VaultMockAssetFeeOnWithdraw} from "@test/mocks/VaultMockAssetFeeOnWithdraw.t.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {console} from "forge-std/console.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
@@ -66,7 +66,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_rebalance_erc4626_to_cashStrategy() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = erc4626StrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = aaveStrategyVault;
@@ -95,8 +95,8 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function testFuzz_SizeMetaVault_rebalance_slippage_validation(uint256 amount, uint256 index) public {
-        IBaseVault strategyFrom = cashStrategyVault;
-        IBaseVault strategyTo = aaveStrategyVault;
+        IVault strategyFrom = cashStrategyVault;
+        IVault strategyTo = aaveStrategyVault;
 
         amount = bound(amount, 10e6, 100e6);
         index = bound(index, 1e27, 1.3e27);
@@ -136,7 +136,7 @@ contract SizeMetaVaultTest is BaseTest {
     function test_SizeMetaVault_addStrategy_validation() public {
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
-        sizeMetaVault.addStrategy(IBaseVault(address(0)));
+        sizeMetaVault.addStrategy(IVault(address(0)));
 
         vm.prank(manager);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(erc4626StrategyVault)));
@@ -146,7 +146,7 @@ contract SizeMetaVaultTest is BaseTest {
     function test_SizeMetaVault_removeStrategy_validation() public {
         vm.prank(guardian);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(0)));
-        sizeMetaVault.removeStrategy(IBaseVault(address(0)), IBaseVault(address(0)), type(uint256).max, 0);
+        sizeMetaVault.removeStrategy(IVault(address(0)), IVault(address(0)), type(uint256).max, 0);
 
         vm.prank(guardian);
         vm.expectRevert(
@@ -168,9 +168,9 @@ contract SizeMetaVaultTest is BaseTest {
     function test_SizeMetaVault_reorderStrategies_validation() public {
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.ArrayLengthMismatch.selector, 3, 0));
-        sizeMetaVault.reorderStrategies(new IBaseVault[](0));
+        sizeMetaVault.reorderStrategies(new IVault[](0));
 
-        IBaseVault[] memory strategiesWithZero = new IBaseVault[](3);
+        IVault[] memory strategiesWithZero = new IVault[](3);
         strategiesWithZero[0] = cryticCashStrategyVault;
         strategiesWithZero[1] = cryticAaveStrategyVault;
         strategiesWithZero[2] = cryticERC4626StrategyVault;
@@ -181,7 +181,7 @@ contract SizeMetaVaultTest is BaseTest {
         );
         sizeMetaVault.reorderStrategies(strategiesWithZero);
 
-        IBaseVault[] memory duplicates = new IBaseVault[](3);
+        IVault[] memory duplicates = new IVault[](3);
         duplicates[0] = cashStrategyVault;
         duplicates[1] = erc4626StrategyVault;
         duplicates[2] = cashStrategyVault;
@@ -199,12 +199,12 @@ contract SizeMetaVaultTest is BaseTest {
         // invalid strategyFrom reverts
         vm.prank(strategist);
         vm.expectRevert();
-        sizeMetaVault.rebalance(IBaseVault(address(1)), erc4626StrategyVault, amount, 0);
+        sizeMetaVault.rebalance(IVault(address(1)), erc4626StrategyVault, amount, 0);
 
         // validate strategyTo
         vm.prank(strategist);
         vm.expectRevert(abi.encodeWithSelector(SizeMetaVault.InvalidStrategy.selector, address(1)));
-        sizeMetaVault.rebalance(cashStrategyVault, IBaseVault(address(1)), amount, 0);
+        sizeMetaVault.rebalance(cashStrategyVault, IVault(address(1)), amount, 0);
 
         // validate amount 0
         vm.prank(strategist);
@@ -289,7 +289,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_reorderStrategies() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = aaveStrategyVault;
         strategies[1] = erc4626StrategyVault;
         strategies[2] = cashStrategyVault;
@@ -312,7 +312,7 @@ contract SizeMetaVaultTest is BaseTest {
         uint256 lengthBefore = sizeMetaVault.strategiesCount();
 
         vm.prank(manager);
-        sizeMetaVault.addStrategy(IBaseVault(oneStrategy));
+        sizeMetaVault.addStrategy(IVault(oneStrategy));
 
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
         uint256 indexLastStrategy = lengthAfter - 1;
@@ -333,7 +333,7 @@ contract SizeMetaVaultTest is BaseTest {
         address invalidAuth = address(0xDEAD);
 
         vm.mockCall(
-            address(cryticCashStrategyVault), abi.encodeWithSelector(IBaseVault.auth.selector), abi.encode(invalidAuth)
+            address(cryticCashStrategyVault), abi.encodeWithSelector(IVault.auth.selector), abi.encode(invalidAuth)
         );
 
         vm.prank(manager);
@@ -348,7 +348,7 @@ contract SizeMetaVaultTest is BaseTest {
 
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
         vm.prank(manager);
-        sizeMetaVault.addStrategy(IBaseVault(address(0)));
+        sizeMetaVault.addStrategy(IVault(address(0)));
 
         uint256 lengthAfter = sizeMetaVault.strategiesCount();
 
@@ -367,7 +367,7 @@ contract SizeMetaVaultTest is BaseTest {
         _deposit(alice, sizeMetaVault, 100e6);
 
         uint256 length = sizeMetaVault.strategiesCount();
-        IBaseVault[] memory currentStrategies = new IBaseVault[](length);
+        IVault[] memory currentStrategies = new IVault[](length);
         currentStrategies = _getStrategies(sizeMetaVault);
 
         for (uint256 i = 0; i < currentStrategies.length; i++) {
@@ -499,8 +499,8 @@ contract SizeMetaVaultTest is BaseTest {
         }
         vm.label(address(newERC4626StrategyVault), "NewERC4626StrategyVault");
 
-        IBaseVault[] memory oldStrategies = _getStrategies(sizeMetaVault);
-        IBaseVault[] memory newStrategies = new IBaseVault[](1);
+        IVault[] memory oldStrategies = _getStrategies(sizeMetaVault);
+        IVault[] memory newStrategies = new IVault[](1);
         newStrategies[0] = newERC4626StrategyVault;
 
         vm.prank(manager);
@@ -568,7 +568,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_withdraw_reverts_if_asset_fee_on_withdraw() public {
-        IBaseVault newStrategy = deployNewERC4626StrategyVault(VaultType.ASSET_FEE_ON_WITHDRAW);
+        IVault newStrategy = deployNewERC4626StrategyVault(VaultType.ASSET_FEE_ON_WITHDRAW);
 
         uint256 depositAmount = 1000e6;
 
@@ -620,7 +620,7 @@ contract SizeMetaVaultTest is BaseTest {
         for (uint256 i = currentStrategiesCount; i <= length; i++) {
             ERC4626Mock vault = new ERC4626Mock(address(erc20Asset));
             _mint(erc20Asset, address(deployer), FIRST_DEPOSIT_AMOUNT);
-            IBaseVault strategy = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault);
+            IVault strategy = deployer.deploy(auth, FIRST_DEPOSIT_AMOUNT, vault);
             if (i >= maxStrategies) {
                 vm.expectRevert(
                     abi.encodeWithSelector(
@@ -646,7 +646,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_deposit_continues_trying_from_other_strategies() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = erc4626StrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = aaveStrategyVault;
@@ -667,7 +667,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_withdraw_continues_trying_from_other_strategies() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = cashStrategyVault;
         strategies[1] = erc4626StrategyVault;
         strategies[2] = aaveStrategyVault;
@@ -691,5 +691,22 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(alice);
         sizeMetaVault.withdraw(100e6, alice, alice);
         assertEq(erc20Asset.balanceOf(alice), 100e6);
+    }
+
+    function test_SizeMetaVault_strategy_can_be_a_SizeMetaVault() public {
+        uint256 amount = 100e6;
+        _deposit(alice, sizeMetaVault, amount);
+
+        uint256 totalAssetsBefore = sizeMetaVault.totalAssets();
+
+        vm.prank(manager);
+        sizeMetaVault.addStrategy(cryticSizeMetaVault);
+
+        vm.prank(strategist);
+        sizeMetaVault.rebalance(cashStrategyVault, cryticSizeMetaVault, amount, 0);
+
+        uint256 totalAssetsAfter = sizeMetaVault.totalAssets();
+
+        assertEq(totalAssetsAfter, totalAssetsBefore);
     }
 }

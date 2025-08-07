@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
@@ -56,7 +56,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_ERC4626StrategyVault_deposit_rebalance_does_not_change_balanceOf() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = erc4626StrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = aaveStrategyVault;
@@ -88,7 +88,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_ERC4626StrategyVault_deposit_rebalance_redeem() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = erc4626StrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = aaveStrategyVault;
@@ -403,7 +403,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_ERC4626StrategyVault_maxWithdraw_maxRedeem() public {
-        IBaseVault[] memory strategies = new IBaseVault[](3);
+        IVault[] memory strategies = new IVault[](3);
         strategies[0] = erc4626StrategyVault;
         strategies[1] = cashStrategyVault;
         strategies[2] = aaveStrategyVault;

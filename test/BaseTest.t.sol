@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import {Test, console} from "forge-std/Test.sol";
-import {IBaseVault} from "@src/utils/IBaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
@@ -115,9 +115,9 @@ contract BaseTest is Test, Setup, BaseScript {
         }
     }
 
-    function _getStrategies(SizeMetaVault _sizeMetaVault) internal view returns (IBaseVault[] memory strategies) {
+    function _getStrategies(SizeMetaVault _sizeMetaVault) internal view returns (IVault[] memory strategies) {
         uint256 length = _sizeMetaVault.strategiesCount();
-        strategies = new IBaseVault[](length);
+        strategies = new IVault[](length);
         for (uint256 i = 0; i < length; i++) {
             strategies[i] = _sizeMetaVault.strategies(i);
         }
