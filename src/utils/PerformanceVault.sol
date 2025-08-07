@@ -25,10 +25,22 @@ abstract contract PerformanceVault is BaseVault {
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    uint256 public highWaterMark;
-    uint256 public performanceFeePercent;
-    address public feeRecipient;
-    uint256[47] private __gap;
+    /// @custom:storage-location erc7201:size.storage.PerformanceVault
+    struct PerformanceVaultStorage {
+        uint256 _highWaterMark;
+        uint256 _performanceFeePercent;
+        address _feeRecipient;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("size.storage.PerformanceVault")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant PerformanceVaultStorageLocation =
+        0x804999a460baf311df4304e76bf097cd616ad3bef609b825c3e42a145296b200;
+
+    function _getPerformanceVaultStorage() private pure returns (PerformanceVaultStorage storage $) {
+        assembly {
+            $.slot := PerformanceVaultStorageLocation
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -79,14 +91,16 @@ abstract contract PerformanceVault is BaseVault {
             revert PerformanceFeePercentTooHigh(performanceFeePercent_, MAXIMUM_PERFORMANCE_FEE_PERCENT);
         }
 
-        uint256 performanceFeePercentBefore = performanceFeePercent;
+        PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
+        uint256 performanceFeePercentBefore = $._performanceFeePercent;
+        uint256 highWaterMarkBefore = $._highWaterMark;
         uint256 currentPPS = _pps();
         // slither-disable-next-line incorrect-equality
-        if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0 && highWaterMark < currentPPS) {
+        if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0 && highWaterMarkBefore < currentPPS) {
             _setHighWaterMark(currentPPS);
         }
 
-        performanceFeePercent = performanceFeePercent_;
+        $._performanceFeePercent = performanceFeePercent_;
         emit PerformanceFeePercentSet(performanceFeePercentBefore, performanceFeePercent_);
     }
 
@@ -95,8 +109,9 @@ abstract contract PerformanceVault is BaseVault {
         if (feeRecipient_ == address(0)) {
             revert NullAddress();
         }
-        address feeRecipientBefore = feeRecipient;
-        feeRecipient = feeRecipient_;
+        PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
+        address feeRecipientBefore = $._feeRecipient;
+        $._feeRecipient = feeRecipient_;
         emit FeeRecipientSet(feeRecipientBefore, feeRecipient_);
     }
 
@@ -113,31 +128,33 @@ abstract contract PerformanceVault is BaseVault {
     ///        We solve the equation: feeAssets = feeShares * (totalAssets + 1) / (totalSupply + 1 + feeShares)
     ///        Basically feeAssets = convertToAssets(feeShares), but adding feeShares to the totalSupply part during the calculation
     function _mintPerformanceFee() private {
-        if (performanceFeePercent == 0) {
+        PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
+        if ($._performanceFeePercent == 0) {
             return;
         }
 
         uint256 currentPPS = _pps();
-        uint256 highWaterMarkBefore = highWaterMark;
+        uint256 highWaterMarkBefore = $._highWaterMark;
         if (currentPPS > highWaterMarkBefore) {
             uint256 profitPerSharePercent = currentPPS - highWaterMarkBefore;
             uint256 totalProfitAssets = Math.mulDiv(profitPerSharePercent, totalSupply(), PERCENT);
-            uint256 feeAssets = Math.mulDiv(totalProfitAssets, performanceFeePercent, PERCENT);
+            uint256 feeAssets = Math.mulDiv(totalProfitAssets, $._performanceFeePercent, PERCENT);
             uint256 feeShares =
                 Math.mulDiv(feeAssets, totalSupply() + 10 ** _decimalsOffset(), totalAssets() + 1 - feeAssets);
 
             if (feeShares > 0) {
                 _setHighWaterMark(currentPPS);
-                _mint(feeRecipient, feeShares);
-                emit PerformanceFeeMinted(feeRecipient, feeShares, feeAssets);
+                _mint($._feeRecipient, feeShares);
+                emit PerformanceFeeMinted($._feeRecipient, feeShares, feeAssets);
             }
         }
     }
 
     /// @notice Sets the high water mark
     function _setHighWaterMark(uint256 highWaterMark_) internal {
-        uint256 highWaterMarkBefore = highWaterMark;
-        highWaterMark = highWaterMark_;
+        PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
+        uint256 highWaterMarkBefore = $._highWaterMark;
+        $._highWaterMark = highWaterMark_;
         emit HighWaterMarkUpdated(highWaterMarkBefore, highWaterMark_);
     }
 
@@ -191,5 +208,24 @@ abstract contract PerformanceVault is BaseVault {
         returns (uint256)
     {
         return super.redeem(shares, receiver, owner);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Returns the high water mark
+    function highWaterMark() public view returns (uint256) {
+        return _getPerformanceVaultStorage()._highWaterMark;
+    }
+
+    /// @notice Returns the performance fee percent
+    function performanceFeePercent() public view returns (uint256) {
+        return _getPerformanceVaultStorage()._performanceFeePercent;
+    }
+
+    /// @notice Returns the fee recipient
+    function feeRecipient() public view returns (address) {
+        return _getPerformanceVaultStorage()._feeRecipient;
     }
 }

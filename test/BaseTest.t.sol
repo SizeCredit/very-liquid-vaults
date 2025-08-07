@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";

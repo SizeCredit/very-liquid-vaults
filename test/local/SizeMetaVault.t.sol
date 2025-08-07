@@ -12,9 +12,9 @@ import {VaultMockRevertOnDeposit} from "@test/mocks/VaultMockRevertOnDeposit.t.s
 import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
 import {VaultMockAssetFeeOnDeposit} from "@test/mocks/VaultMockAssetFeeOnDeposit.t.sol";
 import {VaultMockAssetFeeOnWithdraw} from "@test/mocks/VaultMockAssetFeeOnWithdraw.t.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 import {console} from "forge-std/console.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";

@@ -8,7 +8,7 @@ import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Auth} from "@src/Auth.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 
 contract CryticSizeMetaVaultMockScript is BaseScript {
     using SafeERC20 for IERC20Metadata;

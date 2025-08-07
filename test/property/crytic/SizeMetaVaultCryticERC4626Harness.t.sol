@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {CryticERC4626PropertyTests} from "@crytic/properties/contracts/ERC4626/ERC4626PropertyTests.sol";
 import {Setup} from "@test/Setup.t.sol";
 import {hevm} from "@crytic/properties/contracts/util/Hevm.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 
 contract SizeMetaVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
     constructor() {

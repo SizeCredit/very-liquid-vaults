@@ -30,8 +30,21 @@ contract AaveStrategyVault is NonReentrantVault {
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    IPool public pool;
-    IAToken public aToken;
+    /// @custom:storage-location erc7201:size.storage.AaveStrategyVault
+    struct AaveStrategyVaultStorage {
+        IPool _pool;
+        IAToken _aToken;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("size.storage.AaveStrategyVault")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant AaveStrategyVaultStorageLocation =
+        0x6b03c294048d7633f1826f4a825d1f9c054949a92b1cf388dba41a6d4d2b4500;
+
+    function _getAaveStrategyVaultStorage() private pure returns (AaveStrategyVaultStorage storage $) {
+        assembly {
+            $.slot := AaveStrategyVaultStorageLocation
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -68,10 +81,11 @@ contract AaveStrategyVault is NonReentrantVault {
             revert InvalidAsset(address(asset_));
         }
 
-        pool = pool_;
+        AaveStrategyVaultStorage storage $ = _getAaveStrategyVaultStorage();
+        $._pool = pool_;
         emit PoolSet(address(pool_));
-        aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
-        emit ATokenSet(address(aToken));
+        $._aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
+        emit ATokenSet(address($._aToken));
 
         super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
     }
@@ -86,7 +100,7 @@ contract AaveStrategyVault is NonReentrantVault {
     /// @return The maximum deposit amount allowed by Aave
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
-        DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
+        DataTypes.ReserveConfigurationMap memory config = pool().getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getFrozen() && !config.getPaused())) {
             return 0;
         }
@@ -99,9 +113,9 @@ contract AaveStrategyVault is NonReentrantVault {
 
         uint256 tokenDecimals = config.getDecimals();
         uint256 supplyCap = supplyCapInWholeTokens * 10 ** tokenDecimals;
-        DataTypes.ReserveDataLegacy memory reserve = pool.getReserveData(asset());
+        DataTypes.ReserveDataLegacy memory reserve = pool().getReserveData(asset());
         uint256 usedSupply =
-            (aToken.scaledTotalSupply() + uint256(reserve.accruedToTreasury)).rayMul(reserve.liquidityIndex);
+            (aToken().scaledTotalSupply() + uint256(reserve.accruedToTreasury)).rayMul(reserve.liquidityIndex);
 
         if (usedSupply >= supplyCap) return 0;
         return Math.min(supplyCap - usedSupply, super.maxDeposit(receiver));
@@ -117,12 +131,12 @@ contract AaveStrategyVault is NonReentrantVault {
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
-        DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
+        DataTypes.ReserveConfigurationMap memory config = pool().getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {
             return 0;
         }
 
-        uint256 cash = IERC20(asset()).balanceOf(address(aToken));
+        uint256 cash = IERC20(asset()).balanceOf(address(aToken()));
         uint256 assetsBalance = convertToAssets(balanceOf(owner));
         return Math.min(cash < assetsBalance ? cash : assetsBalance, super.maxWithdraw(owner));
     }
@@ -132,12 +146,12 @@ contract AaveStrategyVault is NonReentrantVault {
     /// @dev Limited by both owner's balance and Aave pool liquidity
     function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
-        DataTypes.ReserveConfigurationMap memory config = pool.getReserveData(asset()).configuration;
+        DataTypes.ReserveConfigurationMap memory config = pool().getReserveData(asset()).configuration;
         if (!(config.getActive() && !config.getPaused())) {
             return 0;
         }
 
-        uint256 cash = IERC20(asset()).balanceOf(address(aToken));
+        uint256 cash = IERC20(asset()).balanceOf(address(aToken()));
         uint256 cashInShares = convertToShares(cash);
         uint256 shareBalance = balanceOf(owner);
         return Math.min(cashInShares < shareBalance ? cashInShares : shareBalance, super.maxRedeem(owner));
@@ -148,16 +162,16 @@ contract AaveStrategyVault is NonReentrantVault {
     /// @dev Round down to avoid stealing assets in roundtrip operations https://github.com/a16z/erc4626-tests/issues/13
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         /// @notice aTokens use rebasing to accrue interest, so the total assets is just the aToken balance
-        uint256 liquidityIndex = pool.getReserveNormalizedIncome(address(asset()));
-        return Math.mulDiv(aToken.scaledBalanceOf(address(this)), liquidityIndex, WadRayMath.RAY);
+        uint256 liquidityIndex = pool().getReserveNormalizedIncome(address(asset()));
+        return Math.mulDiv(aToken().scaledBalanceOf(address(this)), liquidityIndex, WadRayMath.RAY);
     }
 
     /// @notice Internal deposit function that supplies assets to Aave
     /// @dev Calls parent deposit then supplies the assets to the Aave pool
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         super._deposit(caller, receiver, assets, shares);
-        IERC20(asset()).forceApprove(address(pool), assets);
-        pool.supply(asset(), assets, address(this), 0);
+        IERC20(asset()).forceApprove(address(pool()), assets);
+        pool().supply(asset(), assets, address(this), 0);
     }
 
     /// @notice Internal withdraw function that withdraws from Aave
@@ -167,7 +181,21 @@ contract AaveStrategyVault is NonReentrantVault {
         override
     {
         // slither-disable-next-line unused-return
-        pool.withdraw(asset(), assets, address(this));
+        pool().withdraw(asset(), assets, address(this));
         super._withdraw(caller, receiver, owner, assets, shares);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Returns the Aave pool
+    function pool() public view returns (IPool) {
+        return _getAaveStrategyVaultStorage()._pool;
+    }
+
+    /// @notice Returns the Aave aToken
+    function aToken() public view returns (IAToken) {
+        return _getAaveStrategyVaultStorage()._aToken;
     }
 }

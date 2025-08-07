@@ -12,15 +12,15 @@ contract CryticAaveStrategyVaultMock is AaveStrategyVault, CryticIERC4626Interna
     function recognizeProfit(uint256 profit) external override {
         address owner = Ownable(asset()).owner();
         vm.prank(owner);
-        IERC20MintBurn(asset()).mint(address(aToken), profit);
-        uint256 balance = aToken.balanceOf(asset());
+        IERC20MintBurn(asset()).mint(address(aToken()), profit);
+        uint256 balance = aToken().balanceOf(asset());
         vm.prank(owner);
-        PoolMock(address(pool)).setLiquidityIndex(asset(), (balance + profit) * 1e27 / balance);
+        PoolMock(address(pool())).setLiquidityIndex(asset(), (balance + profit) * 1e27 / balance);
     }
 
     function recognizeLoss(uint256 loss) external override {
         address owner = Ownable(asset()).owner();
         vm.prank(owner);
-        IERC20MintBurn(asset()).burn(address(aToken), loss);
+        IERC20MintBurn(asset()).burn(address(aToken()), loss);
     }
 }

@@ -22,7 +22,20 @@ contract ERC4626StrategyVault is NonReentrantVault {
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    IERC4626 public vault;
+    /// @custom:storage-location erc7201:size.storage.ERC4626StrategyVault
+    struct ERC4626StrategyVaultStorage {
+        IERC4626 _vault;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("size.storage.ERC4626StrategyVault")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant ERC4626StrategyVaultStorageLocation =
+        0x38a1b2a83634e21b8a768b344dddb96ad68dbc29f8128301f8422f40aee65000;
+
+    function _getERC4626StrategyVaultStorage() private pure returns (ERC4626StrategyVaultStorage storage $) {
+        assembly {
+            $.slot := ERC4626StrategyVaultStorageLocation
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                               EVENTS
@@ -48,7 +61,8 @@ contract ERC4626StrategyVault is NonReentrantVault {
             revert NullAddress();
         }
 
-        vault = vault_;
+        ERC4626StrategyVaultStorage storage $ = _getERC4626StrategyVaultStorage();
+        $._vault = vault_;
         emit VaultSet(address(vault_));
 
         super.initialize(auth_, IERC20(address(vault_.asset())), name_, symbol_, fundingAccount, firstDepositAmount);
@@ -60,7 +74,7 @@ contract ERC4626StrategyVault is NonReentrantVault {
 
     /// @notice Returns the maximum amount that can be deposited
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
-        return Math.min(vault.maxDeposit(address(this)), super.maxDeposit(receiver));
+        return Math.min(vault().maxDeposit(address(this)), super.maxDeposit(receiver));
     }
 
     /// @notice Returns the maximum number of shares that can be minted
@@ -75,7 +89,7 @@ contract ERC4626StrategyVault is NonReentrantVault {
 
     /// @notice Returns the maximum amount that can be withdrawn by an owner
     function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
-        return Math.min(vault.maxWithdraw(address(this)), super.maxWithdraw(owner));
+        return Math.min(vault().maxWithdraw(address(this)), super.maxWithdraw(owner));
     }
 
     /// @notice Returns the maximum number of shares that can be redeemed
@@ -92,16 +106,16 @@ contract ERC4626StrategyVault is NonReentrantVault {
     /// @dev Converts the external vault shares held by this contract to asset value
     /// @return The total assets under management
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        return vault.convertToAssets(vault.balanceOf(address(this)));
+        return vault().convertToAssets(vault().balanceOf(address(this)));
     }
 
     /// @notice Internal deposit function that invests in the external vault
     /// @dev Calls parent deposit then invests the assets in the external vault
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         super._deposit(caller, receiver, assets, shares);
-        IERC20(asset()).forceApprove(address(vault), assets);
+        IERC20(asset()).forceApprove(address(vault()), assets);
         // slither-disable-next-line unused-return
-        vault.deposit(assets, address(this));
+        vault().deposit(assets, address(this));
     }
 
     /// @notice Internal withdraw function that redeems from the external vault
@@ -111,7 +125,16 @@ contract ERC4626StrategyVault is NonReentrantVault {
         override
     {
         // slither-disable-next-line unused-return
-        vault.withdraw(assets, address(this), address(this));
+        vault().withdraw(assets, address(this), address(this));
         super._withdraw(caller, receiver, owner, assets, shares);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Returns the external vault
+    function vault() public view returns (IERC4626) {
+        return _getERC4626StrategyVaultStorage()._vault;
     }
 }

@@ -14,7 +14,7 @@ import {Auth} from "@src/Auth.sol";
 import {DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
@@ -36,9 +36,21 @@ abstract contract BaseVault is
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-    Auth public auth;
-    uint256 public totalAssetsCap;
-    uint256[48] private __gap;
+    /// @custom:storage-location erc7201:size.storage.BaseVault
+    struct BaseVaultStorage {
+        Auth _auth;
+        uint256 _totalAssetsCap;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("size.storage.BaseVault")) - 1)) & ~bytes32(uint256(0xff));
+    bytes32 private constant BaseVaultStorageLocation =
+        0x404a41806115f4e0ed08eb395c0045722d1875ff8794e55da96cf8391291c100;
+
+    function _getBaseVaultStorage() private pure returns (BaseVaultStorage storage $) {
+        assembly {
+            $.slot := BaseVaultStorageLocation
+        }
+    }
 
     /*//////////////////////////////////////////////////////////////
                               ERRORS
@@ -89,7 +101,8 @@ abstract contract BaseVault is
             revert NullAmount();
         }
 
-        auth = auth_;
+        BaseVaultStorage storage $ = _getBaseVaultStorage();
+        $._auth = auth_;
         emit AuthSet(address(auth_));
 
         _setTotalAssetsCap(type(uint256).max);
@@ -104,7 +117,7 @@ abstract contract BaseVault is
     /// @notice Modifier to restrict function access to addresses with specific roles
     /// @dev Reverts if the caller doesn't have the required role
     modifier onlyAuth(bytes32 role) {
-        if (!auth.hasRole(role, msg.sender)) {
+        if (!auth().hasRole(role, msg.sender)) {
             revert IAccessControl.AccessControlUnauthorizedAccount(msg.sender, role);
         }
         _;
@@ -153,8 +166,9 @@ abstract contract BaseVault is
 
     /// @notice Sets the maximum total assets of the vault
     function _setTotalAssetsCap(uint256 totalAssetsCap_) private {
-        uint256 oldTotalAssetsCap = totalAssetsCap;
-        totalAssetsCap = totalAssetsCap_;
+        BaseVaultStorage storage $ = _getBaseVaultStorage();
+        uint256 oldTotalAssetsCap = $._totalAssetsCap;
+        $._totalAssetsCap = totalAssetsCap_;
         emit TotalAssetsCapSet(oldTotalAssetsCap, totalAssetsCap_);
     }
 
@@ -173,7 +187,7 @@ abstract contract BaseVault is
 
     /// @notice Returns true if the vault is paused
     function _isPaused() private view returns (bool) {
-        return paused() || auth.paused();
+        return paused() || auth().paused();
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -235,7 +249,7 @@ abstract contract BaseVault is
     {
         if (_isPaused()) {
             return 0;
-        } else if (totalAssetsCap == type(uint256).max) {
+        } else if (totalAssetsCap() == type(uint256).max) {
             return super.maxDeposit(receiver);
         } else {
             return _maxDeposit();
@@ -246,7 +260,7 @@ abstract contract BaseVault is
     function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
         if (_isPaused()) {
             return 0;
-        } else if (totalAssetsCap == type(uint256).max) {
+        } else if (totalAssetsCap() == type(uint256).max) {
             return super.maxMint(receiver);
         } else {
             return convertToShares(_maxDeposit());
@@ -273,6 +287,20 @@ abstract contract BaseVault is
 
     /// @notice Returns the maximum amount that can be deposited
     function _maxDeposit() private view returns (uint256) {
-        return Math.saturatingSub(totalAssetsCap, totalAssets());
+        return Math.saturatingSub(totalAssetsCap(), totalAssets());
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                              VIEW FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Returns the auth contract
+    function auth() public view override returns (Auth) {
+        return _getBaseVaultStorage()._auth;
+    }
+
+    /// @notice Returns the total assets cap
+    function totalAssetsCap() public view override returns (uint256) {
+        return _getBaseVaultStorage()._totalAssetsCap;
     }
 }

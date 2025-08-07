@@ -11,12 +11,12 @@ contract CryticERC4626StrategyVaultMock is ERC4626StrategyVault, CryticIERC4626I
     function recognizeProfit(uint256 profit) external override {
         address owner = Ownable(asset()).owner();
         vm.prank(owner);
-        IERC20MintBurn(asset()).mint(address(vault), profit);
+        IERC20MintBurn(asset()).mint(address(vault()), profit);
     }
 
     function recognizeLoss(uint256 loss) external override {
         address owner = Ownable(asset()).owner();
         vm.prank(owner);
-        IERC20MintBurn(asset()).burn(address(vault), loss);
+        IERC20MintBurn(asset()).burn(address(vault()), loss);
     }
 }

@@ -30,7 +30,7 @@ import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {BaseVaultMockScript} from "@script/BaseVaultMock.s.sol";
 import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
 import {CryticSizeMetaVaultMockScript} from "@script/CryticSizeMetaVaultMock.s.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 import {WETH9} from "@aave/contracts/dependencies/weth/WETH9.sol";
 
 abstract contract Setup {

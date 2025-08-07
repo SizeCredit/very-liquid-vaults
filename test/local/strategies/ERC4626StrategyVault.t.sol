@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";

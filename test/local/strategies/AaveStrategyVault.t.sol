@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {IBaseVault} from "@src/IBaseVault.sol";
+import {IBaseVault} from "@src/utils/IBaseVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {Auth} from "@src/Auth.sol";
