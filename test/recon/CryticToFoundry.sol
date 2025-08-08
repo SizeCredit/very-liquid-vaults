@@ -8,6 +8,7 @@ import "forge-std/console2.sol";
 import {Test} from "forge-std/Test.sol";
 import {TargetFunctions} from "./TargetFunctions.sol";
 import {IVault} from "@src/utils/IVault.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
 
 // forge test --match-contract CryticToFoundry -vv
 contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
@@ -16,8 +17,19 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
     }
 
     // forge test --match-test test_crytic -vvv
-    function test_crytic() public {
-        sizeMetaVault_removeStrategy(IVault(0x6889d1378a04A5DA6a4e0F846c848B9ddB58C518), IVault(0xfFAc0F4F99659190D196232d28798e36ffE3336c), 0, 3598280323797073438562738483381227096788826338843307699337716344421460076096);
-        erc4626_convertToShares(55435129753960307879381427661303100766667599429958680309323665825220199478310);
+    function test_CryticToFoundry_01() public {
+        sizeMetaVault_addStrategy(cryticSizeMetaVault);
+        try this.sizeMetaVault_removeStrategy(
+            cashStrategyVault,
+            cryticSizeMetaVault,
+            0,
+            12309285055488365505482212365492300592776939712510733309382679362574362184841
+        ) {
+            erc4626_mustNotRevert_previewWithdraw(
+                2225540755836731568673543958881982534501949212283136249702905096594965025
+            );
+        } catch (bytes memory err) {
+            assertEq(err, abi.encodeWithSelector(BaseVault.NullAmount.selector));
+        }
     }
 }

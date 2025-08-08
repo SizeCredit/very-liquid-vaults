@@ -14,5 +14,5 @@ abstract contract PropertiesSpecifications {
         "TOTAL_ASSETS_CAP_01: Deposit reverts if amount + totalAssets() >= totalAssetsCap()";
     string constant DEPOSIT_01 = "DEPOSIT_01: deposit(maxDeposit) should not revert";
     string constant MINT_01 = "MINT_01: mint(maxMint) should not revert";
-    string constant ERC4626_MUST_NOT_REVERT = "ERC4626_MUST_NOT_REVERT: Some IERC4626 functions MUST NOT revert";
+    string constant ERC4626_MUST_NOT_REVERT = "ERC4626_MUST_NOT_REVERT: MUST NOT revert: ";
 }

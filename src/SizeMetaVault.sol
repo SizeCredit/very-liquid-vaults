@@ -200,7 +200,8 @@ contract SizeMetaVault is PerformanceVault {
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
     /// @dev Using `amount` = 0 will forfeit all assets from `strategyToRemove`
     /// @dev Using `amount` = type(uint256).max will attempt to transfer the entire balance from `strategyToRemove`
-    /// @dev If `convertToAssets(balanceOf)` > `maxWithdraw`, e.g. due to pause/withdraw limits, the _rebalance step will revert, so `amount` should be used
+    /// @dev If `convertToAssets(balanceOf)` > `maxWithdraw`, e.g. due to pause/withdraw limits, the _rebalance step will revert, so an appropriate `amount` should be used
+    /// @dev Reverts if totalAssets() == 0 at the end of the operation, which can happen if the call is performed with 100% slippage
     // slither-disable-next-line reentrancy-no-eth
     function removeStrategy(
         IVault strategyToRemove,
@@ -222,6 +223,10 @@ contract SizeMetaVault is PerformanceVault {
         amount = Math.min(amount, assetsToRemove);
         _rebalance(strategyToRemove, strategyToReceiveAssets, amount, maxSlippagePercent);
         _removeStrategy(strategyToRemove);
+
+        if (totalAssets() == 0) {
+            revert NullAmount();
+        }
     }
 
     /// @notice Sets the rebalance max slippage percent

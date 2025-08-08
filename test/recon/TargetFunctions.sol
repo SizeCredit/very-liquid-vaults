@@ -17,12 +17,14 @@ import {ERC4626MustNotRevertTargets} from "./targets/project/ERC4626MustNotRever
 import {ERC4626StrategyVaultTargets} from "./targets/project/ERC4626StrategyVaultTargets.sol";
 import {ManagersTargets} from "./targets/ManagersTargets.sol";
 import {SizeMetaVaultTargets} from "./targets/project/SizeMetaVaultTargets.sol";
+import {AuthTargets} from "./targets/project/AuthTargets.sol";
 
 abstract contract TargetFunctions is
     AaveStrategyVaultTargets,
     AdminTargets,
     CashStrategyVaultTargets,
     DoomsdayTargets,
+    AuthTargets,
     ERC4626MustNotRevertTargets,
     ERC4626StrategyVaultTargets,
     ManagersTargets,

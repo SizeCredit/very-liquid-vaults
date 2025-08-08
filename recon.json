@@ -348,5 +348,50 @@
       }
     ],
     "separated": true
+  },
+  "out/Auth.sol/Auth.json": {
+    "functions": [
+      {
+        "signature": "grantRole(bytes32,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "initialize(address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "multicall(bytes[])",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "pause()",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "renounceRole(bytes32,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "revokeRole(bytes32,address)",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "unpause()",
+        "actor": "actor",
+        "mode": "normal"
+      },
+      {
+        "signature": "upgradeToAndCall(address,bytes)",
+        "actor": "actor",
+        "mode": "normal"
+      }
+    ],
+    "separated": true
   }
 }

@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: GPL-2.0
+pragma solidity ^0.8.0;
+
+import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
+import {Ghosts} from "@test/recon/Ghosts.sol";
+import {Properties} from "@test/recon/Properties.sol";
+// Chimera deps
+import {vm} from "@chimera/Hevm.sol";
+
+// Helpers
+import {Panic} from "@recon/Panic.sol";
+
+import "src/Auth.sol";
+
+abstract contract AuthTargets is BaseTargetFunctions, Properties {
+    /// CUSTOM TARGET FUNCTIONS - Add your own target functions here ///
+
+    /// AUTO GENERATED TARGET FUNCTIONS - WARNING: DO NOT DELETE OR MODIFY THIS LINE ///
+
+    function auth_grantRole(bytes32 role, address account) public asActor {
+        auth.grantRole(role, account);
+    }
+
+    function auth_pause() public asActor {
+        auth.pause();
+    }
+
+    function auth_renounceRole(bytes32 role, address callerConfirmation) public asActor {
+        auth.renounceRole(role, callerConfirmation);
+    }
+
+    function auth_revokeRole(bytes32 role, address account) public asActor {
+        auth.revokeRole(role, account);
+    }
+
+    function auth_unpause() public asActor {
+        auth.unpause();
+    }
+}
