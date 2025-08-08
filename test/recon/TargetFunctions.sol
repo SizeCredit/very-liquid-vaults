@@ -13,6 +13,7 @@ import {AaveStrategyVaultTargets} from "./targets/project/AaveStrategyVaultTarge
 import {AdminTargets} from "./targets/AdminTargets.sol";
 import {CashStrategyVaultTargets} from "./targets/project/CashStrategyVaultTargets.sol";
 import {DoomsdayTargets} from "./targets/DoomsdayTargets.sol";
+import {ERC4626MustNotRevertTargets} from "./targets/project/ERC4626MustNotRevertTargets.sol";
 import {ERC4626StrategyVaultTargets} from "./targets/project/ERC4626StrategyVaultTargets.sol";
 import {ManagersTargets} from "./targets/ManagersTargets.sol";
 import {SizeMetaVaultTargets} from "./targets/project/SizeMetaVaultTargets.sol";
@@ -22,6 +23,7 @@ abstract contract TargetFunctions is
     AdminTargets,
     CashStrategyVaultTargets,
     DoomsdayTargets,
+    ERC4626MustNotRevertTargets,
     ERC4626StrategyVaultTargets,
     ManagersTargets,
     SizeMetaVaultTargets

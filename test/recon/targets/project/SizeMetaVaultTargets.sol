@@ -41,7 +41,24 @@ abstract contract SizeMetaVaultTargets is BaseTargetFunctions, Properties {
         public
         asActor
     {
+        address[] memory actors = _getActors();
+        uint256[] memory balancesBefore = new uint256[](actors.length);
+        uint256[] memory convertToAssetsBefore = new uint256[](actors.length);
+        for (uint256 i = 0; i < actors.length; i++) {
+            address actor = actors[i];
+            balancesBefore[i] = sizeMetaVault.balanceOf(actor);
+            convertToAssetsBefore[i] = sizeMetaVault.convertToAssets(balancesBefore[i]);
+        }
+
         sizeMetaVault.rebalance(strategyFrom, strategyTo, amount, maxSlippagePercent);
+
+        for (uint256 i = 0; i < actors.length; i++) {
+            address actor = actors[i];
+            uint256 balanceOf = sizeMetaVault.balanceOf(actor);
+            uint256 convertToAssets = sizeMetaVault.convertToAssets(balanceOf);
+            eq(balanceOf, balancesBefore[i], REBALANCE_01);
+            eq(convertToAssets, convertToAssetsBefore[i], REBALANCE_02);
+        }
     }
 
     function sizeMetaVault_redeem(uint256 shares, address receiver, address owner) public asActor {

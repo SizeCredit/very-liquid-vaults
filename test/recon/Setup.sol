@@ -25,12 +25,20 @@ import {Setup as __Setup} from "@test/Setup.t.sol";
 abstract contract Setup is BaseSetup, ActorManager, AssetManager, Utils, __Setup, PropertiesConstants {
     /// === Setup === ///
     /// This contains all calls to be performed in the tester constructor, both for Echidna and Foundry
+
+    IERC4626[] internal vaults;
+
     function setup() internal virtual override {
         deploy(address(this));
         _addActor(USER1);
         _addActor(USER2);
         _addActor(USER3);
         _addAsset(address(erc20Asset));
+
+        vaults.push(IERC4626(aaveStrategyVault));
+        vaults.push(IERC4626(cashStrategyVault));
+        vaults.push(IERC4626(erc4626StrategyVault));
+        vaults.push(IERC4626(sizeMetaVault));
     }
 
     /// === MODIFIERS === ///

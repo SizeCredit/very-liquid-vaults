@@ -7,11 +7,11 @@ import {PropertiesSpecifications} from "@test/property/PropertiesSpecifications.
 
 abstract contract Properties is Ghosts, Asserts, PropertiesSpecifications {
     function property_SOLVENCY_01() public {
-        address[] memory actors = _getActors();
+        address[] memory _actors = _getActors();
         uint256 assets = 0;
-        for (uint256 i = 0; i < actors.length; i++) {
-            address actor = actors[i];
-            uint256 balanceOf = erc20Asset.balanceOf(actor);
+        for (uint256 i = 0; i < _actors.length; i++) {
+            address _actor = _actors[i];
+            uint256 balanceOf = erc20Asset.balanceOf(_actor);
             assets += sizeMetaVault.convertToAssets(balanceOf);
         }
         lte(assets, sizeMetaVault.totalAssets(), SOLVENCY_01);
