@@ -23,10 +23,18 @@ abstract contract ERC4626StrategyVaultTargets is BaseTargetFunctions, Properties
 
     function erc4626StrategyVault_deposit(uint256 assets, address receiver) public asActor {
         erc4626StrategyVault.deposit(assets, receiver);
+
+        if (assets > 0) {
+            lte(erc4626StrategyVault.totalAssets(), erc4626StrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
+        }
     }
 
     function erc4626StrategyVault_mint(uint256 shares, address receiver) public asActor {
         erc4626StrategyVault.mint(shares, receiver);
+
+        if (shares > 0) {
+            lte(erc4626StrategyVault.totalAssets(), erc4626StrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
+        }
     }
 
     function erc4626StrategyVault_pause() public asActor {
@@ -38,6 +46,9 @@ abstract contract ERC4626StrategyVaultTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626StrategyVault_setTotalAssetsCap(uint256 totalAssetsCap_) public asActor {
+        if (totalAssetsCap_ != type(uint128).max) {
+            totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
+        }
         erc4626StrategyVault.setTotalAssetsCap(totalAssetsCap_);
     }
 

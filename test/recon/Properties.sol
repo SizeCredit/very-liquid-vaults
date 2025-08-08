@@ -16,4 +16,8 @@ abstract contract Properties is Ghosts, Asserts, PropertiesSpecifications {
         }
         lte(assets, sizeMetaVault.totalAssets(), SOLVENCY_01);
     }
+
+    function property_STRATEGY_02() public {
+        gt(sizeMetaVault.strategiesCount(), 0, STRATEGY_02);
+    }
 }

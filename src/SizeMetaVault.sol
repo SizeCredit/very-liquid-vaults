@@ -47,7 +47,9 @@ contract SizeMetaVault is PerformanceVault {
 
     event StrategyAdded(address indexed strategy);
     event StrategyRemoved(address indexed strategy);
-    event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 rebalancedAmount);
+    event Rebalanced(
+        address indexed strategyFrom, address indexed strategyTo, uint256 rebalancedAmount, uint256 maxSlippagePercent
+    );
     event RebalanceMaxSlippagePercentSet(
         uint256 oldRebalanceMaxSlippagePercent, uint256 newRebalanceMaxSlippagePercent
     );
@@ -457,7 +459,7 @@ contract SizeMetaVault is PerformanceVault {
             revert TransferredAmountLessThanMin(assetsBefore, assetsAfter, slippage, amount, maxSlippagePercent);
         }
 
-        emit Rebalance(address(strategyFrom), address(strategyTo), assets);
+        emit Rebalanced(address(strategyFrom), address(strategyTo), assets, maxSlippagePercent);
     }
 
     /*//////////////////////////////////////////////////////////////

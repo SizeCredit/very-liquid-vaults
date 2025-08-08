@@ -3,7 +3,8 @@ pragma solidity ^0.8.0;
 
 // Chimera deps
 import {BaseSetup} from "@chimera/BaseSetup.sol";
-import {vm} from "@chimera/Hevm.sol";
+import {vm as hevm} from "@chimera/Hevm.sol";
+import {Vm} from "forge-std/Vm.sol";
 
 // Managers
 import {ActorManager} from "@recon/ActorManager.sol";
@@ -23,6 +24,7 @@ import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesC
 import {Setup as __Setup} from "@test/Setup.t.sol";
 
 abstract contract Setup is BaseSetup, ActorManager, AssetManager, Utils, __Setup, PropertiesConstants {
+    Vm private vm = Vm(address(hevm));
     /// === Setup === ///
     /// This contains all calls to be performed in the tester constructor, both for Echidna and Foundry
 
@@ -45,12 +47,14 @@ abstract contract Setup is BaseSetup, ActorManager, AssetManager, Utils, __Setup
     /// Prank admin and actor
 
     modifier asAdmin() {
-        vm.prank(address(this));
+        vm.startPrank(address(this));
         _;
+        vm.stopPrank();
     }
 
     modifier asActor() {
-        vm.prank(address(_getActor()));
+        vm.startPrank(address(_getActor()));
         _;
+        vm.stopPrank();
     }
 }

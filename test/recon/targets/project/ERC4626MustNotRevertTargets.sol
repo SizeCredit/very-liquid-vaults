@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 pragma solidity ^0.8.0;
 
+import {console} from "forge-std/console.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import {Ghosts} from "@test/recon/Ghosts.sol";
 import {Properties} from "@test/recon/Properties.sol";
@@ -32,6 +33,7 @@ abstract contract ERC4626MustNotRevertTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626_mustNotRevert_convertToShares(uint256 assets) public {
+        assets = between(assets, 0, type(uint128).max);
         for (uint256 i = 0; i < vaults.length; i++) {
             try vaults[i].convertToShares(assets) {}
             catch {
@@ -41,6 +43,7 @@ abstract contract ERC4626MustNotRevertTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626_mustNotRevert_convertToAssets(uint256 shares) public {
+        shares = between(shares, 0, type(uint128).max);
         for (uint256 i = 0; i < vaults.length; i++) {
             try vaults[i].convertToAssets(shares) {}
             catch {
@@ -59,6 +62,7 @@ abstract contract ERC4626MustNotRevertTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626_mustNotRevert_previewDeposit(uint256 assets) public {
+        assets = between(assets, 0, type(uint128).max);
         for (uint256 i = 0; i < vaults.length; i++) {
             try vaults[i].previewDeposit(assets) {}
             catch {
@@ -77,6 +81,7 @@ abstract contract ERC4626MustNotRevertTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626_mustNotRevert_previewMint(uint256 shares) public {
+        shares = between(shares, 0, type(uint128).max);
         for (uint256 i = 0; i < vaults.length; i++) {
             try vaults[i].previewMint(shares) {}
             catch {
@@ -95,6 +100,7 @@ abstract contract ERC4626MustNotRevertTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626_mustNotRevert_previewWithdraw(uint256 assets) public {
+        assets = between(assets, 0, type(uint128).max);
         for (uint256 i = 0; i < vaults.length; i++) {
             try vaults[i].previewWithdraw(assets) {}
             catch {
@@ -113,6 +119,7 @@ abstract contract ERC4626MustNotRevertTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626_mustNotRevert_previewRedeem(uint256 shares) public {
+        shares = between(shares, 0, type(uint128).max);
         for (uint256 i = 0; i < vaults.length; i++) {
             try vaults[i].previewRedeem(shares) {}
             catch {

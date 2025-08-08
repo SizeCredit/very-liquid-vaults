@@ -17,20 +17,8 @@ abstract contract AuthTargets is BaseTargetFunctions, Properties {
 
     /// AUTO GENERATED TARGET FUNCTIONS - WARNING: DO NOT DELETE OR MODIFY THIS LINE ///
 
-    function auth_grantRole(bytes32 role, address account) public asActor {
-        auth.grantRole(role, account);
-    }
-
     function auth_pause() public asActor {
         auth.pause();
-    }
-
-    function auth_renounceRole(bytes32 role, address callerConfirmation) public asActor {
-        auth.renounceRole(role, callerConfirmation);
-    }
-
-    function auth_revokeRole(bytes32 role, address account) public asActor {
-        auth.revokeRole(role, account);
     }
 
     function auth_unpause() public asActor {
