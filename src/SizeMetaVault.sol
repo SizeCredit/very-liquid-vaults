@@ -269,6 +269,7 @@ contract SizeMetaVault is PerformanceVault {
         _rebalance(strategyToRemove, strategyToReceiveAssets, amount, maxSlippagePercent);
         _removeStrategy(strategyToRemove);
 
+        // slither-disable-next-line incorrect-equality
         if (totalAssets() == 0) {
             revert NullAmount();
         }
