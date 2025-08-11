@@ -15,7 +15,7 @@
 	url = https://github.com/aave-dao/aave-v3-origin
 [submodule "lib/ercx-tests"]
 	path = lib/ercx-tests
-	url = https://github.com/runtimeverification/ercx-tests
+	url = https://github.com/aviggiano/ercx-tests
 [submodule "lib/console3"]
 	path = lib/console3
 	url = https://github.com/aviggiano/console3
