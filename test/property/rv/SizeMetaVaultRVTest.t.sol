@@ -8,5 +8,10 @@ contract SizeMetaVaultRVTest is ERC4626Test, Setup {
     function setUp() public {
         deploy(address(this));
         ERC4626Test.init(address(sizeMetaVault));
+        _setupRandomSizeMetaVaultConfiguration(address(this), _getRandomUint);
+    }
+
+    function _getRandomUint(uint256 min, uint256 max) internal returns (uint256) {
+        return vm.randomUint(min, max);
     }
 }

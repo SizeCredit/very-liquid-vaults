@@ -705,6 +705,7 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_strategy_can_be_a_SizeMetaVault() public {
+        _log(sizeMetaVault);
         uint256 amount = 100e6;
         _deposit(alice, sizeMetaVault, amount);
 
@@ -713,8 +714,12 @@ contract SizeMetaVaultTest is BaseTest {
         vm.prank(manager);
         sizeMetaVault.addStrategy(cryticSizeMetaVault);
 
+        _log(sizeMetaVault);
+
+        IVault[] memory strategies = _getStrategies(sizeMetaVault);
+
         vm.prank(strategist);
-        sizeMetaVault.rebalance(cashStrategyVault, cryticSizeMetaVault, amount, 0);
+        sizeMetaVault.rebalance(strategies[0], cryticSizeMetaVault, amount, 0);
 
         uint256 totalAssetsAfter = sizeMetaVault.totalAssets();
 

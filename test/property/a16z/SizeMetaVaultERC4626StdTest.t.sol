@@ -17,6 +17,8 @@ contract SizeMetaVaultERC4626StdTest is ERC4626Test, BaseTest {
         _delta_ = 0;
         _vaultMayBeEmpty = true;
         _unlimitedAmount = true;
+
+        _setupRandomSizeMetaVaultConfiguration(admin, _getRandomUint);
     }
 
     function setUpYield(ERC4626Test.Init memory init) public override {

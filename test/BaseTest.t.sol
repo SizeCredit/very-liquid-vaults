@@ -70,6 +70,8 @@ contract BaseTest is Test, Setup, BaseScript {
         auth.grantRole(VAULT_MANAGER_ROLE, manager);
         vm.prank(admin);
         auth.grantRole(GUARDIAN_ROLE, guardian);
+
+        _setupRandomSizeMetaVaultConfiguration(admin, _getRandomUint);
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {
@@ -121,5 +123,38 @@ contract BaseTest is Test, Setup, BaseScript {
         for (uint256 i = 0; i < length; i++) {
             strategies[i] = _sizeMetaVault.strategies(i);
         }
+    }
+
+    function _getRandomUint(uint256 min, uint256 max) internal returns (uint256) {
+        return vm.randomUint(min, max);
+    }
+
+    function _log(SizeMetaVault _sizeMetaVault) internal {
+        string memory log = "SizeMetaVault\n";
+        log = string.concat(log, "  totalAssets             ", vm.toString(_sizeMetaVault.totalAssets()), "\n");
+        log = string.concat(log, "  totalSupply             ", vm.toString(_sizeMetaVault.totalSupply()), "\n");
+        log = string.concat(log, "  strategies              ", vm.toString(_sizeMetaVault.strategiesCount()), "\n");
+        for (uint256 i = 0; i < _sizeMetaVault.strategiesCount(); i++) {
+            IVault strategy = _sizeMetaVault.strategies(i);
+            string memory label = strategy == cashStrategyVault
+                ? "CashStrategyVault     "
+                : strategy == aaveStrategyVault
+                    ? "AaveStrategyVault     "
+                    : strategy == erc4626StrategyVault ? "ERC4626StrategyVault  " : "IVault                ";
+            uint256 balance = strategy.balanceOf(address(_sizeMetaVault));
+            uint256 assets = strategy.convertToAssets(balance);
+            log = string.concat(
+                log,
+                "    ",
+                label,
+                vm.toString(address(strategy)),
+                " ",
+                vm.toString(balance),
+                " ",
+                vm.toString(assets),
+                "\n"
+            );
+        }
+        console.log(log);
     }
 }
