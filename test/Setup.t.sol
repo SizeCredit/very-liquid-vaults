@@ -16,7 +16,7 @@ import {USDC} from "@test/mocks/USDC.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {PoolMockScript} from "@script/PoolMock.s.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
-import {hevm as vm} from "@crytic/properties/contracts/util/Hevm.sol";
+import {hevm} from "@crytic/properties/contracts/util/Hevm.sol";
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
@@ -143,15 +143,46 @@ abstract contract Setup {
     }
 
     function _mint(address admin, address to, uint256 amount) private {
-        vm.prank(admin);
+        hevm.prank(admin);
         USDC(address(erc20Asset)).mint(to, amount);
     }
 
     function _mintWETH(address admin, address to, uint256 amount) private {
-        vm.deal(admin, amount);
-        vm.prank(admin);
+        hevm.deal(admin, amount);
+        hevm.prank(admin);
         weth.deposit{value: amount}();
-        vm.prank(admin);
+        hevm.prank(admin);
         weth.transfer(to, amount);
+    }
+
+    // NOTE: this makes symbolic execution tools have multiple paths to explore
+    function _setupRandomSizeMetaVaultConfiguration(
+        address admin,
+        function(uint256, uint256) returns (uint256) getRandomUint
+    ) internal {
+        IVault[] memory strategies = sizeMetaVault.strategies();
+        _shuffle(strategies, getRandomUint);
+
+        hevm.prank(admin);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        IVault strategyFrom = strategies[0];
+        IVault strategyTo = strategies[1];
+        uint256 strategyAssets = strategyFrom.convertToAssets(strategyFrom.balanceOf(address(sizeMetaVault)));
+        uint256 amount = getRandomUint(0, strategyAssets);
+        if (amount > 0) {
+            hevm.prank(admin);
+            sizeMetaVault.rebalance(strategyFrom, strategyTo, amount, type(uint256).max);
+        }
+    }
+
+    function _shuffle(IVault[] memory strategies, function(uint256, uint256) returns (uint256) getRandomUint) private {
+        // Fisher-Yates shuffle algorithm
+        for (uint256 i = strategies.length - 1; i > 0; i--) {
+            uint256 j = getRandomUint(0, i);
+            IVault temp = strategies[i];
+            strategies[i] = strategies[j];
+            strategies[j] = temp;
+        }
     }
 }

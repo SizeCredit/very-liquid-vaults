@@ -10,10 +10,16 @@ contract SizeMetaVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup 
     constructor() {
         deploy(address(this));
         initialize(address(sizeMetaVault), address(asset), true);
+        _setupRandomSizeMetaVaultConfiguration(address(this), _getRandomUint);
     }
 
     function rebalance(address strategyFrom, address strategyTo, uint256 amount, uint256 maxSlippagePercent) public {
         hevm.prank(address(this));
         sizeMetaVault.rebalance(IVault(strategyFrom), IVault(strategyTo), amount, maxSlippagePercent);
+    }
+
+    function _getRandomUint(uint256 min, uint256 max) internal returns (uint256) {
+        uint256 prng = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty, block.number)));
+        return prng % (max - min + 1) + min;
     }
 }
