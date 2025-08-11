@@ -92,11 +92,11 @@ Target integrations:
 
 ## Known Limitations
 
-1. When `removeStrategies` is performed, the `SizeMetaVault` attempts to withdraw all assets from the exiting strategy and re-deposit to another strategy. If the withdraw or deposit fails, the whole operation reverts
-2. The performance fee can stop being applied during a significant downturn event, which would cause the PPS to never surpass the high-water mark
-3. Assets donated to the vaults may be lost
-4. The vaults are not compatible with fee-on-transfer assets
-5. The `ERC4626StrategyVault` is not compliant with vaults that take fees in assets on deposits or withdrawals, as they are not strictly ERC-4626 compliant
+1. When `removeStrategy` is performed, the `SizeMetaVault` attempts to withdraw all assets from the exiting strategy and re-deposit them into another strategy. If the withdrawal or deposit fails, the whole operation reverts.
+2. The performance fee can stop being applied during a significant downturn event, which would cause the price per share to never surpass the high-water mark.
+3. Assets directly sent to the vaults may be lost, with the exception of the `CashStrategyVault`, which accepts them as donations.
+4. The vaults are not compatible with fee-on-transfer assets.
+5. The `ERC4626StrategyVault` cannot be used by vaults that take fees in assets on deposits or withdrawals. All integrated vaults must be strictly ERC-4626 compliant.
 
 ### Deployment
 
