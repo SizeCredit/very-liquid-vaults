@@ -169,8 +169,8 @@ abstract contract Setup {
         IVault strategyFrom = strategies[0];
         IVault strategyTo = strategies[1];
         uint256 strategyAssets = strategyFrom.convertToAssets(strategyFrom.balanceOf(address(sizeMetaVault)));
-        uint256 amount = getRandomUint(0, strategyAssets);
-        if (amount > 0) {
+        if (strategyAssets > 0) {
+            uint256 amount = getRandomUint(1, strategyAssets);
             hevm.prank(admin);
             sizeMetaVault.rebalance(strategyFrom, strategyTo, amount, type(uint256).max);
         }
