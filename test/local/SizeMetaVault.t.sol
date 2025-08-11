@@ -605,11 +605,20 @@ contract SizeMetaVaultTest is BaseTest {
         );
         sizeMetaVault.removeStrategy(newStrategy, cashStrategyVault, withdrawAmount, 0.01e18);
 
+        IVault[] memory strategies = new IVault[](2);
+        strategies[0] = cashStrategyVault;
+        strategies[1] = newStrategy;
+        vm.prank(strategist);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        uint256 dust = 1;
+        _deposit(guardian, sizeMetaVault, dust);
+
         vm.prank(guardian);
         sizeMetaVault.removeStrategy(newStrategy, cashStrategyVault, 0, 0);
 
         assertEq(sizeMetaVault.balanceOf(alice), depositAmount);
-        assertEq(sizeMetaVault.convertToAssets(sizeMetaVault.balanceOf(alice)), 0);
+        assertEq(sizeMetaVault.convertToAssets(sizeMetaVault.balanceOf(alice)), dust);
     }
 
     function test_SizeMetaVault_addStrategy_max_strategies_exceeded() public {

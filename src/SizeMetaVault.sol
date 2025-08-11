@@ -146,6 +146,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Deposits assets to strategies in order
     /// @dev Tries to deposit to strategies sequentially, reverts if not all assets can be deposited
+    // slither-disable-next-line calls-loop
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         if (_isInitializing()) {
             // first deposit
@@ -154,16 +155,58 @@ contract SizeMetaVault is PerformanceVault {
 
         super._deposit(caller, receiver, assets, shares);
 
-        _depositToStrategies(assets, shares);
+        uint256 assetsToDeposit = assets;
+
+        uint256 length = strategies().length;
+        for (uint256 i = 0; i < length; i++) {
+            IVault strategy = strategies(i);
+            uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
+            uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
+
+            if (depositAmount > 0) {
+                IERC20(asset()).forceApprove(address(strategy), depositAmount);
+                // slither-disable-next-line unused-return
+                try strategy.deposit(depositAmount, address(this)) {
+                    assetsToDeposit -= depositAmount;
+                } catch {
+                    emit DepositFailed(address(strategy), depositAmount);
+                    IERC20(asset()).forceApprove(address(strategy), 0);
+                }
+            }
+        }
+        if (assetsToDeposit > 0) {
+            revert CannotDepositToStrategies(assets, shares, assetsToDeposit);
+        }
     }
 
     /// @notice Withdraws assets from strategies in order
     /// @dev Tries to withdraw from strategies sequentially, reverts if not enough assets available
+    // slither-disable-next-line calls-loop
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
     {
-        _withdrawFromStrategies(assets, shares);
+        uint256 assetsToWithdraw = assets;
+
+        uint256 length = strategies().length;
+        for (uint256 i = 0; i < length; i++) {
+            IVault strategy = strategies(i);
+
+            uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
+            uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
+
+            if (withdrawAmount > 0) {
+                // slither-disable-next-line unused-return
+                try strategy.withdraw(withdrawAmount, address(this), address(this)) {
+                    assetsToWithdraw -= withdrawAmount;
+                } catch {
+                    emit WithdrawFailed(address(strategy), withdrawAmount);
+                }
+            }
+        }
+        if (assetsToWithdraw > 0) {
+            revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);
+        }
 
         super._withdraw(caller, receiver, owner, assets, shares);
     }
@@ -374,59 +417,6 @@ contract SizeMetaVault is PerformanceVault {
         for (uint256 i = 0; i < length; i++) {
             uint256 strategyMaxWithdraw = strategies(i).maxWithdraw(address(this));
             maxAssets = Math.saturatingAdd(maxAssets, strategyMaxWithdraw);
-        }
-    }
-
-    /// @notice Internal function to deposit assets to strategies
-    // slither-disable-next-line calls-loop
-    function _depositToStrategies(uint256 assets, uint256 shares) private {
-        uint256 assetsToDeposit = assets;
-
-        uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
-            IVault strategy = strategies(i);
-            uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
-            uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
-
-            if (depositAmount > 0) {
-                IERC20(asset()).forceApprove(address(strategy), depositAmount);
-                // slither-disable-next-line unused-return
-                try strategy.deposit(depositAmount, address(this)) {
-                    assetsToDeposit -= depositAmount;
-                } catch {
-                    emit DepositFailed(address(strategy), depositAmount);
-                    IERC20(asset()).forceApprove(address(strategy), 0);
-                }
-            }
-        }
-        if (assetsToDeposit > 0) {
-            revert CannotDepositToStrategies(assets, shares, assetsToDeposit);
-        }
-    }
-
-    /// @notice Internal function to withdraw assets from strategies
-    // slither-disable-next-line calls-loop
-    function _withdrawFromStrategies(uint256 assets, uint256 shares) private {
-        uint256 assetsToWithdraw = assets;
-
-        uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
-            IVault strategy = strategies(i);
-
-            uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
-            uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
-
-            if (withdrawAmount > 0) {
-                // slither-disable-next-line unused-return
-                try strategy.withdraw(withdrawAmount, address(this), address(this)) {
-                    assetsToWithdraw -= withdrawAmount;
-                } catch {
-                    emit WithdrawFailed(address(strategy), withdrawAmount);
-                }
-            }
-        }
-        if (assetsToWithdraw > 0) {
-            revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);
         }
     }
 
