@@ -129,7 +129,7 @@ contract BaseTest is Test, Setup, BaseScript {
         return vm.randomUint(min, max);
     }
 
-    function _log(SizeMetaVault _sizeMetaVault) internal {
+    function _log(SizeMetaVault _sizeMetaVault) internal view {
         string memory log = "SizeMetaVault\n";
         log = string.concat(log, "  totalAssets             ", vm.toString(_sizeMetaVault.totalAssets()), "\n");
         log = string.concat(log, "  totalSupply             ", vm.toString(_sizeMetaVault.totalSupply()), "\n");
