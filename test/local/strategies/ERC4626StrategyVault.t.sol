@@ -413,8 +413,12 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         _deposit(alice, erc4626StrategyVault, 100e6);
         _deposit(bob, sizeMetaVault, 30e6);
 
-        assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), 30e6);
-        assertEq(erc4626StrategyVault.maxRedeem(address(sizeMetaVault)), erc4626StrategyVault.previewRedeem(30e6));
+        uint256 depositedToVault = strategies[0] == erc4626StrategyVault ? 30e6 : 0;
+
+        assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), depositedToVault);
+        assertEq(
+            erc4626StrategyVault.maxRedeem(address(sizeMetaVault)), erc4626StrategyVault.previewRedeem(depositedToVault)
+        );
     }
 
     function test_ERC4626StrategyVault_max_same_units() public {

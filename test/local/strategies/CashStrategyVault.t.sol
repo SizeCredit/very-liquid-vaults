@@ -4,6 +4,7 @@ pragma solidity 0.8.26;
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
+import {IVault} from "@src/utils/IVault.sol";
 
 contract CashStrategyVaultTest is BaseTest {
     uint256 initialBalance;
@@ -169,13 +170,18 @@ contract CashStrategyVaultTest is BaseTest {
     }
 
     function test_CashStrategyVault_maxWithdraw_maxRedeem() public {
+        IVault[] memory strategies = _getStrategies(sizeMetaVault);
+
         uint256 assetsBefore = cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
         _deposit(alice, cashStrategyVault, 100e6);
         _deposit(bob, sizeMetaVault, 30e6);
 
-        assertEq(cashStrategyVault.maxWithdraw(address(sizeMetaVault)), assetsBefore + 30e6);
+        uint256 depositedToCash = strategies[0] == cashStrategyVault ? 30e6 : 0;
+
+        assertEq(cashStrategyVault.maxWithdraw(address(sizeMetaVault)), assetsBefore + depositedToCash);
         assertEq(
-            cashStrategyVault.maxRedeem(address(sizeMetaVault)), cashStrategyVault.previewRedeem(assetsBefore + 30e6)
+            cashStrategyVault.maxRedeem(address(sizeMetaVault)),
+            cashStrategyVault.previewRedeem(assetsBefore + depositedToCash)
         );
     }
 }

@@ -37,8 +37,4 @@ contract SizeMetaVaultERC4626StdTest is ERC4626Test, BaseTest {
             IMockERC20(_underlying_).burn(address(cashStrategyVault), loss);
         }
     }
-
-    function _getRandomUint(uint256 min, uint256 max) internal returns (uint256) {
-        return vm.randomUint(min, max);
-    }
 }
