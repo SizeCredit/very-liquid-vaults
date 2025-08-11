@@ -25,6 +25,11 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         initialBalance = erc20Asset.balanceOf(address(aToken));
     }
 
+    function test_AaveStrategyVault_initialize() public {
+        assertEq(address(aaveStrategyVault.pool()), address(pool));
+        assertEq(address(aaveStrategyVault.aToken()), address(aToken));
+    }
+
     function test_AaveStrategyVault_initialize_invalid_asset() public {
         vm.store(address(aaveStrategyVault), _initializableStorageSlot(), bytes32(uint256(0)));
         vm.prank(admin);

@@ -46,6 +46,8 @@ contract SizeMetaVaultTest is BaseTest {
         assertEq(sizeMetaVault.allowance(address(this), address(this)), 0);
         assertEq(sizeMetaVault.decimals(), erc20Asset.decimals());
         assertEq(sizeMetaVault.decimals(), erc20Asset.decimals());
+        assertEq(sizeMetaVault.strategies().length, 3);
+        assertEq(sizeMetaVault.rebalanceMaxSlippagePercent(), 0.01e18);
     }
 
     function test_SizeMetaVault_rebalance_cashStrategy_to_erc4626() public {
