@@ -462,9 +462,9 @@ contract SizeMetaVault is PerformanceVault {
         return _getSizeMetaVaultStorage()._strategies;
     }
 
-    /// @notice Returns the rebalance max slippage percent
-    function rebalanceMaxSlippagePercent() public view returns (uint256) {
-        return _getSizeMetaVaultStorage()._rebalanceMaxSlippagePercent;
+    /// @notice Returns the strategy at the given index
+    function strategies(uint256 index) public view returns (IVault) {
+        return _getSizeMetaVaultStorage()._strategies[index];
     }
 
     /// @notice Returns the number of strategies in the vault
@@ -472,9 +472,9 @@ contract SizeMetaVault is PerformanceVault {
         return strategies().length;
     }
 
-    /// @notice Returns the strategy at the given index
-    function strategies(uint256 index) public view returns (IVault) {
-        return _getSizeMetaVaultStorage()._strategies[index];
+    /// @notice Returns the rebalance max slippage percent
+    function rebalanceMaxSlippagePercent() public view returns (uint256) {
+        return _getSizeMetaVaultStorage()._rebalanceMaxSlippagePercent;
     }
 
     /// @notice Returns true if the strategy is in the vault
