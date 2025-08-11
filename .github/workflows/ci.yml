@@ -164,7 +164,7 @@ jobs:
             URL="https://github.com/crytic/echidna/releases/download/v2.2.6/echidna-2.2.6-x86_64-linux.tar.gz"
           elif [[ "${{ matrix.fuzzer }}" == "medusa" ]]; then
             TOOL="medusa"
-            URL="https://github.com/crytic/medusa/releases/download/v1.2.1/medusa-linux-x64.tar.gz"
+            URL="https://github.com/crytic/medusa/releases/download/v1.3.0/medusa-linux-x64.tar.gz"
           else
             echo "Unsupported fuzzer: ${{ matrix.fuzzer }}"
             exit 1

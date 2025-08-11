@@ -8,15 +8,18 @@ Size Meta Vault is a "meta vault" implementation that allows users to deposit as
 
 ## Security
 
-This project implements ERC4626 property tests from [A16Z](https://github.com/a16z/erc4626-tests), [Trail of Bits' Crytic](https://github.com/crytic/properties), and [Runtime Verification](https://github.com/runtimeverification/ercx-tests). In addition, several security-focused remediations for common vault attacks were introduced:
-
+- ERC4626 property tests from [A16Z](https://github.com/a16z/erc4626-tests), [Trail of Bits' Crytic](https://github.com/crytic/properties), and [Runtime Verification](https://github.com/runtimeverification/ercx-tests)
 - OpenZeppelin's implementation with decimals offset ([A Novel Defense Against ERC4626 Inflation Attacks](https://blog.openzeppelin.com/a-novel-defense-against-erc4626-inflation-attacks))
 - First deposit during deployment with dead shares, pioneered by the [Morpho Optimizer](https://github.com/morpho-org/morpho-optimizers-vaults/blob/a74846774afe4f74a75a0470c2984c7d8ea41f35/scripts/aave-v2/eth-mainnet/Deploy.s.sol#L85-L120)
 - Timelock for sensitive operations using OpenZeppelin's [TimelockController](https://docs.openzeppelin.com/defender/guide/timelock-roles)
+- Invariant tests for [a list of system properties](test/property/PropertiesSpecifications.t.sol)
 
 ## Audits
 
-This project has not undergone any security reviews yet.
+| Date | Version | Auditor | Report |
+|------|---------|----------|---------|
+| TBD | v0.1.0 | TBD | TBD |
+| 2025-07-26 | v0.0.1 | Obsidian Audits | [Report](./audits/2025-07-26-Obsidian-Audits.pdf) |
 
 ## Deployments
 
@@ -89,11 +92,11 @@ Target integrations:
 
 ## Known Limitations
 
-1. When `removeStrategies` is performed, the `SizeMetaVault` attempts to withdraw all assets from the exiting strategy and re-deposit to another strategy. If the withdraw or deposit fails, the whole operation reverts
-2. The performance fee can stop being applied during a significant downturn event, which would cause the PPS to never surpass the high-water mark
-3. Assets donated to the vaults may be lost
-4. The vaults are not compatible with fee-on-transfer assets
-5. The `ERC4626StrategyVault` is not compliant with vaults that take fees in assets on deposits or withdrawals, as they are not strictly ERC-4626 compliant
+1. When `removeStrategy` is performed, the `SizeMetaVault` attempts to withdraw all assets from the exiting strategy and re-deposit them into another strategy. If the withdrawal or deposit fails, the whole operation reverts.
+2. The performance fee can stop being applied during a significant downturn event, which would cause the price per share to never surpass the high-water mark.
+3. Assets directly sent to the vaults may be lost, with the exception of the `CashStrategyVault`, which accepts them as donations.
+4. The vaults are not compatible with fee-on-transfer assets.
+5. The `ERC4626StrategyVault` cannot be used by vaults that take fees in assets on deposits or withdrawals. All integrated vaults must be strictly ERC-4626 compliant.
 
 ### Deployment
 

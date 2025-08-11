@@ -47,7 +47,9 @@ contract SizeMetaVault is PerformanceVault {
 
     event StrategyAdded(address indexed strategy);
     event StrategyRemoved(address indexed strategy);
-    event Rebalance(address indexed strategyFrom, address indexed strategyTo, uint256 rebalancedAmount);
+    event Rebalanced(
+        address indexed strategyFrom, address indexed strategyTo, uint256 rebalancedAmount, uint256 maxSlippagePercent
+    );
     event RebalanceMaxSlippagePercentSet(
         uint256 oldRebalanceMaxSlippagePercent, uint256 newRebalanceMaxSlippagePercent
     );
@@ -144,6 +146,7 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Deposits assets to strategies in order
     /// @dev Tries to deposit to strategies sequentially, reverts if not all assets can be deposited
+    // slither-disable-next-line calls-loop
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
         if (_isInitializing()) {
             // first deposit
@@ -152,16 +155,58 @@ contract SizeMetaVault is PerformanceVault {
 
         super._deposit(caller, receiver, assets, shares);
 
-        _depositToStrategies(assets, shares);
+        uint256 assetsToDeposit = assets;
+
+        uint256 length = strategies().length;
+        for (uint256 i = 0; i < length; i++) {
+            IVault strategy = strategies(i);
+            uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
+            uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
+
+            if (depositAmount > 0) {
+                IERC20(asset()).forceApprove(address(strategy), depositAmount);
+                // slither-disable-next-line unused-return
+                try strategy.deposit(depositAmount, address(this)) {
+                    assetsToDeposit -= depositAmount;
+                } catch {
+                    emit DepositFailed(address(strategy), depositAmount);
+                    IERC20(asset()).forceApprove(address(strategy), 0);
+                }
+            }
+        }
+        if (assetsToDeposit > 0) {
+            revert CannotDepositToStrategies(assets, shares, assetsToDeposit);
+        }
     }
 
     /// @notice Withdraws assets from strategies in order
     /// @dev Tries to withdraw from strategies sequentially, reverts if not enough assets available
+    // slither-disable-next-line calls-loop
     function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares)
         internal
         override
     {
-        _withdrawFromStrategies(assets, shares);
+        uint256 assetsToWithdraw = assets;
+
+        uint256 length = strategies().length;
+        for (uint256 i = 0; i < length; i++) {
+            IVault strategy = strategies(i);
+
+            uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
+            uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
+
+            if (withdrawAmount > 0) {
+                // slither-disable-next-line unused-return
+                try strategy.withdraw(withdrawAmount, address(this), address(this)) {
+                    assetsToWithdraw -= withdrawAmount;
+                } catch {
+                    emit WithdrawFailed(address(strategy), withdrawAmount);
+                }
+            }
+        }
+        if (assetsToWithdraw > 0) {
+            revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);
+        }
 
         super._withdraw(caller, receiver, owner, assets, shares);
     }
@@ -200,7 +245,8 @@ contract SizeMetaVault is PerformanceVault {
     /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
     /// @dev Using `amount` = 0 will forfeit all assets from `strategyToRemove`
     /// @dev Using `amount` = type(uint256).max will attempt to transfer the entire balance from `strategyToRemove`
-    /// @dev If `convertToAssets(balanceOf)` > `maxWithdraw`, e.g. due to pause/withdraw limits, the _rebalance step will revert, so `amount` should be used
+    /// @dev If `convertToAssets(balanceOf)` > `maxWithdraw`, e.g. due to pause/withdraw limits, the _rebalance step will revert, so an appropriate `amount` should be used
+    /// @dev Reverts if totalAssets() == 0 at the end of the operation, which can happen if the call is performed with 100% slippage
     // slither-disable-next-line reentrancy-no-eth
     function removeStrategy(
         IVault strategyToRemove,
@@ -222,6 +268,11 @@ contract SizeMetaVault is PerformanceVault {
         amount = Math.min(amount, assetsToRemove);
         _rebalance(strategyToRemove, strategyToReceiveAssets, amount, maxSlippagePercent);
         _removeStrategy(strategyToRemove);
+
+        // slither-disable-next-line incorrect-equality
+        if (totalAssets() == 0) {
+            revert NullAmount();
+        }
     }
 
     /// @notice Sets the rebalance max slippage percent
@@ -370,59 +421,6 @@ contract SizeMetaVault is PerformanceVault {
         }
     }
 
-    /// @notice Internal function to deposit assets to strategies
-    // slither-disable-next-line calls-loop
-    function _depositToStrategies(uint256 assets, uint256 shares) private {
-        uint256 assetsToDeposit = assets;
-
-        uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
-            IVault strategy = strategies(i);
-            uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
-            uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
-
-            if (depositAmount > 0) {
-                IERC20(asset()).forceApprove(address(strategy), depositAmount);
-                // slither-disable-next-line unused-return
-                try strategy.deposit(depositAmount, address(this)) {
-                    assetsToDeposit -= depositAmount;
-                } catch {
-                    emit DepositFailed(address(strategy), depositAmount);
-                    IERC20(asset()).forceApprove(address(strategy), 0);
-                }
-            }
-        }
-        if (assetsToDeposit > 0) {
-            revert CannotDepositToStrategies(assets, shares, assetsToDeposit);
-        }
-    }
-
-    /// @notice Internal function to withdraw assets from strategies
-    // slither-disable-next-line calls-loop
-    function _withdrawFromStrategies(uint256 assets, uint256 shares) private {
-        uint256 assetsToWithdraw = assets;
-
-        uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
-            IVault strategy = strategies(i);
-
-            uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
-            uint256 withdrawAmount = Math.min(assetsToWithdraw, strategyMaxWithdraw);
-
-            if (withdrawAmount > 0) {
-                // slither-disable-next-line unused-return
-                try strategy.withdraw(withdrawAmount, address(this), address(this)) {
-                    assetsToWithdraw -= withdrawAmount;
-                } catch {
-                    emit WithdrawFailed(address(strategy), withdrawAmount);
-                }
-            }
-        }
-        if (assetsToWithdraw > 0) {
-            revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);
-        }
-    }
-
     /// @notice Internal function to rebalance assets between two strategies
     /// @dev If before - after > maxSlippagePercent * amount, the _rebalance operation reverts
     /// @dev Assumes input is validated by caller functions
@@ -452,7 +450,7 @@ contract SizeMetaVault is PerformanceVault {
             revert TransferredAmountLessThanMin(assetsBefore, assetsAfter, slippage, amount, maxSlippagePercent);
         }
 
-        emit Rebalance(address(strategyFrom), address(strategyTo), assets);
+        emit Rebalanced(address(strategyFrom), address(strategyTo), assets, maxSlippagePercent);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -464,9 +462,9 @@ contract SizeMetaVault is PerformanceVault {
         return _getSizeMetaVaultStorage()._strategies;
     }
 
-    /// @notice Returns the rebalance max slippage percent
-    function rebalanceMaxSlippagePercent() public view returns (uint256) {
-        return _getSizeMetaVaultStorage()._rebalanceMaxSlippagePercent;
+    /// @notice Returns the strategy at the given index
+    function strategies(uint256 index) public view returns (IVault) {
+        return _getSizeMetaVaultStorage()._strategies[index];
     }
 
     /// @notice Returns the number of strategies in the vault
@@ -474,9 +472,9 @@ contract SizeMetaVault is PerformanceVault {
         return strategies().length;
     }
 
-    /// @notice Returns the strategy at the given index
-    function strategies(uint256 index) public view returns (IVault) {
-        return _getSizeMetaVaultStorage()._strategies[index];
+    /// @notice Returns the rebalance max slippage percent
+    function rebalanceMaxSlippagePercent() public view returns (uint256) {
+        return _getSizeMetaVaultStorage()._rebalanceMaxSlippagePercent;
     }
 
     /// @notice Returns true if the strategy is in the vault
