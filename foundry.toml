@@ -2,7 +2,8 @@
   src = "src"
   out = "out"
   libs = ["lib"]
-  no_match_test = 'testFork_|testForkFuzz_|testTotalAssetsLtVaultAssetsBalance|testTotalAssetsLtTotalSupply|testTotalAssetsGtVaultAssetsBalance|testTotalAssetsGtTotalSupply|testConvertToSharesIntOverflowLimitFollowsSolmate|testConvertToAssetsIntOverflowLimitFollowsSolmate|testDepositSupportsEIP20ApproveTransferFromAssets|testMintSupportsEIP20ApproveTransferFromAssets|testDealIntendedSharesToDummyUsers|testNoDiscrepancyConvertToAssetsAndPreviewMint|testNoDiscrepancyConvertToSharesAndPreviewWithdraw'
+  # https://github.com/runtimeverification/ercx-tests/issues/6
+  no_match_test = 'testFork_|testForkFuzz_|testTotalAssetsLtTotalSupply|testTotalAssetsGtTotalSupply|testTotalAssetsLtVaultAssetsBalance|testTotalAssetsGtVaultAssetsBalance|testConvertToSharesIntOverflowLimitFollowsSolmate|testConvertToAssetsIntOverflowLimitFollowsSolmate'
   no_match_contract = 'AaveStrategyVaultForkTest|SizeMetaVaultForkTest'
   solc_version = '0.8.26'
   evm_version = 'prague'

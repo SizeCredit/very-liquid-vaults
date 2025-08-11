@@ -10,29 +10,33 @@ contract AaveStrategyVaultRVTest is ERC4626Test, Setup {
         ERC4626Test.init(address(aaveStrategyVault));
     }
 
-    // NOTE: this test fails because AToken.mint cannot go as near to type(uint256).max because of WadRayMath
+    // NOTE: this test fails because AToken.mint does not allow 0 amount
     function testDepositZeroAmountIsPossible() public override {
         // ignore
     }
 
-    // NOTE: this test fails because AToken.mint cannot go as near to type(uint256).max because of WadRayMath
+    // NOTE: this test fails because AToken.mint does not allow 0 amount
     function testMintZeroAmountIsPossible() public override {
         // ignore
     }
 
-    // NOTE: this test fails because AToken.burn cannot go as near to type(uint256).max because of WadRayMath
+    // NOTE: this test fails because AToken.burn does not allow 0 amount
     function testRedeemZeroAmountIsPossible() public override {
         // ignore
     }
 
-    // NOTE: this test fails because AToken.burn cannot go as near to type(uint256).max because of WadRayMath
+    // NOTE: this test fails because AToken.burn does not allow 0 amount
     function testWithdrawZeroAmountIsPossible() public override {
         // ignore
     }
 
-    // NOTE: these tests fail because the implementation of ERC4626Test uses `asset()` to issue approvals
-    // ignore testDepositSupportsEIP20ApproveTransferFromAssets
-    // ignore testMintSupportsEIP20ApproveTransferFromAssets
-    // NOTE: these tests fail because AToken.mint cannot go as near to type(uint256).max because of WadRayMath
-    // ignore testDealIntendedSharesToDummyUsers
+    // see https://github.com/runtimeverification/ercx-tests/issues/10
+    function maxAssets() internal pure override returns (uint256) {
+        return uint256(type(uint128).max);
+    }
+
+    // see https://github.com/runtimeverification/ercx-tests/issues/10
+    function maxShares() internal pure override returns (uint256) {
+        return uint256(type(uint128).max);
+    }
 }
