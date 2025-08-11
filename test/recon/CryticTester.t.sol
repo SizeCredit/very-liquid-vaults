@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {CryticAsserts} from "@chimera/CryticAsserts.sol";
 
-import {TargetFunctions} from "./TargetFunctions.sol";
+import {TargetFunctions} from "@test/recon/TargetFunctions.t.sol";
 
 // echidna . --contract CryticTester --config echidna.yaml --format text --workers 16 --test-limit 1000000
 // medusa fuzz

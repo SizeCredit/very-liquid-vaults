@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 
 import {console} from "forge-std/console.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
-import {Ghosts} from "@test/recon/Ghosts.sol";
-import {Properties} from "@test/recon/Properties.sol";
+import {Ghosts} from "@test/recon/Ghosts.t.sol";
+import {Properties} from "@test/recon/Properties.t.sol";
 // Chimera deps
 import {vm} from "@chimera/Hevm.sol";
 

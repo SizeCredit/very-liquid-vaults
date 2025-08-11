@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 pragma solidity ^0.8.0;
 
-import {Setup} from "./Setup.sol";
+import {Setup} from "@test/recon/Setup.t.sol";
 
 // ghost variables for tracking state variable values before and after function calls
 abstract contract Ghosts is Setup {

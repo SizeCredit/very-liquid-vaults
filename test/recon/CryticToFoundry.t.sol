@@ -6,7 +6,7 @@ import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
 import "forge-std/console2.sol";
 
 import {Test} from "forge-std/Test.sol";
-import {TargetFunctions} from "./TargetFunctions.sol";
+import {TargetFunctions} from "@test/recon/TargetFunctions.t.sol";
 import {IVault} from "@src/utils/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 
