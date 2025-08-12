@@ -161,19 +161,24 @@ abstract contract Setup {
         function(uint256, uint256) returns (uint256) getRandomUint
     ) internal {
         IVault[] memory strategies = sizeMetaVault.strategies();
+        uint256 totalAssets = sizeMetaVault.totalAssets();
+
+        // Generate target allocations (percentages that sum to totalAssets)
+        uint256[] memory targetAllocations = new uint256[](strategies.length);
+        targetAllocations[0] = totalAssets;
+        _split(targetAllocations, getRandomUint);
+
+        // Since we start at [totalAssets, 0, 0], we just need to move assets from strategy 0 to others
+        for (uint256 i = 1; i < strategies.length; i++) {
+            hevm.prank(admin);
+            try sizeMetaVault.rebalance(strategies[0], strategies[i], targetAllocations[i], type(uint256).max) {}
+                catch {}
+        }
+
         _shuffle(strategies, getRandomUint);
 
         hevm.prank(admin);
         sizeMetaVault.reorderStrategies(strategies);
-
-        IVault strategyFrom = strategies[0];
-        IVault strategyTo = strategies[1];
-        uint256 strategyAssets = strategyFrom.convertToAssets(strategyFrom.balanceOf(address(sizeMetaVault)));
-        if (strategyAssets > 0) {
-            uint256 amount = getRandomUint(1, strategyAssets);
-            hevm.prank(admin);
-            sizeMetaVault.rebalance(strategyFrom, strategyTo, amount, type(uint256).max);
-        }
     }
 
     function _shuffle(IVault[] memory strategies, function(uint256, uint256) returns (uint256) getRandomUint) private {
@@ -183,6 +188,17 @@ abstract contract Setup {
             IVault temp = strategies[i];
             strategies[i] = strategies[j];
             strategies[j] = temp;
+        }
+    }
+
+    function _split(uint256[] memory parts, function(uint256, uint256) returns (uint256) getRandomUint) private {
+        uint256 sum = 0;
+        for (uint256 i = 0; i < parts.length; i++) {
+            sum += parts[i];
+        }
+        for (uint256 i = 0; i < parts.length; i++) {
+            parts[i] = getRandomUint(0, sum);
+            sum -= parts[i];
         }
     }
 }

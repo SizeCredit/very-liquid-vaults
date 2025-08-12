@@ -81,6 +81,8 @@ contract SecurityTest is BaseTest {
     }
 
     function test_Security_fee_minting_example() public {
+        _setupSimpleConfiguration();
+
         // Set performance fee of 10%
         vm.prank(admin);
         sizeMetaVault.setPerformanceFeePercent(0.1e18);

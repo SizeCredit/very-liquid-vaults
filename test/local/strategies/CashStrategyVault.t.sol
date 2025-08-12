@@ -5,6 +5,7 @@ import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC2
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {IVault} from "@src/utils/IVault.sol";
+import {console} from "forge-std/console.sol";
 
 contract CashStrategyVaultTest is BaseTest {
     uint256 initialBalance;
@@ -49,6 +50,10 @@ contract CashStrategyVaultTest is BaseTest {
     }
 
     function test_CashStrategyVault_deposit_rebalance_does_not_change_balanceOf() public {
+        _setupSimpleConfiguration();
+
+        uint256 totalAssetsBefore = cashStrategyVault.totalAssets();
+        uint256 initialBalanceBefore = erc20Asset.balanceOf(address(cashStrategyVault));
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(cashStrategyVault), depositAmount);
@@ -56,19 +61,23 @@ contract CashStrategyVaultTest is BaseTest {
         cashStrategyVault.deposit(depositAmount, alice);
         uint256 shares = cashStrategyVault.balanceOf(alice);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
-
         uint256 balanceBeforeRebalance = erc20Asset.balanceOf(address(aToken));
 
         uint256 pullAmount = 30e6;
         vm.prank(strategist);
         sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
-        assertEq(cashStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
-        assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalance + depositAmount - pullAmount);
+        assertEq(cashStrategyVault.totalAssets(), totalAssetsBefore + depositAmount - pullAmount);
+        assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalanceBefore + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(address(aToken)), balanceBeforeRebalance + pullAmount);
     }
 
     function test_CashStrategyVault_deposit_rebalance_redeem() public {
+        _setupSimpleConfiguration();
+
+        uint256 totalAssetsBefore = cashStrategyVault.totalAssets();
+        uint256 initialBalanceBefore = erc20Asset.balanceOf(address(cashStrategyVault));
+
         uint256 depositAmount = 100e6;
         _mint(erc20Asset, alice, depositAmount);
         _approve(alice, erc20Asset, address(cashStrategyVault), depositAmount);
@@ -83,14 +92,14 @@ contract CashStrategyVaultTest is BaseTest {
         vm.prank(strategist);
         sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0.01e18);
         assertEq(cashStrategyVault.balanceOf(alice), shares);
-        assertEq(cashStrategyVault.totalAssets(), initialTotalAssets + depositAmount - pullAmount);
-        assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalance + depositAmount - pullAmount);
+        assertEq(cashStrategyVault.totalAssets(), totalAssetsBefore + depositAmount - pullAmount);
+        assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalanceBefore + depositAmount - pullAmount);
         assertEq(erc20Asset.balanceOf(address(aToken)), balanceBeforeRebalance + pullAmount);
 
         vm.prank(alice);
         cashStrategyVault.redeem(shares, alice, alice);
         assertEq(cashStrategyVault.balanceOf(alice), 0);
-        assertLe(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalance);
+        assertLe(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalanceBefore);
 
         assertGe(erc20Asset.balanceOf(alice), depositAmount - pullAmount);
     }

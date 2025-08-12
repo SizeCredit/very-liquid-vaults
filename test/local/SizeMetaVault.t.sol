@@ -97,6 +97,8 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function testFuzz_SizeMetaVault_rebalance_slippage_validation(uint256 amount, uint256 index) public {
+        _setupSimpleConfiguration();
+
         IVault strategyFrom = cashStrategyVault;
         IVault strategyTo = aaveStrategyVault;
 
@@ -120,6 +122,8 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_rebalance_with_slippage() public {
+        _setupSimpleConfiguration();
+
         uint256 amount = 30e6;
 
         _mint(erc20Asset, address(cashStrategyVault), amount * 2);

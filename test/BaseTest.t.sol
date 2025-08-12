@@ -157,4 +157,25 @@ contract BaseTest is Test, Setup, BaseScript {
         }
         console.log(log);
     }
+
+    function _setupSimpleConfiguration() internal {
+        IVault[] memory strategies = new IVault[](3);
+        strategies[0] = cashStrategyVault;
+        strategies[1] = aaveStrategyVault;
+        strategies[2] = erc4626StrategyVault;
+        vm.prank(admin);
+        sizeMetaVault.reorderStrategies(strategies);
+
+        uint256 assetsAave = aaveStrategyVault.maxWithdraw(address(sizeMetaVault));
+        uint256 assetsErc4626 = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+
+        if (assetsAave > 0) {
+            vm.prank(admin);
+            sizeMetaVault.rebalance(aaveStrategyVault, cashStrategyVault, assetsAave, type(uint256).max);
+        }
+        if (assetsErc4626 > 0) {
+            vm.prank(admin);
+            sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, assetsErc4626, type(uint256).max);
+        }
+    }
 }
