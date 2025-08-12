@@ -121,14 +121,6 @@ contract BaseTest is Test, Setup, BaseScript {
         }
     }
 
-    function _getStrategies(SizeMetaVault _sizeMetaVault) internal view returns (IVault[] memory strategies) {
-        uint256 length = _sizeMetaVault.strategiesCount();
-        strategies = new IVault[](length);
-        for (uint256 i = 0; i < length; i++) {
-            strategies[i] = _sizeMetaVault.strategies(i);
-        }
-    }
-
     function _getRandomUint(uint256 min, uint256 max) internal returns (uint256) {
         return vm.randomUint(min, max);
     }

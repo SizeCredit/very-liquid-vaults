@@ -18,15 +18,18 @@ contract SizeMetaVaultForkTest is ForkTest {
         _mint(erc20Asset, alice, amount);
         _approve(alice, erc20Asset, address(sizeMetaVault), amount);
 
-        vm.startPrank(alice);
-
+        vm.prank(alice);
         sizeMetaVault.deposit(amount, alice);
+
+        vm.prank(admin);
+        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount / 2, 1e18);
 
         vm.warp(block.timestamp + 1 weeks);
 
         uint256 maxRedeem = sizeMetaVault.maxRedeem(alice);
+        vm.prank(alice);
         uint256 redeemedAssets = sizeMetaVault.redeem(maxRedeem, alice, alice);
 
-        assertGt(redeemedAssets, 0);
+        assertGt(redeemedAssets, amount);
     }
 }
