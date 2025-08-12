@@ -12,82 +12,30 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
+import {AaveStrategyVaultScript} from "@script/AaveStrategyVault.s.sol";
 
 contract AaveStrategyVaultForkTest is ForkTest {
     using SafeERC20 for IERC20Metadata;
     using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
-    IPool public aavePool = IPool(address(0xA238Dd80C259a72e81d7e4664a9801593F98d1c5));
-    IPoolConfigurator public aavePoolConfigurator =
-        IPoolConfigurator(address(0x5731a04B1E775f0fdd454Bf70f3335886e9A96be));
-    address public aavePoolAdmin = 0x9390B1735def18560c509E2d0bc090E9d6BA257a;
-
-    function setUp() public virtual override {
-        super.setUp();
-
-        // can choose a better value
-        FIRST_DEPOSIT_AMOUNT = 10e6;
-
-        _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
-
-        address implementation = address(new AaveStrategyVault());
-        bytes memory initializationData = abi.encodeCall(
-            AaveStrategyVault.initialize,
-            (
-                auth,
-                IERC20(address(asset)),
-                string.concat("Aave ", asset.name(), " Strategy"),
-                string.concat("aave", asset.symbol()),
-                address(this),
-                FIRST_DEPOSIT_AMOUNT,
-                aavePool
-            )
-        );
-        bytes memory creationCode =
-            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
-        bytes32 salt = keccak256(initializationData);
-        aaveStrategyVault = AaveStrategyVault(create2Deployer.computeAddress(salt, keccak256(creationCode)));
-        asset.forceApprove(address(aaveStrategyVault), FIRST_DEPOSIT_AMOUNT);
-        create2Deployer.deploy(
-            0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
-        );
-    }
+    IPoolConfigurator public poolConfigurator = IPoolConfigurator(AAVE_POOL_CONFIGURATOR_BASE_MAINNET);
+    address public poolAdmin = AAVE_POOL_ADMIN_BASE_MAINNET;
 
     function testFork_AaveStrategyVault_initialize_with_zero_address_pool_must_revert() public {
-        _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
-
-        address implementation = address(new AaveStrategyVault());
-        bytes memory initializationData = abi.encodeCall(
-            AaveStrategyVault.initialize,
-            (
-                auth,
-                IERC20(address(asset)),
-                string.concat("Aave ", asset.name(), " Strategy"),
-                string.concat("aave", asset.symbol()),
-                address(this),
-                FIRST_DEPOSIT_AMOUNT,
-                IPool(address(0))
-            )
-        );
-        bytes memory creationCode =
-            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
-        bytes32 salt = keccak256(initializationData);
-        aaveStrategyVault = AaveStrategyVault(create2Deployer.computeAddress(salt, keccak256(creationCode)));
-        asset.forceApprove(address(aaveStrategyVault), FIRST_DEPOSIT_AMOUNT);
+        AaveStrategyVaultScript aaveStrategyVaultScript = new AaveStrategyVaultScript();
+        _mint(erc20Asset, address(aaveStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
         vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
-        create2Deployer.deploy(
-            0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
-        );
+        aaveStrategyVault = aaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, IPool(address(0)));
     }
 
     // skip test_AaveStrategyVault_maxDeposit_getActive_false_must_return_zero, as we need to have no suppliers
     // check https://github.com/aave/aave-v3-core/blob/master/contracts/protocol/pool/PoolConfigurator.sol#L199
 
     function testFork_AaveStrategyVault_maxDeposit_if_frozen_must_return_zero() public {
-        vm.prank(aavePoolAdmin);
-        aavePoolConfigurator.setReserveFreeze(address(asset), true);
+        vm.prank(poolAdmin);
+        poolConfigurator.setReserveFreeze(address(erc20Asset), true);
 
-        assertEq(aavePool.getConfiguration(address(asset)).getFrozen(), true);
+        assertEq(pool.getConfiguration(address(erc20Asset)).getFrozen(), true);
 
         uint256 returnValue = aaveStrategyVault.maxDeposit(address(this));
 
@@ -95,10 +43,10 @@ contract AaveStrategyVaultForkTest is ForkTest {
     }
 
     function testFork_AaveStrategyVault_maxDeposit_maxWithdraw_maxRedeen_if_posed_must_return_zero() public {
-        vm.prank(aavePoolAdmin);
-        aavePoolConfigurator.setReservePause(address(asset), true);
+        vm.prank(poolAdmin);
+        poolConfigurator.setReservePause(address(erc20Asset), true);
 
-        assertEq(aavePool.getConfiguration(address(asset)).getPaused(), true);
+        assertEq(pool.getConfiguration(address(erc20Asset)).getPaused(), true);
 
         uint256 maxDepositReturnValue = aaveStrategyVault.maxDeposit(address(this));
         uint256 maxWithdrawReturnValue = aaveStrategyVault.maxWithdraw(address(this));
@@ -110,10 +58,10 @@ contract AaveStrategyVaultForkTest is ForkTest {
     }
 
     function testFork_AaveStrategyVault_maxDeposit_if_no_supplyCap_returns_max_uint256() public {
-        vm.prank(aavePoolAdmin);
-        aavePoolConfigurator.setSupplyCap(address(asset), 0);
+        vm.prank(poolAdmin);
+        poolConfigurator.setSupplyCap(address(erc20Asset), 0);
 
-        assertEq(aavePool.getConfiguration(address(asset)).getSupplyCap(), 0);
+        assertEq(pool.getConfiguration(address(erc20Asset)).getSupplyCap(), 0);
 
         uint256 maxDepositReturnValue = aaveStrategyVault.maxDeposit(address(this));
 
@@ -121,10 +69,10 @@ contract AaveStrategyVaultForkTest is ForkTest {
     }
 
     function testFork_AaveStrategyVault_increase_assets_after_some_time() public {
-        uint256 amount = 10 * 10 ** asset.decimals();
+        uint256 amount = 10 * 10 ** erc20Asset.decimals();
 
-        _mint(asset, alice, amount);
-        _approve(alice, asset, address(aaveStrategyVault), amount);
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(aaveStrategyVault), amount);
 
         vm.startPrank(alice);
 

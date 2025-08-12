@@ -179,7 +179,7 @@ contract CashStrategyVaultTest is BaseTest {
     }
 
     function test_CashStrategyVault_maxWithdraw_maxRedeem() public {
-        IVault[] memory strategies = _getStrategies(sizeMetaVault);
+        IVault[] memory strategies = sizeMetaVault.strategies();
 
         uint256 assetsBefore = cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
         _deposit(alice, cashStrategyVault, 100e6);

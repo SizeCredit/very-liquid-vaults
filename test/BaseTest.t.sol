@@ -39,6 +39,19 @@ contract BaseTest is Test, Setup, BaseScript {
 
         deploy(admin);
 
+        _labels();
+
+        vm.prank(admin);
+        auth.grantRole(STRATEGIST_ROLE, strategist);
+        vm.prank(admin);
+        auth.grantRole(VAULT_MANAGER_ROLE, manager);
+        vm.prank(admin);
+        auth.grantRole(GUARDIAN_ROLE, guardian);
+
+        _setupRandomSizeMetaVaultConfiguration(admin, _getRandomUint);
+    }
+
+    function _labels() internal {
         vm.label(address(auth), "Auth");
         vm.label(address(sizeMetaVault), "SizeMetaVault");
 
@@ -63,15 +76,6 @@ contract BaseTest is Test, Setup, BaseScript {
 
         vm.label(address(this), "Test");
         vm.label(address(0), "address(0)");
-
-        vm.prank(admin);
-        auth.grantRole(STRATEGIST_ROLE, strategist);
-        vm.prank(admin);
-        auth.grantRole(VAULT_MANAGER_ROLE, manager);
-        vm.prank(admin);
-        auth.grantRole(GUARDIAN_ROLE, guardian);
-
-        _setupRandomSizeMetaVaultConfiguration(admin, _getRandomUint);
     }
 
     function _mint(IERC20Metadata _asset, address _to, uint256 _amount) internal {
@@ -114,14 +118,6 @@ contract BaseTest is Test, Setup, BaseScript {
         ans = new address[](accounts.length);
         for (uint256 i = 0; i < accounts.length; i++) {
             ans[i] = accounts[i];
-        }
-    }
-
-    function _getStrategies(SizeMetaVault _sizeMetaVault) internal view returns (IVault[] memory strategies) {
-        uint256 length = _sizeMetaVault.strategiesCount();
-        strategies = new IVault[](length);
-        for (uint256 i = 0; i < length; i++) {
-            strategies[i] = _sizeMetaVault.strategies(i);
         }
     }
 
