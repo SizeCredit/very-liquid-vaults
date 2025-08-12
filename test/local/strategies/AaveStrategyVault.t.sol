@@ -25,7 +25,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         initialBalance = erc20Asset.balanceOf(address(aToken));
     }
 
-    function test_AaveStrategyVault_initialize() public {
+    function test_AaveStrategyVault_initialize() public view {
         assertEq(address(aaveStrategyVault.pool()), address(pool));
         assertEq(address(aaveStrategyVault.aToken()), address(aToken));
     }
@@ -336,6 +336,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_AaveStrategyVault_maxWithdraw_maxRedeem() public {
+        uint256 assetsBefore = aaveStrategyVault.convertToAssets(aaveStrategyVault.balanceOf(address(sizeMetaVault)));
         IVault[] memory strategies = new IVault[](3);
         strategies[0] = aaveStrategyVault;
         strategies[1] = cashStrategyVault;
@@ -346,8 +347,10 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
         _deposit(alice, aaveStrategyVault, 100e6);
         _deposit(bob, sizeMetaVault, 30e6);
 
-        assertEq(aaveStrategyVault.maxWithdraw(address(sizeMetaVault)), 30e6);
-        assertEq(aaveStrategyVault.maxRedeem(address(sizeMetaVault)), aaveStrategyVault.previewRedeem(30e6));
+        assertEq(aaveStrategyVault.maxWithdraw(address(sizeMetaVault)), assetsBefore + 30e6);
+        assertEq(
+            aaveStrategyVault.maxRedeem(address(sizeMetaVault)), aaveStrategyVault.previewRedeem(assetsBefore + 30e6)
+        );
     }
 
     function testFuzz_AaveStrategyVault_deposit_assets_shares_0_reverts(uint256 amount, uint256 index1) public {

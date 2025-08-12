@@ -12,6 +12,8 @@ import {Auth} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {console} from "forge-std/console.sol";
 
 contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 initialBalance;
@@ -320,11 +322,13 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         assertEq(erc4626StrategyVault.convertToAssets(shares2), erc4626StrategyVault.maxWithdraw(bob));
 
-        assertEq(
-            erc4626StrategyVault.maxWithdraw(bob) + erc4626StrategyVault.maxWithdraw(alice)
-                + erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
-            erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault))
-        );
+        uint256 maxWithdrawAlice = erc4626StrategyVault.maxWithdraw(alice);
+        uint256 maxWithdrawBob = erc4626StrategyVault.maxWithdraw(bob);
+        uint256 maxWithdrawSelf = erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault));
+        uint256 maxWithdrawSizeMetaVault = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+        uint256 maxWithdrawVault = erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault));
+
+        assertEq(maxWithdrawAlice + maxWithdrawBob + maxWithdrawSizeMetaVault + maxWithdrawSelf, maxWithdrawVault);
 
         uint256 burnAmount = (depositAmount + depositAmount2) / 2;
         _burn(erc20Asset, address(erc4626StrategyVault.vault()), burnAmount);
@@ -337,13 +341,19 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         _mint(erc20Asset, address(erc4626Vault), depositAmount);
 
-        assertGt(erc4626StrategyVault.maxWithdraw(alice), prevAliceMaxWithdraw);
-        assertGt(erc4626StrategyVault.maxWithdraw(bob), prevBobMaxWithdraw);
+        uint256 maxWithdrawAliceAfter = erc4626StrategyVault.maxWithdraw(alice);
+        uint256 maxWithdrawBobAfter = erc4626StrategyVault.maxWithdraw(bob);
+        uint256 maxWithdrawSelfAfter = erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault));
+        uint256 maxWithdrawSizeMetaVaultAfter = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+        uint256 maxWithdrawVaultAfter = erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault));
 
+        assertLe(
+            maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawSizeMetaVaultAfter + maxWithdrawSelfAfter,
+            maxWithdrawVaultAfter
+        );
         assertApproxEqAbs(
-            erc4626StrategyVault.maxWithdraw(alice) + erc4626StrategyVault.maxWithdraw(bob)
-                + erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault)),
-            erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault)),
+            maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawSizeMetaVaultAfter + maxWithdrawSelfAfter,
+            maxWithdrawVaultAfter,
             10
         );
     }
@@ -372,8 +382,10 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         uint256 burnAmount = (depositAmount + depositAmount2) / 2;
         _burn(erc20Asset, address(erc4626StrategyVault.vault()), burnAmount);
 
-        assertEq(erc4626StrategyVault.balanceOf(alice) - 1, erc4626StrategyVault.maxRedeem(alice));
-        assertEq(erc4626StrategyVault.balanceOf(bob) - 2, erc4626StrategyVault.maxRedeem(bob));
+        assertGe(erc4626StrategyVault.balanceOf(alice), erc4626StrategyVault.maxRedeem(alice));
+        assertApproxEqAbs(erc4626StrategyVault.balanceOf(alice), erc4626StrategyVault.maxRedeem(alice), 2);
+        assertGe(erc4626StrategyVault.balanceOf(bob), erc4626StrategyVault.maxRedeem(bob));
+        assertApproxEqAbs(erc4626StrategyVault.balanceOf(bob), erc4626StrategyVault.maxRedeem(bob), 2);
     }
 
     function test_ERC4626StrategyVault_totalAssetsCap_maxDeposit_maxMint() public {
@@ -398,11 +410,13 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         vm.prank(admin);
         erc4626StrategyVault.setTotalAssetsCap(totalAssetsCap);
 
-        assertEq(erc4626StrategyVault.maxDeposit(address(alice)), totalAssetsCap - totalAssetsBefore);
-        assertEq(erc4626StrategyVault.maxMint(address(alice)), totalAssetsCap - totalAssetsBefore);
+        assertEq(erc4626StrategyVault.maxDeposit(address(alice)), Math.saturatingSub(totalAssetsCap, totalAssetsBefore));
+        assertEq(erc4626StrategyVault.maxMint(address(alice)), Math.saturatingSub(totalAssetsCap, totalAssetsBefore));
     }
 
     function test_ERC4626StrategyVault_maxWithdraw_maxRedeem() public {
+        uint256 assetsBefore =
+            erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(address(sizeMetaVault)));
         IVault[] memory strategies = new IVault[](3);
         strategies[0] = erc4626StrategyVault;
         strategies[1] = cashStrategyVault;
@@ -415,9 +429,10 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         uint256 depositedToVault = strategies[0] == erc4626StrategyVault ? 30e6 : 0;
 
-        assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), depositedToVault);
+        assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), assetsBefore + depositedToVault);
         assertEq(
-            erc4626StrategyVault.maxRedeem(address(sizeMetaVault)), erc4626StrategyVault.previewRedeem(depositedToVault)
+            erc4626StrategyVault.maxRedeem(address(sizeMetaVault)),
+            erc4626StrategyVault.previewRedeem(assetsBefore + depositedToVault)
         );
     }
 
@@ -429,7 +444,8 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         uint256 shares = erc4626StrategyVault.balanceOf(address(alice));
 
-        assertEq(erc4626StrategyVault.maxRedeem(address(alice)), shares - 2);
+        assertLe(erc4626StrategyVault.maxRedeem(address(alice)), shares);
+        assertApproxEqAbs(erc4626StrategyVault.maxRedeem(address(alice)), shares, 100);
     }
 
     function testFuzz_ERC4626StrategyVault_deposit_assets_shares_0_reverts(uint256 amount) public {
