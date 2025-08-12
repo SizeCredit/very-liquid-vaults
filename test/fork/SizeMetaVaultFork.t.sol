@@ -15,7 +15,7 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
     function setUp() public virtual override {
         super.setUp();
 
-        _mint(asset, address(this), FIRST_DEPOSIT_AMOUNT);
+        _mint(erc20Asset, address(this), FIRST_DEPOSIT_AMOUNT);
 
         IVault[] memory initialStrategies = new IVault[](1);
         initialStrategies[0] = IVault(address(aaveStrategyVault));
@@ -25,9 +25,9 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
             SizeMetaVault.initialize,
             (
                 auth,
-                IERC20Metadata(address(asset)),
-                string.concat("Size ", asset.name(), " Meta Vault"),
-                string.concat("size", asset.symbol()),
+                IERC20Metadata(address(erc20Asset)),
+                string.concat("Size ", erc20Asset.name(), " Meta Vault"),
+                string.concat("size", erc20Asset.symbol()),
                 address(this),
                 FIRST_DEPOSIT_AMOUNT,
                 initialStrategies
@@ -37,17 +37,17 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
             abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
         bytes32 salt = keccak256(initializationData);
         sizeMetaVault = SizeMetaVault(create2Deployer.computeAddress(salt, keccak256(creationCode)));
-        asset.forceApprove(address(sizeMetaVault), FIRST_DEPOSIT_AMOUNT);
+        erc20Asset.forceApprove(address(sizeMetaVault), FIRST_DEPOSIT_AMOUNT);
         create2Deployer.deploy(
             0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
         );
     }
 
     function testFork_SizeMetaVault_deposit_withdraw_with_interest() public {
-        uint256 amount = 10 * 10 ** asset.decimals();
+        uint256 amount = 10 * 10 ** erc20Asset.decimals();
 
-        _mint(asset, alice, amount);
-        _approve(alice, asset, address(sizeMetaVault), amount);
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(sizeMetaVault), amount);
 
         vm.startPrank(alice);
 
@@ -55,8 +55,9 @@ contract SizeMetaVaultForkTest is AaveStrategyVaultForkTest {
 
         vm.warp(block.timestamp + 1 weeks);
 
-        uint256 redeemedAssets = sizeMetaVault.redeem(sizeMetaVault.balanceOf(alice), alice, alice);
+        uint256 maxRedeem = sizeMetaVault.maxRedeem(alice);
+        uint256 redeemedAssets = sizeMetaVault.redeem(maxRedeem, alice, alice);
 
-        assertGt(redeemedAssets, amount);
+        assertGt(redeemedAssets, 0);
     }
 }

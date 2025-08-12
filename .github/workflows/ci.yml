@@ -76,6 +76,31 @@ jobs:
           forge test -vvv
         id: test
 
+  fork:
+    strategy:
+      fail-fast: true
+
+    name: Fork Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Fork Tests
+        run: |
+          forge test -vvv
+        env:
+          API_KEY_ALCHEMY: ${{ secrets.API_KEY_ALCHEMY }}
+          FOUNDRY_INVARIANT_RUNS: 0
+          FOUNDRY_INVARIANT_DEPTH: 0
+          FOUNDRY_PROFILE: fork
+
   slither:
     strategy:
       fail-fast: true
