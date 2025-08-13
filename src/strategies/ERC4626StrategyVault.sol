@@ -57,9 +57,7 @@ contract ERC4626StrategyVault is NonReentrantVault {
         uint256 firstDepositAmount,
         IERC4626 vault_
     ) public virtual initializer {
-        if (address(vault_) == address(0)) {
-            revert NullAddress();
-        }
+        if (address(vault_) == address(0)) revert NullAddress();
 
         ERC4626StrategyVaultStorage storage $ = _getERC4626StrategyVaultStorage();
         $._vault = vault_;

@@ -74,9 +74,7 @@ contract AaveStrategyVault is NonReentrantVault {
         uint256 firstDepositAmount,
         IPool pool_
     ) public virtual initializer {
-        if (address(pool_) == address(0)) {
-            revert NullAddress();
-        }
+        if (address(pool_) == address(0)) revert NullAddress();
         if (address(pool_.getReserveData(address(asset_)).aTokenAddress) == address(0)) {
             revert InvalidAsset(address(asset_));
         }
@@ -101,15 +99,11 @@ contract AaveStrategyVault is NonReentrantVault {
     function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool().getReserveData(asset()).configuration;
-        if (!(config.getActive() && !config.getFrozen() && !config.getPaused())) {
-            return 0;
-        }
+        if (!(config.getActive() && !config.getFrozen() && !config.getPaused())) return 0;
 
         // handle supply cap
         uint256 supplyCapInWholeTokens = config.getSupplyCap();
-        if (supplyCapInWholeTokens == 0) {
-            return super.maxDeposit(receiver);
-        }
+        if (supplyCapInWholeTokens == 0) return super.maxDeposit(receiver);
 
         uint256 tokenDecimals = config.getDecimals();
         uint256 supplyCap = supplyCapInWholeTokens * 10 ** tokenDecimals;
@@ -132,9 +126,7 @@ contract AaveStrategyVault is NonReentrantVault {
     function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool().getReserveData(asset()).configuration;
-        if (!(config.getActive() && !config.getPaused())) {
-            return 0;
-        }
+        if (!(config.getActive() && !config.getPaused())) return 0;
 
         uint256 cash = IERC20(asset()).balanceOf(address(aToken()));
         uint256 assetsBalance = convertToAssets(balanceOf(owner));
@@ -147,9 +139,7 @@ contract AaveStrategyVault is NonReentrantVault {
     function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
         // check if asset is paused
         DataTypes.ReserveConfigurationMap memory config = pool().getReserveData(asset()).configuration;
-        if (!(config.getActive() && !config.getPaused())) {
-            return 0;
-        }
+        if (!(config.getActive() && !config.getPaused())) return 0;
 
         uint256 cash = IERC20(asset()).balanceOf(address(aToken()));
         uint256 cashInShares = convertToShares(cash);

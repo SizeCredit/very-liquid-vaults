@@ -94,12 +94,8 @@ abstract contract BaseVault is
         __Multicall_init();
         __UUPSUpgradeable_init();
 
-        if (address(auth_) == address(0)) {
-            revert NullAddress();
-        }
-        if (firstDepositAmount_ == 0) {
-            revert NullAmount();
-        }
+        if (address(auth_) == address(0)) revert NullAddress();
+        if (firstDepositAmount_ == 0) revert NullAmount();
 
         BaseVaultStorage storage $ = _getBaseVaultStorage();
         $._auth = auth_;
@@ -117,9 +113,7 @@ abstract contract BaseVault is
     /// @notice Modifier to restrict function access to addresses with specific roles
     /// @dev Reverts if the caller doesn't have the required role
     modifier onlyAuth(bytes32 role) {
-        if (!auth().hasRole(role, msg.sender)) {
-            revert IAccessControl.AccessControlUnauthorizedAccount(msg.sender, role);
-        }
+        if (!auth().hasRole(role, msg.sender)) revert IAccessControl.AccessControlUnauthorizedAccount(msg.sender, role);
         _;
     }
 
@@ -177,9 +171,7 @@ abstract contract BaseVault is
     function _firstDeposit(address fundingAccount_, uint256 firstDepositAmount_) private {
         address receiver = address(this);
         uint256 maxAssets = maxDeposit(receiver);
-        if (firstDepositAmount_ > maxAssets) {
-            revert ERC4626ExceededMaxDeposit(receiver, firstDepositAmount_, maxAssets);
-        }
+        if (firstDepositAmount_ > maxAssets) revert ERC4626ExceededMaxDeposit(receiver, firstDepositAmount_, maxAssets);
 
         uint256 shares = previewDeposit(firstDepositAmount_);
         _deposit(fundingAccount_, receiver, firstDepositAmount_, shares);
@@ -213,9 +205,7 @@ abstract contract BaseVault is
     /// @dev Prevents deposits that would result in 0 shares received
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
         // slither-disable-next-line incorrect-equality
-        if (assets > 0 && shares == 0) {
-            revert NullAmount();
-        }
+        if (assets > 0 && shares == 0) revert NullAmount();
         super._deposit(caller, receiver, assets, shares);
     }
 
@@ -227,9 +217,7 @@ abstract contract BaseVault is
         override
     {
         // slither-disable-next-line incorrect-equality
-        if (shares > 0 && assets == 0) {
-            revert NullAmount();
-        }
+        if (shares > 0 && assets == 0) revert NullAmount();
         super._withdraw(caller, receiver, owner, assets, shares);
     }
 
@@ -247,42 +235,24 @@ abstract contract BaseVault is
         override(ERC4626Upgradeable, IERC4626)
         returns (uint256)
     {
-        if (_isPaused()) {
-            return 0;
-        } else if (totalAssetsCap() == type(uint256).max) {
-            return super.maxDeposit(receiver);
-        } else {
-            return _maxDeposit();
-        }
+        return _isPaused() ? 0 : totalAssetsCap() == type(uint256).max ? super.maxDeposit(receiver) : _maxDeposit();
     }
 
     /// @notice Returns the maximum amount that can be minted
     function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        if (_isPaused()) {
-            return 0;
-        } else if (totalAssetsCap() == type(uint256).max) {
-            return super.maxMint(receiver);
-        } else {
-            return convertToShares(_maxDeposit());
-        }
+        return _isPaused()
+            ? 0
+            : totalAssetsCap() == type(uint256).max ? super.maxMint(receiver) : convertToShares(_maxDeposit());
     }
 
     /// @notice Returns the maximum amount that can be withdrawn
     function maxWithdraw(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        if (_isPaused()) {
-            return 0;
-        } else {
-            return super.maxWithdraw(owner);
-        }
+        return _isPaused() ? 0 : super.maxWithdraw(owner);
     }
 
     /// @notice Returns the maximum amount that can be redeemed
     function maxRedeem(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-        if (_isPaused()) {
-            return 0;
-        } else {
-            return super.maxRedeem(owner);
-        }
+        return _isPaused() ? 0 : super.maxRedeem(owner);
     }
 
     /// @notice Returns the maximum amount that can be deposited

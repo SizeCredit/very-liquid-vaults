@@ -27,9 +27,7 @@ contract Auth is UUPSUpgradeable, AccessControlEnumerableUpgradeable, PausableUp
     /// @notice Initializes the Auth contract with an admin address
     /// @dev Grants all necessary roles to the admin address
     function initialize(address admin_) public initializer {
-        if (admin_ == address(0)) {
-            revert NullAddress();
-        }
+        if (admin_ == address(0)) revert NullAddress();
 
         __AccessControl_init();
         __AccessControlEnumerable_init();

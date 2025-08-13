@@ -106,9 +106,8 @@ abstract contract PerformanceVault is BaseVault {
 
     /// @notice Sets the fee recipient
     function _setFeeRecipient(address feeRecipient_) internal {
-        if (feeRecipient_ == address(0)) {
-            revert NullAddress();
-        }
+        if (feeRecipient_ == address(0)) revert NullAddress();
+
         PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
         address feeRecipientBefore = $._feeRecipient;
         $._feeRecipient = feeRecipient_;
@@ -129,9 +128,7 @@ abstract contract PerformanceVault is BaseVault {
     ///        Basically feeAssets = convertToAssets(feeShares), but adding feeShares to the totalSupply part during the calculation
     function _mintPerformanceFee() private {
         PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
-        if ($._performanceFeePercent == 0) {
-            return;
-        }
+        if ($._performanceFeePercent == 0) return;
 
         uint256 currentPPS = _pps();
         uint256 highWaterMarkBefore = $._highWaterMark;

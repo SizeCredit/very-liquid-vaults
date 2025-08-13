@@ -71,7 +71,7 @@ Target integrations:
 ### Core Components
 
 * **`SizeMetaVault`**: Main vault contract that manages user deposits and strategy allocation
-* **`Auth`**: Centralized role-based access control system
+* **`Auth`**: Centralized role-based access control system with global pause functionality
 
 ### Available Strategies
 

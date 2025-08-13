@@ -174,9 +174,7 @@ contract SizeMetaVault is PerformanceVault {
                 }
             }
         }
-        if (assetsToDeposit > 0) {
-            revert CannotDepositToStrategies(assets, shares, assetsToDeposit);
-        }
+        if (assetsToDeposit > 0) revert CannotDepositToStrategies(assets, shares, assetsToDeposit);
     }
 
     /// @notice Withdraws assets from strategies in order
@@ -204,9 +202,7 @@ contract SizeMetaVault is PerformanceVault {
                 }
             }
         }
-        if (assetsToWithdraw > 0) {
-            revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);
-        }
+        if (assetsToWithdraw > 0) revert CannotWithdrawFromStrategies(assets, shares, assetsToWithdraw);
 
         super._withdraw(caller, receiver, owner, assets, shares);
     }
@@ -254,15 +250,9 @@ contract SizeMetaVault is PerformanceVault {
         uint256 amount,
         uint256 maxSlippagePercent
     ) external nonReentrant notPaused emitVaultStatus onlyAuth(GUARDIAN_ROLE) {
-        if (!isStrategy(strategyToRemove)) {
-            revert InvalidStrategy(address(strategyToRemove));
-        }
-        if (!isStrategy(strategyToReceiveAssets)) {
-            revert InvalidStrategy(address(strategyToReceiveAssets));
-        }
-        if (strategyToRemove == strategyToReceiveAssets) {
-            revert InvalidStrategy(address(strategyToReceiveAssets));
-        }
+        if (!isStrategy(strategyToRemove)) revert InvalidStrategy(address(strategyToRemove));
+        if (!isStrategy(strategyToReceiveAssets)) revert InvalidStrategy(address(strategyToReceiveAssets));
+        if (strategyToRemove == strategyToReceiveAssets) revert InvalidStrategy(address(strategyToReceiveAssets));
 
         uint256 assetsToRemove = strategyToRemove.convertToAssets(strategyToRemove.balanceOf(address(this)));
         amount = Math.min(amount, assetsToRemove);
@@ -270,9 +260,7 @@ contract SizeMetaVault is PerformanceVault {
         _removeStrategy(strategyToRemove);
 
         // slither-disable-next-line incorrect-equality
-        if (totalAssets() == 0) {
-            revert NullAmount();
-        }
+        if (totalAssets() == 0) revert NullAmount();
     }
 
     /// @notice Sets the rebalance max slippage percent
@@ -298,9 +286,7 @@ contract SizeMetaVault is PerformanceVault {
         }
 
         for (uint256 i = 0; i < newStrategiesOrder.length; ++i) {
-            if (!isStrategy(newStrategiesOrder[i])) {
-                revert InvalidStrategy(address(newStrategiesOrder[i]));
-            }
+            if (!isStrategy(newStrategiesOrder[i])) revert InvalidStrategy(address(newStrategiesOrder[i]));
             for (uint256 j = i + 1; j < newStrategiesOrder.length; ++j) {
                 if (newStrategiesOrder[i] == newStrategiesOrder[j]) {
                     revert InvalidStrategy(address(newStrategiesOrder[i]));
@@ -329,18 +315,10 @@ contract SizeMetaVault is PerformanceVault {
     {
         maxSlippagePercent = Math.min(maxSlippagePercent, rebalanceMaxSlippagePercent());
 
-        if (!isStrategy(strategyFrom)) {
-            revert InvalidStrategy(address(strategyFrom));
-        }
-        if (!isStrategy(strategyTo)) {
-            revert InvalidStrategy(address(strategyTo));
-        }
-        if (strategyFrom == strategyTo) {
-            revert InvalidStrategy(address(strategyTo));
-        }
-        if (amount == 0) {
-            revert NullAmount();
-        }
+        if (!isStrategy(strategyFrom)) revert InvalidStrategy(address(strategyFrom));
+        if (!isStrategy(strategyTo)) revert InvalidStrategy(address(strategyTo));
+        if (strategyFrom == strategyTo) revert InvalidStrategy(address(strategyTo));
+        if (amount == 0) revert NullAmount();
 
         _rebalance(strategyFrom, strategyTo, amount, maxSlippagePercent);
     }
@@ -353,15 +331,12 @@ contract SizeMetaVault is PerformanceVault {
     /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
     // slither-disable-next-line calls-loop
     function _addStrategy(IVault strategy_, address asset_, address auth_) private {
-        if (address(strategy_) == address(0)) {
-            revert NullAddress();
-        }
-        if (isStrategy(strategy_)) {
-            revert InvalidStrategy(address(strategy_));
-        }
+        if (address(strategy_) == address(0)) revert NullAddress();
+        if (isStrategy(strategy_)) revert InvalidStrategy(address(strategy_));
         if (strategy_.asset() != asset_ || address(strategy_.auth()) != auth_) {
             revert InvalidStrategy(address(strategy_));
         }
+
         SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
         $._strategies.push(strategy_);
         emit StrategyAdded(address(strategy_));
@@ -375,7 +350,6 @@ contract SizeMetaVault is PerformanceVault {
     /// @dev Removes the strategy in-place to keep the order
     function _removeStrategy(IVault strategy) private {
         SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
-        bool removed = false;
         for (uint256 i = 0; i < $._strategies.length; ++i) {
             if ($._strategies[i] == strategy) {
                 for (uint256 j = i; j < $._strategies.length - 1; ++j) {
@@ -383,7 +357,6 @@ contract SizeMetaVault is PerformanceVault {
                 }
                 $._strategies.pop();
                 emit StrategyRemoved(address(strategy));
-                removed = true;
                 break;
             }
         }
@@ -391,9 +364,8 @@ contract SizeMetaVault is PerformanceVault {
 
     /// @notice Internal function to set the default max slippage percent
     function _setRebalanceMaxSlippagePercent(uint256 rebalanceMaxSlippagePercent_) private {
-        if (rebalanceMaxSlippagePercent_ > PERCENT) {
-            revert InvalidMaxSlippagePercent(rebalanceMaxSlippagePercent_);
-        }
+        if (rebalanceMaxSlippagePercent_ > PERCENT) revert InvalidMaxSlippagePercent(rebalanceMaxSlippagePercent_);
+
         SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
         uint256 oldRebalanceMaxSlippagePercent = $._rebalanceMaxSlippagePercent;
         $._rebalanceMaxSlippagePercent = rebalanceMaxSlippagePercent_;
