@@ -10,26 +10,26 @@ import {IVault} from "@src/utils/IVault.sol";
 import {ForkTest} from "@test/fork/ForkTest.t.sol";
 
 contract SizeMetaVaultForkTest is ForkTest {
-    using SafeERC20 for IERC20Metadata;
+  using SafeERC20 for IERC20Metadata;
 
-    function testFork_SizeMetaVault_deposit_withdraw_with_interest() public {
-        uint256 amount = 10 * 10 ** erc20Asset.decimals();
+  function testFork_SizeMetaVault_deposit_withdraw_with_interest() public {
+    uint256 amount = 10 * 10 ** erc20Asset.decimals();
 
-        _mint(erc20Asset, alice, amount);
-        _approve(alice, erc20Asset, address(sizeMetaVault), amount);
+    _mint(erc20Asset, alice, amount);
+    _approve(alice, erc20Asset, address(sizeMetaVault), amount);
 
-        vm.prank(alice);
-        sizeMetaVault.deposit(amount, alice);
+    vm.prank(alice);
+    sizeMetaVault.deposit(amount, alice);
 
-        vm.prank(admin);
-        sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount / 2, 1e18);
+    vm.prank(admin);
+    sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount / 2, 1e18);
 
-        vm.warp(block.timestamp + 1 weeks);
+    vm.warp(block.timestamp + 1 weeks);
 
-        uint256 maxRedeem = sizeMetaVault.maxRedeem(alice);
-        vm.prank(alice);
-        uint256 redeemedAssets = sizeMetaVault.redeem(maxRedeem, alice, alice);
+    uint256 maxRedeem = sizeMetaVault.maxRedeem(alice);
+    vm.prank(alice);
+    uint256 redeemedAssets = sizeMetaVault.redeem(maxRedeem, alice, alice);
 
-        assertGt(redeemedAssets, amount);
-    }
+    assertGt(redeemedAssets, amount);
+  }
 }

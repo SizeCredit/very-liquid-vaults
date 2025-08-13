@@ -8,26 +8,26 @@ import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract PoolMockScript is Script {
-    address owner;
-    IERC20Metadata asset;
+  address owner;
+  IERC20Metadata asset;
 
-    function setUp() public {
-        owner = vm.envAddress("OWNER");
-        asset = IERC20Metadata(vm.envAddress("ASSET"));
-    }
+  function setUp() public {
+    owner = vm.envAddress("OWNER");
+    asset = IERC20Metadata(vm.envAddress("ASSET"));
+  }
 
-    function run() public {
-        vm.startBroadcast();
+  function run() public {
+    vm.startBroadcast();
 
-        deploy(owner, asset);
+    deploy(owner, asset);
 
-        vm.stopBroadcast();
-    }
+    vm.stopBroadcast();
+  }
 
-    function deploy(address owner_, IERC20Metadata asset_) public returns (PoolMock pool) {
-        pool = new PoolMock(owner_);
-        vm.prank(owner_);
-        pool.setLiquidityIndex(address(asset_), WadRayMath.RAY);
-        return pool;
-    }
+  function deploy(address owner_, IERC20Metadata asset_) public returns (PoolMock pool) {
+    pool = new PoolMock(owner_);
+    vm.prank(owner_);
+    pool.setLiquidityIndex(address(asset_), WadRayMath.RAY);
+    return pool;
+  }
 }

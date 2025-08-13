@@ -35,8 +35,8 @@
   sort_imports = true
   contract_new_lines = false
   override_spacing = false
-  line_length = 120
-  tab_width = 4
+  line_length = 175
+  tab_width = 2
   bracket_spacing = false
   int_types = "long"
   quote_style = "double"

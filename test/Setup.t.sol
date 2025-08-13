@@ -43,171 +43,163 @@ import {USDC} from "@test/mocks/USDC.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 
 abstract contract Setup {
-    uint256 internal FIRST_DEPOSIT_AMOUNT;
-    uint256 internal WETH_DEPOSIT_AMOUNT;
+  uint256 internal FIRST_DEPOSIT_AMOUNT;
+  uint256 internal WETH_DEPOSIT_AMOUNT;
 
-    AuthScript private authScript;
-    SizeMetaVaultScript private sizeMetaVaultScript;
-    CashStrategyVaultScript private cashStrategyVaultScript;
-    CashStrategyVaultScript private cashStrategyVaultScriptWETH;
-    AaveStrategyVaultScript private aaveStrategyVaultScript;
-    ERC4626StrategyVaultScript private erc4626StrategyVaultScript;
-    CryticCashStrategyVaultMockScript private cryticCashStrategyVaultScript;
-    CryticAaveStrategyVaultMockScript private cryticAaveStrategyVaultScript;
-    CryticERC4626StrategyVaultMockScript private cryticERC4626StrategyVaultScript;
-    CryticSizeMetaVaultMockScript private cryticSizeMetaVaultMockScript;
-    BaseVaultMockScript private baseVaultMockScript;
-    PoolMockScript private poolMockScript;
-    VaultMockScript private vaultMockScript;
+  AuthScript private authScript;
+  SizeMetaVaultScript private sizeMetaVaultScript;
+  CashStrategyVaultScript private cashStrategyVaultScript;
+  CashStrategyVaultScript private cashStrategyVaultScriptWETH;
+  AaveStrategyVaultScript private aaveStrategyVaultScript;
+  ERC4626StrategyVaultScript private erc4626StrategyVaultScript;
+  CryticCashStrategyVaultMockScript private cryticCashStrategyVaultScript;
+  CryticAaveStrategyVaultMockScript private cryticAaveStrategyVaultScript;
+  CryticERC4626StrategyVaultMockScript private cryticERC4626StrategyVaultScript;
+  CryticSizeMetaVaultMockScript private cryticSizeMetaVaultMockScript;
+  BaseVaultMockScript private baseVaultMockScript;
+  PoolMockScript private poolMockScript;
+  VaultMockScript private vaultMockScript;
 
-    SizeMetaVault internal sizeMetaVault;
-    CashStrategyVault internal cashStrategyVault;
-    CashStrategyVault internal cashStrategyVaultWETH;
-    CryticCashStrategyVaultMock internal cryticCashStrategyVault;
-    AaveStrategyVault internal aaveStrategyVault;
-    CryticAaveStrategyVaultMock internal cryticAaveStrategyVault;
-    ERC4626StrategyVault internal erc4626StrategyVault;
-    CryticERC4626StrategyVaultMock internal cryticERC4626StrategyVault;
-    BaseVaultMock internal baseVault;
-    CryticSizeMetaVaultMock internal cryticSizeMetaVault;
-    IERC20Metadata internal erc20Asset;
-    WETH9 internal weth;
-    PoolMock internal pool;
-    VaultMock internal erc4626Vault;
-    IAToken internal aToken;
-    Auth internal auth;
+  SizeMetaVault internal sizeMetaVault;
+  CashStrategyVault internal cashStrategyVault;
+  CashStrategyVault internal cashStrategyVaultWETH;
+  CryticCashStrategyVaultMock internal cryticCashStrategyVault;
+  AaveStrategyVault internal aaveStrategyVault;
+  CryticAaveStrategyVaultMock internal cryticAaveStrategyVault;
+  ERC4626StrategyVault internal erc4626StrategyVault;
+  CryticERC4626StrategyVaultMock internal cryticERC4626StrategyVault;
+  BaseVaultMock internal baseVault;
+  CryticSizeMetaVaultMock internal cryticSizeMetaVault;
+  IERC20Metadata internal erc20Asset;
+  WETH9 internal weth;
+  PoolMock internal pool;
+  VaultMock internal erc4626Vault;
+  IAToken internal aToken;
+  Auth internal auth;
 
-    function deploy(address admin) public {
-        erc20Asset = IERC20Metadata(new USDC(admin));
-        weth = new WETH9();
-        FIRST_DEPOSIT_AMOUNT = 10 * (10 ** erc20Asset.decimals());
-        WETH_DEPOSIT_AMOUNT = 0.1e18;
+  function deploy(address admin) public {
+    erc20Asset = IERC20Metadata(new USDC(admin));
+    weth = new WETH9();
+    FIRST_DEPOSIT_AMOUNT = 10 * (10 ** erc20Asset.decimals());
+    WETH_DEPOSIT_AMOUNT = 0.1e18;
 
-        authScript = new AuthScript();
-        sizeMetaVaultScript = new SizeMetaVaultScript();
-        cashStrategyVaultScript = new CashStrategyVaultScript();
-        cashStrategyVaultScriptWETH = new CashStrategyVaultScript();
-        aaveStrategyVaultScript = new AaveStrategyVaultScript();
-        erc4626StrategyVaultScript = new ERC4626StrategyVaultScript();
-        cryticCashStrategyVaultScript = new CryticCashStrategyVaultMockScript();
-        cryticAaveStrategyVaultScript = new CryticAaveStrategyVaultMockScript();
-        cryticERC4626StrategyVaultScript = new CryticERC4626StrategyVaultMockScript();
-        cryticSizeMetaVaultMockScript = new CryticSizeMetaVaultMockScript();
-        baseVaultMockScript = new BaseVaultMockScript();
-        poolMockScript = new PoolMockScript();
-        vaultMockScript = new VaultMockScript();
+    authScript = new AuthScript();
+    sizeMetaVaultScript = new SizeMetaVaultScript();
+    cashStrategyVaultScript = new CashStrategyVaultScript();
+    cashStrategyVaultScriptWETH = new CashStrategyVaultScript();
+    aaveStrategyVaultScript = new AaveStrategyVaultScript();
+    erc4626StrategyVaultScript = new ERC4626StrategyVaultScript();
+    cryticCashStrategyVaultScript = new CryticCashStrategyVaultMockScript();
+    cryticAaveStrategyVaultScript = new CryticAaveStrategyVaultMockScript();
+    cryticERC4626StrategyVaultScript = new CryticERC4626StrategyVaultMockScript();
+    cryticSizeMetaVaultMockScript = new CryticSizeMetaVaultMockScript();
+    baseVaultMockScript = new BaseVaultMockScript();
+    poolMockScript = new PoolMockScript();
+    vaultMockScript = new VaultMockScript();
 
-        _deployWithScripts(admin);
+    _deployWithScripts(admin);
+  }
+
+  function _deployWithScripts(address admin) internal {
+    auth = authScript.deploy(admin);
+
+    pool = poolMockScript.deploy(admin, erc20Asset);
+    aToken = IAToken(pool.getReserveData(address(erc20Asset)).aTokenAddress);
+
+    erc4626Vault = vaultMockScript.deploy(admin, erc20Asset, "Vault", "VAULT");
+
+    _mint(admin, address(cashStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
+    cashStrategyVault = cashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
+
+    _mintWETH(admin, address(cashStrategyVaultScriptWETH), WETH_DEPOSIT_AMOUNT);
+    cashStrategyVaultWETH = cashStrategyVaultScriptWETH.deploy(auth, IERC20Metadata(address(weth)), WETH_DEPOSIT_AMOUNT);
+
+    _mint(admin, address(aaveStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
+    aaveStrategyVault = aaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
+
+    _mint(admin, address(erc4626StrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
+    erc4626StrategyVault = erc4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
+
+    _mint(admin, address(cryticCashStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
+    cryticCashStrategyVault = cryticCashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
+
+    _mint(admin, address(cryticAaveStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
+    cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
+
+    _mint(admin, address(cryticERC4626StrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
+    cryticERC4626StrategyVault = cryticERC4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
+
+    IVault[] memory strategies = new IVault[](3);
+    strategies[0] = cryticCashStrategyVault;
+    strategies[1] = cryticAaveStrategyVault;
+    strategies[2] = cryticERC4626StrategyVault;
+    _mint(admin, address(cryticSizeMetaVaultMockScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
+    cryticSizeMetaVault = cryticSizeMetaVaultMockScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
+
+    _mint(admin, address(baseVaultMockScript), FIRST_DEPOSIT_AMOUNT);
+    baseVault = baseVaultMockScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
+
+    strategies = new IVault[](3);
+    strategies[0] = cashStrategyVault;
+    strategies[1] = aaveStrategyVault;
+    strategies[2] = erc4626StrategyVault;
+    _mint(admin, address(sizeMetaVaultScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
+    sizeMetaVault = sizeMetaVaultScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
+  }
+
+  function _mint(address admin, address to, uint256 amount) private {
+    hevm.prank(admin);
+    USDC(address(erc20Asset)).mint(to, amount);
+  }
+
+  function _mintWETH(address admin, address to, uint256 amount) private {
+    hevm.deal(admin, amount);
+    hevm.prank(admin);
+    weth.deposit{value: amount}();
+    hevm.prank(admin);
+    weth.transfer(to, amount);
+  }
+
+  // NOTE: this makes symbolic execution tools have multiple paths to explore
+  function _setupRandomSizeMetaVaultConfiguration(address admin, function(uint256, uint256) returns (uint256) getRandomUint) internal {
+    IVault[] memory strategies = sizeMetaVault.strategies();
+    uint256 totalAssets = sizeMetaVault.totalAssets();
+
+    // Generate target allocations (percentages that sum to totalAssets)
+    uint256[] memory targetAllocations = new uint256[](strategies.length);
+    targetAllocations[0] = totalAssets;
+    _split(targetAllocations, getRandomUint);
+
+    // Since we start at [totalAssets, 0, 0], we just need to move assets from strategy 0 to others
+    for (uint256 i = 1; i < strategies.length; i++) {
+      hevm.prank(admin);
+      try sizeMetaVault.rebalance(strategies[0], strategies[i], targetAllocations[i], type(uint256).max) {} catch {}
     }
 
-    function _deployWithScripts(address admin) internal {
-        auth = authScript.deploy(admin);
+    _shuffle(strategies, getRandomUint);
 
-        pool = poolMockScript.deploy(admin, erc20Asset);
-        aToken = IAToken(pool.getReserveData(address(erc20Asset)).aTokenAddress);
+    hevm.prank(admin);
+    sizeMetaVault.reorderStrategies(strategies);
+  }
 
-        erc4626Vault = vaultMockScript.deploy(admin, erc20Asset, "Vault", "VAULT");
-
-        _mint(admin, address(cashStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
-        cashStrategyVault = cashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
-
-        _mintWETH(admin, address(cashStrategyVaultScriptWETH), WETH_DEPOSIT_AMOUNT);
-        cashStrategyVaultWETH =
-            cashStrategyVaultScriptWETH.deploy(auth, IERC20Metadata(address(weth)), WETH_DEPOSIT_AMOUNT);
-
-        _mint(admin, address(aaveStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
-        aaveStrategyVault = aaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
-
-        _mint(admin, address(erc4626StrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
-        erc4626StrategyVault = erc4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
-
-        _mint(admin, address(cryticCashStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
-        cryticCashStrategyVault = cryticCashStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
-
-        _mint(admin, address(cryticAaveStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
-        cryticAaveStrategyVault = cryticAaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
-
-        _mint(admin, address(cryticERC4626StrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
-        cryticERC4626StrategyVault = cryticERC4626StrategyVaultScript.deploy(auth, FIRST_DEPOSIT_AMOUNT, erc4626Vault);
-
-        IVault[] memory strategies = new IVault[](3);
-        strategies[0] = cryticCashStrategyVault;
-        strategies[1] = cryticAaveStrategyVault;
-        strategies[2] = cryticERC4626StrategyVault;
-        _mint(admin, address(cryticSizeMetaVaultMockScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
-        cryticSizeMetaVault = cryticSizeMetaVaultMockScript.deploy(
-            auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies
-        );
-
-        _mint(admin, address(baseVaultMockScript), FIRST_DEPOSIT_AMOUNT);
-        baseVault = baseVaultMockScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
-
-        strategies = new IVault[](3);
-        strategies[0] = cashStrategyVault;
-        strategies[1] = aaveStrategyVault;
-        strategies[2] = erc4626StrategyVault;
-        _mint(admin, address(sizeMetaVaultScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
-        sizeMetaVault =
-            sizeMetaVaultScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
+  function _shuffle(IVault[] memory strategies, function(uint256, uint256) returns (uint256) getRandomUint) private {
+    // Fisher-Yates shuffle algorithm
+    for (uint256 i = strategies.length - 1; i > 0; i--) {
+      uint256 j = getRandomUint(0, i);
+      IVault temp = strategies[i];
+      strategies[i] = strategies[j];
+      strategies[j] = temp;
     }
+  }
 
-    function _mint(address admin, address to, uint256 amount) private {
-        hevm.prank(admin);
-        USDC(address(erc20Asset)).mint(to, amount);
+  function _split(uint256[] memory parts, function(uint256, uint256) returns (uint256) getRandomUint) private {
+    uint256 sum = 0;
+    for (uint256 i = 0; i < parts.length; i++) {
+      sum += parts[i];
     }
-
-    function _mintWETH(address admin, address to, uint256 amount) private {
-        hevm.deal(admin, amount);
-        hevm.prank(admin);
-        weth.deposit{value: amount}();
-        hevm.prank(admin);
-        weth.transfer(to, amount);
+    for (uint256 i = 0; i < parts.length; i++) {
+      parts[i] = getRandomUint(0, sum);
+      sum -= parts[i];
     }
-
-    // NOTE: this makes symbolic execution tools have multiple paths to explore
-    function _setupRandomSizeMetaVaultConfiguration(
-        address admin,
-        function(uint256, uint256) returns (uint256) getRandomUint
-    ) internal {
-        IVault[] memory strategies = sizeMetaVault.strategies();
-        uint256 totalAssets = sizeMetaVault.totalAssets();
-
-        // Generate target allocations (percentages that sum to totalAssets)
-        uint256[] memory targetAllocations = new uint256[](strategies.length);
-        targetAllocations[0] = totalAssets;
-        _split(targetAllocations, getRandomUint);
-
-        // Since we start at [totalAssets, 0, 0], we just need to move assets from strategy 0 to others
-        for (uint256 i = 1; i < strategies.length; i++) {
-            hevm.prank(admin);
-            try sizeMetaVault.rebalance(strategies[0], strategies[i], targetAllocations[i], type(uint256).max) {}
-                catch {}
-        }
-
-        _shuffle(strategies, getRandomUint);
-
-        hevm.prank(admin);
-        sizeMetaVault.reorderStrategies(strategies);
-    }
-
-    function _shuffle(IVault[] memory strategies, function(uint256, uint256) returns (uint256) getRandomUint) private {
-        // Fisher-Yates shuffle algorithm
-        for (uint256 i = strategies.length - 1; i > 0; i--) {
-            uint256 j = getRandomUint(0, i);
-            IVault temp = strategies[i];
-            strategies[i] = strategies[j];
-            strategies[j] = temp;
-        }
-    }
-
-    function _split(uint256[] memory parts, function(uint256, uint256) returns (uint256) getRandomUint) private {
-        uint256 sum = 0;
-        for (uint256 i = 0; i < parts.length; i++) {
-            sum += parts[i];
-        }
-        for (uint256 i = 0; i < parts.length; i++) {
-            parts[i] = getRandomUint(0, sum);
-            sum -= parts[i];
-        }
-    }
+  }
 }

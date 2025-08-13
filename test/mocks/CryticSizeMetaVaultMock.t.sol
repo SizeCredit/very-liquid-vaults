@@ -10,17 +10,17 @@ import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {IERC20MintBurn} from "@test/mocks/IERC20MintBurn.t.sol";
 
 contract CryticSizeMetaVaultMock is SizeMetaVault, CryticIERC4626Internal {
-    function recognizeProfit(uint256 profit) external override {
-        address owner = Ownable(asset()).owner();
-        address cashStrategy = address(strategies(0));
-        vm.prank(owner);
-        IERC20MintBurn(asset()).mint(address(cashStrategy), profit);
-    }
+  function recognizeProfit(uint256 profit) external override {
+    address owner = Ownable(asset()).owner();
+    address cashStrategy = address(strategies(0));
+    vm.prank(owner);
+    IERC20MintBurn(asset()).mint(address(cashStrategy), profit);
+  }
 
-    function recognizeLoss(uint256 loss) external override {
-        address owner = Ownable(asset()).owner();
-        address cashStrategy = address(strategies(0));
-        vm.prank(owner);
-        IERC20MintBurn(asset()).burn(address(cashStrategy), loss);
-    }
+  function recognizeLoss(uint256 loss) external override {
+    address owner = Ownable(asset()).owner();
+    address cashStrategy = address(strategies(0));
+    vm.prank(owner);
+    IERC20MintBurn(asset()).burn(address(cashStrategy), loss);
+  }
 }

@@ -12,46 +12,39 @@ import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract BaseVaultMockScript is BaseScript {
-    using SafeERC20 for IERC20Metadata;
+  using SafeERC20 for IERC20Metadata;
 
-    Auth auth;
-    IERC20Metadata asset;
-    address fundingAccount = address(this);
-    uint256 firstDepositAmount;
+  Auth auth;
+  IERC20Metadata asset;
+  address fundingAccount = address(this);
+  uint256 firstDepositAmount;
 
-    function setUp() public override {
-        super.setUp();
+  function setUp() public override {
+    super.setUp();
 
-        auth = Auth(vm.envAddress("AUTH"));
-        asset = IERC20Metadata(vm.envAddress("ASSET"));
-        fundingAccount = msg.sender;
-        firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
-    }
+    auth = Auth(vm.envAddress("AUTH"));
+    asset = IERC20Metadata(vm.envAddress("ASSET"));
+    fundingAccount = msg.sender;
+    firstDepositAmount = vm.envUint("FIRST_DEPOSIT_AMOUNT");
+  }
 
-    function run() public {
-        vm.startBroadcast();
+  function run() public {
+    vm.startBroadcast();
 
-        deploy(auth, asset, firstDepositAmount);
+    deploy(auth, asset, firstDepositAmount);
 
-        vm.stopBroadcast();
-    }
+    vm.stopBroadcast();
+  }
 
-    function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_)
-        public
-        returns (BaseVaultMock baseVaultMock)
-    {
-        string memory name = string.concat("Size Base ", asset_.name(), " Mock Vault");
-        string memory symbol = string.concat("sz", "Base", asset_.symbol(), "Mock");
-        address implementation = address(new BaseVaultMock());
-        bytes memory initializationData =
-            abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));
-        bytes memory creationCode =
-            abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
-        bytes32 salt = keccak256(initializationData);
-        baseVaultMock = BaseVaultMock(create2Deployer.computeAddress(salt, keccak256(creationCode)));
-        asset_.forceApprove(address(baseVaultMock), firstDepositAmount_);
-        create2Deployer.deploy(
-            0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData))
-        );
-    }
+  function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_) public returns (BaseVaultMock baseVaultMock) {
+    string memory name = string.concat("Size Base ", asset_.name(), " Mock Vault");
+    string memory symbol = string.concat("sz", "Base", asset_.symbol(), "Mock");
+    address implementation = address(new BaseVaultMock());
+    bytes memory initializationData = abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));
+    bytes memory creationCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
+    bytes32 salt = keccak256(initializationData);
+    baseVaultMock = BaseVaultMock(create2Deployer.computeAddress(salt, keccak256(creationCode)));
+    asset_.forceApprove(address(baseVaultMock), firstDepositAmount_);
+    create2Deployer.deploy(0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData)));
+  }
 }

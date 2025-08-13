@@ -5,8 +5,8 @@ import {CryticERC4626PropertyTests} from "@crytic/properties/contracts/ERC4626/E
 import {Setup} from "@test/Setup.t.sol";
 
 contract CashStrategyVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
-    constructor() {
-        deploy(address(this));
-        initialize(address(cryticCashStrategyVault), address(asset), true);
-    }
+  constructor() {
+    deploy(address(this));
+    initialize(address(cryticCashStrategyVault), address(asset), true);
+  }
 }

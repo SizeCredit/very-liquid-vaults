@@ -24,15 +24,15 @@ import {ERC4626StrategyVaultTargets} from "@test/recon/targets/project/ERC4626St
 import {SizeMetaVaultTargets} from "@test/recon/targets/project/SizeMetaVaultTargets.t.sol";
 
 abstract contract TargetFunctions is
-    AaveStrategyVaultTargets,
-    AdminTargets,
-    CashStrategyVaultTargets,
-    DoomsdayTargets,
-    AuthTargets,
-    ERC4626MustNotRevertTargets,
-    ERC4626StrategyVaultTargets,
-    ManagersTargets,
-    SizeMetaVaultTargets
+  AaveStrategyVaultTargets,
+  AdminTargets,
+  CashStrategyVaultTargets,
+  DoomsdayTargets,
+  AuthTargets,
+  ERC4626MustNotRevertTargets,
+  ERC4626StrategyVaultTargets,
+  ManagersTargets,
+  SizeMetaVaultTargets
 {
 /// CUSTOM TARGET FUNCTIONS - Add your own target functions here ///
 

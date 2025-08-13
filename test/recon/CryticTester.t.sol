@@ -8,7 +8,7 @@ import {TargetFunctions} from "@test/recon/TargetFunctions.t.sol";
 // echidna . --contract CryticTester --config echidna.yaml --format text --workers 16 --test-limit 1000000
 // medusa fuzz
 contract CryticTester is TargetFunctions, CryticAsserts {
-    constructor() payable {
-        setup();
-    }
+  constructor() payable {
+    setup();
+  }
 }

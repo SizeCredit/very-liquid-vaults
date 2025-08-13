@@ -8,30 +8,27 @@ import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract VaultMockScript is Script {
-    address owner;
-    IERC20 asset;
-    string name;
-    string symbol;
+  address owner;
+  IERC20 asset;
+  string name;
+  string symbol;
 
-    function setUp() public {
-        owner = vm.envAddress("OWNER");
-        asset = IERC20(vm.envAddress("ASSET"));
-        name = vm.envString("NAME");
-        symbol = vm.envString("SYMBOL");
-    }
+  function setUp() public {
+    owner = vm.envAddress("OWNER");
+    asset = IERC20(vm.envAddress("ASSET"));
+    name = vm.envString("NAME");
+    symbol = vm.envString("SYMBOL");
+  }
 
-    function run() public {
-        vm.startBroadcast();
+  function run() public {
+    vm.startBroadcast();
 
-        deploy(owner, asset, name, symbol);
+    deploy(owner, asset, name, symbol);
 
-        vm.stopBroadcast();
-    }
+    vm.stopBroadcast();
+  }
 
-    function deploy(address owner_, IERC20 asset_, string memory name_, string memory symbol_)
-        public
-        returns (VaultMock)
-    {
-        return new VaultMock(owner_, asset_, name_, symbol_);
-    }
+  function deploy(address owner_, IERC20 asset_, string memory name_, string memory symbol_) public returns (VaultMock) {
+    return new VaultMock(owner_, asset_, name_, symbol_);
+  }
 }
