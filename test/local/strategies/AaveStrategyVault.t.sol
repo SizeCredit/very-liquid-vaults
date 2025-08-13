@@ -1,18 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {IVault} from "@src/utils/IVault.sol";
-import {BaseTest} from "@test/BaseTest.t.sol";
-import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
-import {Auth} from "@src/Auth.sol";
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
-import {BaseVault} from "@src/utils/BaseVault.sol";
+
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
+import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Auth} from "@src/Auth.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
+
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
 
 contract AaveStrategyVaultTest is BaseTest, Initializable {
     uint256 initialBalance;
@@ -376,6 +379,6 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     }
 
     function test_AaveStrategyVault_deposit_assets_shares_0_reverts_concrete() public {
-        testFuzz_AaveStrategyVault_deposit_assets_shares_0_reverts(1, 1198633698108951810697775384);
+        testFuzz_AaveStrategyVault_deposit_assets_shares_0_reverts(1, 1_198_633_698_108_951_810_697_775_384);
     }
 }

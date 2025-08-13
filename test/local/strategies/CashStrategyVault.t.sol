@@ -3,8 +3,9 @@ pragma solidity 0.8.26;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
-import {BaseTest} from "@test/BaseTest.t.sol";
+
 import {IVault} from "@src/utils/IVault.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
 import {console} from "forge-std/console.sol";
 
 contract CashStrategyVaultTest is BaseTest {

@@ -14,12 +14,13 @@ import {AssetManager} from "@recon/AssetManager.sol";
 import {Utils} from "@recon/Utils.sol";
 
 // Your deps
-import "src/strategies/AaveStrategyVault.sol";
+
+import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import "src/Auth.sol";
+import "src/SizeMetaVault.sol";
+import "src/strategies/AaveStrategyVault.sol";
 import "src/strategies/CashStrategyVault.sol";
 import "src/strategies/ERC4626StrategyVault.sol";
-import "src/SizeMetaVault.sol";
-import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 
 import {Setup as __Setup} from "@test/Setup.t.sol";
 

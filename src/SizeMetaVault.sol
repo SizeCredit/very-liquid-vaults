@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {BaseVault} from "@src/utils/BaseVault.sol";
-import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Auth, STRATEGIST_ROLE, DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
-import {IVault} from "@src/utils/IVault.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {Auth, DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
+import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 
 /// @title SizeMetaVault
 /// @custom:security-contact security@size.credit
@@ -340,9 +340,7 @@ contract SizeMetaVault is PerformanceVault {
         SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
         $._strategies.push(strategy_);
         emit StrategyAdded(address(strategy_));
-        if ($._strategies.length > MAX_STRATEGIES) {
-            revert MaxStrategiesExceeded($._strategies.length, MAX_STRATEGIES);
-        }
+        if ($._strategies.length > MAX_STRATEGIES) revert MaxStrategiesExceeded($._strategies.length, MAX_STRATEGIES);
     }
 
     /// @notice Internal function to remove a strategy
@@ -453,9 +451,7 @@ contract SizeMetaVault is PerformanceVault {
     function isStrategy(IVault strategy) public view returns (bool) {
         uint256 length = strategies().length;
         for (uint256 i = 0; i < length; ++i) {
-            if (strategies(i) == strategy) {
-                return true;
-            }
+            if (strategies(i) == strategy) return true;
         }
         return false;
     }

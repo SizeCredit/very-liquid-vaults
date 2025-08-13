@@ -2,8 +2,9 @@
 pragma solidity ^0.8.0;
 
 import {Asserts} from "@chimera/Asserts.sol";
-import {Ghosts} from "@test/recon/Ghosts.t.sol";
+
 import {PropertiesSpecifications} from "@test/property/PropertiesSpecifications.t.sol";
+import {Ghosts} from "@test/recon/Ghosts.t.sol";
 
 abstract contract Properties is Ghosts, Asserts, PropertiesSpecifications {
     function property_SOLVENCY_01() public {

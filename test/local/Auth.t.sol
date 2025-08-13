@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Auth} from "@src/Auth.sol";
-import {BaseTest} from "@test/BaseTest.t.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {Auth} from "@src/Auth.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
 
 contract AuthTest is BaseTest, Initializable {
     function test_Auth_initialize_null_address() public {

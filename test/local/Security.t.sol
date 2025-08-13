@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {BaseTest} from "@test/BaseTest.t.sol";
-import {IVault} from "@src/utils/IVault.sol";
-import {console} from "forge-std/console.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {IVault} from "@src/utils/IVault.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
+import {console} from "forge-std/console.sol";
 
 contract SecurityTest is BaseTest {
     function test_Security_deposit_directly_to_strategy_should_not_steal_assets() public {

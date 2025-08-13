@@ -1,18 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {IVault} from "@src/utils/IVault.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {BaseTest} from "@test/BaseTest.t.sol";
-import {VaultMock} from "@test/mocks/VaultMock.t.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+
+import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Auth} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
-import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+import {IVault} from "@src/utils/IVault.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
+import {VaultMock} from "@test/mocks/VaultMock.t.sol";
+
 import {console} from "forge-std/console.sol";
 
 contract ERC4626StrategyVaultTest is BaseTest, Initializable {
@@ -475,7 +479,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
     function test_ERC4626StrategyVault_deposit_assets_shares_0_reverts_concrete_01() public {
         testFuzz_ERC4626StrategyVault_deposit_assets_shares_0_reverts(
-            1108790381926929861836164074425007624709311183104891332381950016717928201
+            1_108_790_381_926_929_861_836_164_074_425_007_624_709_311_183_104_891_332_381_950_016_717_928_201
         );
     }
 }

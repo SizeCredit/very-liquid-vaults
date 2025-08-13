@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
+import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
-import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Auth} from "@src/Auth.sol";
+
 import {BaseScript} from "@script/BaseScript.s.sol";
+import {Auth} from "@src/Auth.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 
 contract AaveStrategyVaultScript is BaseScript {
     using SafeERC20 for IERC20Metadata;

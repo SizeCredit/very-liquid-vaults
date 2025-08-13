@@ -2,13 +2,15 @@
 pragma solidity 0.8.26;
 
 import {ERC4626Test, IMockERC20} from "@a16z/erc4626-tests/ERC4626.test.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {BaseTest} from "@test/BaseTest.t.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
-import {console} from "forge-std/Test.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
+
 import {console3} from "console3/console3.sol";
+import {console} from "forge-std/Test.sol";
 
 contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
     function setUp() public override(ERC4626Test, BaseTest) {
@@ -55,11 +57,11 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
                 0x0000000000000000000000000000000000000974,
                 0x00000000000000000000000000000000bf92857D
             ],
-            share: [uint256(3212384070), uint256(4897), uint256(579), uint256(11295)],
+            share: [uint256(3_212_384_070), uint256(4897), uint256(579), uint256(11_295)],
             asset: [uint256(7109), uint256(6682), uint256(1168), uint256(4352)],
-            yield: int256(15660)
+            yield: int256(15_660)
         });
-        test_RT_withdraw_mint(init, 3118930328);
+        test_RT_withdraw_mint(init, 3_118_930_328);
     }
 
     function test_AaveStrategyVaultERC4626StdTest_RT_redeem_mint_01() public {
@@ -71,11 +73,11 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
                 0x0000000000000000000000000000000000001e47,
                 0x0000000000000000000000000000000000001B96
             ],
-            share: [uint256(613021686), uint256(5149), uint256(17283), uint256(18309)],
-            asset: [uint256(100000000000000000000000000000000), uint256(1625), uint256(17077), uint256(15625)],
-            yield: int256(3485518899)
+            share: [uint256(613_021_686), uint256(5149), uint256(17_283), uint256(18_309)],
+            asset: [uint256(100_000_000_000_000_000_000_000_000_000_000), uint256(1625), uint256(17_077), uint256(15_625)],
+            yield: int256(3_485_518_899)
         });
-        uint256 shares = 11804;
+        uint256 shares = 11_804;
         setUpVault(init);
         console3.logERC4626(address(aaveStrategyVault), mem(init.user));
         console.log("aToken.totalSupply", aToken.totalSupply());
@@ -113,10 +115,10 @@ contract AaveStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
                 0x0000000000000000000000000000000000001e47,
                 0x0000000000000000000000000000000000001B96
             ],
-            share: [uint256(613021686), uint256(5149), uint256(5149), uint256(18309)],
-            asset: [uint256(100000000000000000000000000000000), uint256(1625), uint256(17077), uint256(15625)],
-            yield: int256(3485518899)
+            share: [uint256(613_021_686), uint256(5149), uint256(5149), uint256(18_309)],
+            asset: [uint256(100_000_000_000_000_000_000_000_000_000_000), uint256(1625), uint256(17_077), uint256(15_625)],
+            yield: int256(3_485_518_899)
         });
-        test_RT_withdraw_mint(init, 11804);
+        test_RT_withdraw_mint(init, 11_804);
     }
 }

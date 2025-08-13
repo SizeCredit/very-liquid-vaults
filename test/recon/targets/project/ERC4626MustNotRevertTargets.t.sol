@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0
 pragma solidity ^0.8.0;
 
-import {console} from "forge-std/console.sol";
 import {BaseTargetFunctions} from "@chimera/BaseTargetFunctions.sol";
 import {Ghosts} from "@test/recon/Ghosts.t.sol";
 import {Properties} from "@test/recon/Properties.t.sol";
+import {console} from "forge-std/console.sol";
 // Chimera deps
 import {vm} from "@chimera/Hevm.sol";
 

@@ -1,25 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
-import {BaseTest} from "@test/BaseTest.t.sol";
-import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
-import {Auth} from "@src/Auth.sol";
+import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
+
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
+import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
-import {VaultMockRevertOnDeposit} from "@test/mocks/VaultMockRevertOnDeposit.t.sol";
-import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
-import {VaultMockAssetFeeOnDeposit} from "@test/mocks/VaultMockAssetFeeOnDeposit.t.sol";
-import {VaultMockAssetFeeOnWithdraw} from "@test/mocks/VaultMockAssetFeeOnWithdraw.t.sol";
-import {IVault} from "@src/utils/IVault.sol";
+import {Auth} from "@src/Auth.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
+
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {IVault} from "@src/utils/IVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
+import {VaultMockAssetFeeOnDeposit} from "@test/mocks/VaultMockAssetFeeOnDeposit.t.sol";
+import {VaultMockAssetFeeOnWithdraw} from "@test/mocks/VaultMockAssetFeeOnWithdraw.t.sol";
+import {VaultMockRevertOnDeposit} from "@test/mocks/VaultMockRevertOnDeposit.t.sol";
+import {VaultMockRevertOnWithdraw} from "@test/mocks/VaultMockRevertOnWithdraw.t.sol";
+
 import {console} from "forge-std/console.sol";
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {ERC4626Mock} from "@openzeppelin/contracts/mocks/token/ERC4626Mock.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract SizeMetaVaultTest is BaseTest {
     bool public expectRevert = false;
@@ -118,7 +121,7 @@ contract SizeMetaVaultTest is BaseTest {
 
     function test_SizeMetaVault_rebalance_slippage_validation_concrete() public {
         expectRevert = true;
-        testFuzz_SizeMetaVault_rebalance_slippage_validation(90014716, 1200000000000000000000018340);
+        testFuzz_SizeMetaVault_rebalance_slippage_validation(90_014_716, 1_200_000_000_000_000_000_000_018_340);
     }
 
     function test_SizeMetaVault_rebalance_with_slippage() public {

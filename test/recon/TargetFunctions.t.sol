@@ -9,15 +9,19 @@ import {Panic} from "@recon/Panic.sol";
 
 // Targets
 // NOTE: Always import and apply them in alphabetical order, so much easier to debug!
-import {AaveStrategyVaultTargets} from "@test/recon/targets/project/AaveStrategyVaultTargets.t.sol";
+
 import {AdminTargets} from "@test/recon/targets/AdminTargets.t.sol";
-import {CashStrategyVaultTargets} from "@test/recon/targets/project/CashStrategyVaultTargets.t.sol";
+
 import {DoomsdayTargets} from "@test/recon/targets/DoomsdayTargets.t.sol";
+
+import {ManagersTargets} from "@test/recon/targets/ManagersTargets.t.sol";
+import {AaveStrategyVaultTargets} from "@test/recon/targets/project/AaveStrategyVaultTargets.t.sol";
+
+import {AuthTargets} from "@test/recon/targets/project/AuthTargets.t.sol";
+import {CashStrategyVaultTargets} from "@test/recon/targets/project/CashStrategyVaultTargets.t.sol";
 import {ERC4626MustNotRevertTargets} from "@test/recon/targets/project/ERC4626MustNotRevertTargets.t.sol";
 import {ERC4626StrategyVaultTargets} from "@test/recon/targets/project/ERC4626StrategyVaultTargets.t.sol";
-import {ManagersTargets} from "@test/recon/targets/ManagersTargets.t.sol";
 import {SizeMetaVaultTargets} from "@test/recon/targets/project/SizeMetaVaultTargets.t.sol";
-import {AuthTargets} from "@test/recon/targets/project/AuthTargets.t.sol";
 
 abstract contract TargetFunctions is
     AaveStrategyVaultTargets,

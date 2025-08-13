@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Script, console} from "forge-std/Script.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {PoolMock} from "@test/mocks/PoolMock.t.sol";
+import {Script, console} from "forge-std/Script.sol";
 
 contract PoolMockScript is Script {
     address owner;

@@ -28,17 +28,13 @@ abstract contract SizeMetaVaultTargets is BaseTargetFunctions, Properties {
     function sizeMetaVault_deposit(uint256 assets, address receiver) public asActor {
         sizeMetaVault.deposit(assets, receiver);
 
-        if (assets > 0) {
-            lte(sizeMetaVault.totalAssets(), sizeMetaVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
-        }
+        if (assets > 0) lte(sizeMetaVault.totalAssets(), sizeMetaVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
     }
 
     function sizeMetaVault_mint(uint256 shares, address receiver) public asActor {
         sizeMetaVault.mint(shares, receiver);
 
-        if (shares > 0) {
-            lte(sizeMetaVault.totalAssets(), sizeMetaVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
-        }
+        if (shares > 0) lte(sizeMetaVault.totalAssets(), sizeMetaVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
     }
 
     function sizeMetaVault_pause() public asActor {
@@ -112,9 +108,7 @@ abstract contract SizeMetaVaultTargets is BaseTargetFunctions, Properties {
     }
 
     function sizeMetaVault_setTotalAssetsCap(uint256 totalAssetsCap_) public asActor {
-        if (totalAssetsCap_ != type(uint128).max) {
-            totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
-        }
+        if (totalAssetsCap_ != type(uint128).max) totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
         sizeMetaVault.setTotalAssetsCap(totalAssetsCap_);
     }
 

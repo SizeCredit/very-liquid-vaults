@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {Test, console} from "forge-std/Test.sol";
-import {IVault} from "@src/utils/IVault.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
-import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
+import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
+
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {BaseScript} from "@script/BaseScript.s.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
+import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
+
+import {Auth, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
-import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
-import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
-import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
-import {USDC} from "@test/mocks/USDC.t.sol";
+import {IVault} from "@src/utils/IVault.sol";
+
 import {Setup} from "@test/Setup.t.sol";
+import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
+import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
+import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
-import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
-import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
+import {USDC} from "@test/mocks/USDC.t.sol";
+
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
-import {Auth, STRATEGIST_ROLE, VAULT_MANAGER_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
-import {BaseScript} from "@script/BaseScript.s.sol";
+import {Test, console} from "forge-std/Test.sol";
 
 contract BaseTest is Test, Setup, BaseScript {
     bytes32 constant DEFAULT_ADMIN_ROLE = 0x00;

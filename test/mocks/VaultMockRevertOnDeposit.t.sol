@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC4626} from "@openzeppelin/contracts/token/ERC20/extensions/ERC4626.sol";
 
 contract VaultMockRevertOnDeposit is ERC4626, Ownable {
     bool public revertOnDeposit;
@@ -24,10 +24,7 @@ contract VaultMockRevertOnDeposit is ERC4626, Ownable {
     }
 
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
-        if (revertOnDeposit) {
-            revert();
-        } else {
-            super._deposit(caller, receiver, assets, shares);
-        }
+        if (revertOnDeposit) revert();
+        else super._deposit(caller, receiver, assets, shares);
     }
 }

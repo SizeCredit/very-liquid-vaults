@@ -1,18 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {ForkTest} from "@test/fork/ForkTest.t.sol";
+import {IPool} from "@aave/contracts/interfaces/IPool.sol";
 import {IPoolConfigurator} from "@aave/contracts/interfaces/IPoolConfigurator.sol";
 import {ReserveConfiguration} from "@aave/contracts/protocol/libraries/configuration/ReserveConfiguration.sol";
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {BaseVault} from "@src/utils/BaseVault.sol";
+
 import {AaveStrategyVaultScript} from "@script/AaveStrategyVault.s.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {ForkTest} from "@test/fork/ForkTest.t.sol";
 
 contract AaveStrategyVaultForkTest is ForkTest {
     using SafeERC20 for IERC20Metadata;

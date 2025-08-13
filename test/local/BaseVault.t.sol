@@ -1,20 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {BaseTest} from "@test/BaseTest.t.sol";
-import {BaseVault} from "@src/utils/BaseVault.sol";
-import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
-import {VAULT_MANAGER_ROLE, GUARDIAN_ROLE, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
+
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
+import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
+import {DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
+import {BaseTest} from "@test/BaseTest.t.sol";
+import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
+
 import {BaseVaultMockMaxDeposit0} from "@test/mocks/BaseVaultMockMaxDeposit0.t.sol";
 
 contract BaseVaultTest is BaseTest {

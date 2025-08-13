@@ -24,17 +24,13 @@ abstract contract CashStrategyVaultTargets is BaseTargetFunctions, Properties {
     function cashStrategyVault_deposit(uint256 assets, address receiver) public asActor {
         cashStrategyVault.deposit(assets, receiver);
 
-        if (assets > 0) {
-            lte(cashStrategyVault.totalAssets(), cashStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
-        }
+        if (assets > 0) lte(cashStrategyVault.totalAssets(), cashStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
     }
 
     function cashStrategyVault_mint(uint256 shares, address receiver) public asActor {
         cashStrategyVault.mint(shares, receiver);
 
-        if (shares > 0) {
-            lte(cashStrategyVault.totalAssets(), cashStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
-        }
+        if (shares > 0) lte(cashStrategyVault.totalAssets(), cashStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
     }
 
     function cashStrategyVault_pause() public asActor {
@@ -46,9 +42,7 @@ abstract contract CashStrategyVaultTargets is BaseTargetFunctions, Properties {
     }
 
     function cashStrategyVault_setTotalAssetsCap(uint256 totalAssetsCap_) public asActor {
-        if (totalAssetsCap_ != type(uint128).max) {
-            totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
-        }
+        if (totalAssetsCap_ != type(uint128).max) totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
         cashStrategyVault.setTotalAssetsCap(totalAssetsCap_);
     }
 

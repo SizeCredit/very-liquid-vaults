@@ -5,10 +5,10 @@ import {FoundryAsserts} from "@chimera/FoundryAsserts.sol";
 
 import "forge-std/console2.sol";
 
-import {Test} from "forge-std/Test.sol";
-import {TargetFunctions} from "@test/recon/TargetFunctions.t.sol";
-import {IVault} from "@src/utils/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
+import {IVault} from "@src/utils/IVault.sol";
+import {TargetFunctions} from "@test/recon/TargetFunctions.t.sol";
+import {Test} from "forge-std/Test.sol";
 
 // forge test --match-contract CryticToFoundry -vv
 contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
@@ -23,7 +23,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
             cashStrategyVault,
             cryticSizeMetaVault,
             0,
-            12309285055488365505482212365492300592776939712510733309382679362574362184841
+            12_309_285_055_488_365_505_482_212_365_492_300_592_776_939_712_510_733_309_382_679_362_574_362_184_841
         ) {
             assertTrue(false, "should revert");
         } catch (bytes memory err) {
@@ -39,7 +39,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
     function test_CryticToFoundry_03() public {
         sizeMetaVault_removeStrategy(cashStrategyVault, aaveStrategyVault, 1, 0);
         erc4626_mustNotRevert_convertToShares(
-            2864474371869477837766289424800920762713068510290572746720344906210731950275
+            2_864_474_371_869_477_837_766_289_424_800_920_762_713_068_510_290_572_746_720_344_906_210_731_950_275
         );
     }
 
@@ -47,12 +47,12 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
         sizeMetaVault_removeStrategy(
             erc4626StrategyVault,
             cashStrategyVault,
-            12365772636688392640122225467814873084244657338905471971496106064405562446679,
-            61713837595357171402281262959146600068603794227103927492545261743669128
+            12_365_772_636_688_392_640_122_225_467_814_873_084_244_657_338_905_471_971_496_106_064_405_562_446_679,
+            61_713_837_595_357_171_402_281_262_959_146_600_068_603_794_227_103_927_492_545_261_743_669_128
         );
         sizeMetaVault_removeStrategy(cashStrategyVault, aaveStrategyVault, 312, 0);
         aaveStrategyVault_setTotalAssetsCap(
-            25150558811799922860235757451418943390228657999138837874545548576258909183598
+            25_150_558_811_799_922_860_235_757_451_418_943_390_228_657_999_138_837_874_545_548_576_258_909_183_598
         );
         erc4626_mustNotRevert_maxMint(0x51e35255066cb44807Ca732b5550A53fd73b0A1c);
     }

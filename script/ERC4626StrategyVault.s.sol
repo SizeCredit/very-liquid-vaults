@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
+import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Auth} from "@src/Auth.sol";
+
 import {BaseScript} from "@script/BaseScript.s.sol";
+import {Auth} from "@src/Auth.sol";
+import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 
 contract ERC4626StrategyVaultScript is BaseScript {
     using SafeERC20 for IERC20Metadata;

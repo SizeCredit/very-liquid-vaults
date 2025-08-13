@@ -46,9 +46,7 @@ abstract contract ERC4626StrategyVaultTargets is BaseTargetFunctions, Properties
     }
 
     function erc4626StrategyVault_setTotalAssetsCap(uint256 totalAssetsCap_) public asActor {
-        if (totalAssetsCap_ != type(uint128).max) {
-            totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
-        }
+        if (totalAssetsCap_ != type(uint128).max) totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
         erc4626StrategyVault.setTotalAssetsCap(totalAssetsCap_);
     }
 

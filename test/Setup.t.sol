@@ -1,37 +1,46 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
-import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
-import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
-import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
-import {AaveStrategyVaultScript} from "@script/AaveStrategyVault.s.sol";
-import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
-import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
-import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
-import {CryticAaveStrategyVaultMockScript} from "@script/CryticAaveStrategyVaultMock.s.sol";
-import {USDC} from "@test/mocks/USDC.t.sol";
-import {PoolMock} from "@test/mocks/PoolMock.t.sol";
-import {PoolMockScript} from "@script/PoolMock.s.sol";
+import {WETH9} from "@aave/contracts/dependencies/weth/WETH9.sol";
+import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
 import {hevm} from "@crytic/properties/contracts/util/Hevm.sol";
-import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
-import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
-import {VaultMock} from "@test/mocks/VaultMock.t.sol";
-import {VaultMockScript} from "@script/VaultMock.s.sol";
-import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
-import {CryticERC4626StrategyVaultMockScript} from "@script/CryticERC4626StrategyVaultMock.s.sol";
-import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
-import {Auth} from "@src/Auth.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {AaveStrategyVaultScript} from "@script/AaveStrategyVault.s.sol";
+
 import {AuthScript} from "@script/Auth.s.sol";
-import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {BaseVaultMockScript} from "@script/BaseVaultMock.s.sol";
-import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
+import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
+import {CryticAaveStrategyVaultMockScript} from "@script/CryticAaveStrategyVaultMock.s.sol";
+import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVaultMock.s.sol";
+
+import {CryticERC4626StrategyVaultMockScript} from "@script/CryticERC4626StrategyVaultMock.s.sol";
+
 import {CryticSizeMetaVaultMockScript} from "@script/CryticSizeMetaVaultMock.s.sol";
+import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
+import {PoolMockScript} from "@script/PoolMock.s.sol";
+import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
+
+import {VaultMockScript} from "@script/VaultMock.s.sol";
+import {Auth} from "@src/Auth.sol";
+import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
+import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
+
+import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
+
 import {IVault} from "@src/utils/IVault.sol";
-import {WETH9} from "@aave/contracts/dependencies/weth/WETH9.sol";
+import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
+import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
+import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
+
+import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
+
+import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
+import {PoolMock} from "@test/mocks/PoolMock.t.sol";
+import {USDC} from "@test/mocks/USDC.t.sol";
+
+import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 
 abstract contract Setup {
     uint256 internal FIRST_DEPOSIT_AMOUNT;

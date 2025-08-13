@@ -24,17 +24,13 @@ abstract contract AaveStrategyVaultTargets is BaseTargetFunctions, Properties {
     function aaveStrategyVault_deposit(uint256 assets, address receiver) public asActor {
         aaveStrategyVault.deposit(assets, receiver);
 
-        if (assets > 0) {
-            lte(aaveStrategyVault.totalAssets(), aaveStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
-        }
+        if (assets > 0) lte(aaveStrategyVault.totalAssets(), aaveStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
     }
 
     function aaveStrategyVault_mint(uint256 shares, address receiver) public asActor {
         aaveStrategyVault.mint(shares, receiver);
 
-        if (shares > 0) {
-            lte(aaveStrategyVault.totalAssets(), aaveStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
-        }
+        if (shares > 0) lte(aaveStrategyVault.totalAssets(), aaveStrategyVault.totalAssetsCap(), TOTAL_ASSETS_CAP_01);
     }
 
     function aaveStrategyVault_pause() public asActor {
@@ -46,9 +42,7 @@ abstract contract AaveStrategyVaultTargets is BaseTargetFunctions, Properties {
     }
 
     function aaveStrategyVault_setTotalAssetsCap(uint256 totalAssetsCap_) public asActor {
-        if (totalAssetsCap_ != type(uint128).max) {
-            totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
-        }
+        if (totalAssetsCap_ != type(uint128).max) totalAssetsCap_ = between(totalAssetsCap_, 0, type(uint128).max);
         aaveStrategyVault.setTotalAssetsCap(totalAssetsCap_);
     }
 
