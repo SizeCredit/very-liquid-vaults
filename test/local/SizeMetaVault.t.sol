@@ -227,6 +227,8 @@ contract SizeMetaVaultTest is BaseTest {
     }
 
     function test_SizeMetaVault_rebalance() public {
+        _setupSimpleConfiguration();
+
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
 
