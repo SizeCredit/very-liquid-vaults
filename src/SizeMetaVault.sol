@@ -92,7 +92,7 @@ contract SizeMetaVault is PerformanceVault {
     ) public virtual initializer {
         __PerformanceVault_init(auth_.getRoleMember(DEFAULT_ADMIN_ROLE, 0), 0);
 
-        for (uint256 i = 0; i < strategies_.length; i++) {
+        for (uint256 i = 0; i < strategies_.length; ++i) {
             _addStrategy(strategies_[i], address(asset_), address(auth_));
         }
         _setRebalanceMaxSlippagePercent(0.01e18);
@@ -138,7 +138,7 @@ contract SizeMetaVault is PerformanceVault {
     // slither-disable-next-line calls-loop
     function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
         uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             IVault strategy = strategies(i);
             total += strategy.convertToAssets(strategy.balanceOf(address(this)));
         }
@@ -158,7 +158,7 @@ contract SizeMetaVault is PerformanceVault {
         uint256 assetsToDeposit = assets;
 
         uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             IVault strategy = strategies(i);
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
@@ -189,7 +189,7 @@ contract SizeMetaVault is PerformanceVault {
         uint256 assetsToWithdraw = assets;
 
         uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             IVault strategy = strategies(i);
 
             uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
@@ -297,11 +297,11 @@ contract SizeMetaVault is PerformanceVault {
             revert ArrayLengthMismatch(strategies().length, newStrategiesOrder.length);
         }
 
-        for (uint256 i = 0; i < newStrategiesOrder.length; i++) {
+        for (uint256 i = 0; i < newStrategiesOrder.length; ++i) {
             if (!isStrategy(newStrategiesOrder[i])) {
                 revert InvalidStrategy(address(newStrategiesOrder[i]));
             }
-            for (uint256 j = i + 1; j < newStrategiesOrder.length; j++) {
+            for (uint256 j = i + 1; j < newStrategiesOrder.length; ++j) {
                 if (newStrategiesOrder[i] == newStrategiesOrder[j]) {
                     revert InvalidStrategy(address(newStrategiesOrder[i]));
                 }
@@ -309,10 +309,10 @@ contract SizeMetaVault is PerformanceVault {
         }
 
         IVault[] memory oldStrategiesOrder = strategies();
-        for (uint256 i = 0; i < oldStrategiesOrder.length; i++) {
+        for (uint256 i = 0; i < oldStrategiesOrder.length; ++i) {
             _removeStrategy(oldStrategiesOrder[i]);
         }
-        for (uint256 i = 0; i < newStrategiesOrder.length; i++) {
+        for (uint256 i = 0; i < newStrategiesOrder.length; ++i) {
             _addStrategy(newStrategiesOrder[i], asset(), address(auth()));
         }
     }
@@ -376,9 +376,9 @@ contract SizeMetaVault is PerformanceVault {
     function _removeStrategy(IVault strategy) private {
         SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
         bool removed = false;
-        for (uint256 i = 0; i < $._strategies.length; i++) {
+        for (uint256 i = 0; i < $._strategies.length; ++i) {
             if ($._strategies[i] == strategy) {
-                for (uint256 j = i; j < $._strategies.length - 1; j++) {
+                for (uint256 j = i; j < $._strategies.length - 1; ++j) {
                     $._strategies[j] = $._strategies[j + 1];
                 }
                 $._strategies.pop();
@@ -404,7 +404,7 @@ contract SizeMetaVault is PerformanceVault {
     // slither-disable-next-line calls-loop
     function _maxDepositToStrategies() private view returns (uint256 maxAssets) {
         uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             IVault strategy = strategies(i);
             uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
             maxAssets = Math.saturatingAdd(maxAssets, strategyMaxDeposit);
@@ -415,7 +415,7 @@ contract SizeMetaVault is PerformanceVault {
     // slither-disable-next-line calls-loop
     function _maxWithdrawFromStrategies() private view returns (uint256 maxAssets) {
         uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             uint256 strategyMaxWithdraw = strategies(i).maxWithdraw(address(this));
             maxAssets = Math.saturatingAdd(maxAssets, strategyMaxWithdraw);
         }
@@ -480,7 +480,7 @@ contract SizeMetaVault is PerformanceVault {
     /// @notice Returns true if the strategy is in the vault
     function isStrategy(IVault strategy) public view returns (bool) {
         uint256 length = strategies().length;
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i = 0; i < length; ++i) {
             if (strategies(i) == strategy) {
                 return true;
             }
