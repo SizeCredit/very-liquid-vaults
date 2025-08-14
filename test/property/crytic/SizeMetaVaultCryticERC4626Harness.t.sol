@@ -19,7 +19,7 @@ contract SizeMetaVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup 
     sizeMetaVault.rebalance(IVault(strategyFrom), IVault(strategyTo), amount, maxSlippagePercent);
   }
 
-  function _getRandomUint2(uint256 min, uint256 max) internal returns (uint256) {
+  function _getRandomUint2(uint256 min, uint256 max) internal view returns (uint256) {
     uint256 prng = uint256(keccak256(abi.encodePacked(block.timestamp, block.prevrandao, block.number)));
     return prng % (max - min + 1) + min;
   }
