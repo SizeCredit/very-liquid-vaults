@@ -4,6 +4,7 @@ pragma solidity 0.8.26;
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
@@ -276,8 +277,8 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     vm.prank(admin);
     aaveStrategyVault.setTotalAssetsCap(totalAssetsCap);
 
-    assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
-    assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
+    assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), Math.saturatingSub(totalAssetsCap, totalAssetsBefore));
+    assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), Math.saturatingSub(totalAssetsCap, totalAssetsBefore));
   }
 
   function test_AaveStrategyVault_maxDeposit_supply_cap() public {
@@ -314,8 +315,8 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     vm.prank(admin);
     pool.setConfiguration(address(erc20Asset), DataTypes.ReserveConfigurationMap({data: (1 << 56) | (decimals << 48) | (supplyCap << 116)}));
 
-    assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
-    assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), totalAssetsCap - totalAssetsBefore);
+    assertEq(aaveStrategyVault.maxDeposit(address(erc20Asset)), Math.saturatingSub(totalAssetsCap, totalAssetsBefore));
+    assertEq(aaveStrategyVault.maxMint(address(erc20Asset)), Math.saturatingSub(totalAssetsCap, totalAssetsBefore));
   }
 
   function test_AaveStrategyVault_maxWithdraw_maxRedeem() public {
