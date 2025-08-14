@@ -13,8 +13,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Auth} from "@src/Auth.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 
+import {IVault} from "@src//IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
-import {IVault} from "@src/utils/IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 
 contract AaveStrategyVaultTest is BaseTest, Initializable {

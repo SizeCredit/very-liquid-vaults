@@ -10,10 +10,11 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+
+import {IVault} from "@src//IVault.sol";
 import {Auth} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
-import {IVault} from "@src/utils/IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 

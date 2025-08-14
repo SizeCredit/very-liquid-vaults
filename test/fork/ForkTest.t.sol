@@ -11,7 +11,7 @@ import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
 import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
 
-import {IVault} from "@src/utils/IVault.sol";
+import {IVault} from "@src//IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";

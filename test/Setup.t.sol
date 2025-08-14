@@ -29,7 +29,7 @@ import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 
-import {IVault} from "@src/utils/IVault.sol";
+import {IVault} from "@src//IVault.sol";
 import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";

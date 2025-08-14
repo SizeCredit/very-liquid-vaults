@@ -17,9 +17,10 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+
+import {IVault} from "@src//IVault.sol";
 import {Auth} from "@src/Auth.sol";
 import {DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
-import {IVault} from "@src/utils/IVault.sol";
 
 /// @title BaseVault
 /// @custom:security-contact security@size.credit

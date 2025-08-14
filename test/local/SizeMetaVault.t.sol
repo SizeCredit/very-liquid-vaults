@@ -13,9 +13,9 @@ import {Auth} from "@src/Auth.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 
+import {IVault} from "@src//IVault.sol";
+import {IVault} from "@src//IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
-import {IVault} from "@src/utils/IVault.sol";
-import {IVault} from "@src/utils/IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMockAssetFeeOnDeposit} from "@test/mocks/VaultMockAssetFeeOnDeposit.t.sol";
 import {VaultMockAssetFeeOnWithdraw} from "@test/mocks/VaultMockAssetFeeOnWithdraw.t.sol";

@@ -6,9 +6,10 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
+
+import {IVault} from "@src//IVault.sol";
 import {Auth, DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
-import {IVault} from "@src/utils/IVault.sol";
 import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 
 /// @title SizeMetaVault
@@ -304,9 +305,7 @@ contract SizeMetaVault is PerformanceVault {
   function _maxDepositToStrategies() private view returns (uint256 maxAssets) {
     uint256 length = strategies().length;
     for (uint256 i = 0; i < length; ++i) {
-      IVault strategy = strategies(i);
-      uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
-      maxAssets = Math.saturatingAdd(maxAssets, strategyMaxDeposit);
+      maxAssets = Math.saturatingAdd(maxAssets, strategies(i).maxDeposit(address(this)));
     }
   }
 
@@ -315,8 +314,7 @@ contract SizeMetaVault is PerformanceVault {
   function _maxWithdrawFromStrategies() private view returns (uint256 maxAssets) {
     uint256 length = strategies().length;
     for (uint256 i = 0; i < length; ++i) {
-      uint256 strategyMaxWithdraw = strategies(i).maxWithdraw(address(this));
-      maxAssets = Math.saturatingAdd(maxAssets, strategyMaxWithdraw);
+      maxAssets = Math.saturatingAdd(maxAssets, strategies(i).maxWithdraw(address(this)));
     }
   }
 
