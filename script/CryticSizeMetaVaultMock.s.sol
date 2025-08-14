@@ -44,10 +44,7 @@ contract CryticSizeMetaVaultMockScript is BaseScript {
     vm.stopBroadcast();
   }
 
-  function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, IVault[] memory strategies_)
-    public
-    returns (CryticSizeMetaVaultMock cryticSizeMetaVaultMock)
-  {
+  function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, IVault[] memory strategies_) public returns (CryticSizeMetaVaultMock cryticSizeMetaVaultMock) {
     string memory name = string.concat("Size Crytic ", asset_.name(), " Vault");
     string memory symbol = string.concat("sz", "Crytic", asset_.symbol(), "Mock");
     address implementation = address(new CryticSizeMetaVaultMock());

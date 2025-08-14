@@ -237,10 +237,7 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
     vm.prank(alice);
     AaveStrategyVault(
       payable(
-        new ERC1967Proxy(
-          AaveStrategyVaultImplementation,
-          abi.encodeCall(AaveStrategyVault.initialize, (auth, erc20Asset, "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, IPool(address(0))))
-        )
+        new ERC1967Proxy(AaveStrategyVaultImplementation, abi.encodeCall(AaveStrategyVault.initialize, (auth, erc20Asset, "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, IPool(address(0)))))
       )
     );
   }

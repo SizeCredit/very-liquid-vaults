@@ -67,11 +67,7 @@ contract AaveStrategyVault is NonReentrantVault {
 
   /// @notice Initializes the AaveStrategyVault with an Aave pool
   /// @dev Sets the Aave pool and retrieves the corresponding aToken address
-  function initialize(Auth auth_, IERC20 asset_, string memory name_, string memory symbol_, address fundingAccount, uint256 firstDepositAmount, IPool pool_)
-    public
-    virtual
-    initializer
-  {
+  function initialize(Auth auth_, IERC20 asset_, string memory name_, string memory symbol_, address fundingAccount, uint256 firstDepositAmount, IPool pool_) public virtual initializer {
     if (address(pool_) == address(0)) revert NullAddress();
     if (address(pool_.getReserveData(address(asset_)).aTokenAddress) == address(0)) revert InvalidAsset(address(asset_));
 

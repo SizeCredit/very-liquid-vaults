@@ -27,10 +27,7 @@ import {IVault} from "@src/utils/IVault.sol";
 /// @notice Abstract base contract for all vaults in the Size Meta Vault system
 /// @dev Provides common functionality including ERC4626 compliance, access control, and upgradeability
 abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, MulticallUpgradeable, UUPSUpgradeable {
-  /*//////////////////////////////////////////////////////////////
-                              STORAGE
-    //////////////////////////////////////////////////////////////*/
-
+  // STORAGE
   /// @custom:storage-location erc7201:size.storage.BaseVault
   struct BaseVaultStorage {
     Auth _auth;
@@ -46,25 +43,16 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     }
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              ERRORS
-    //////////////////////////////////////////////////////////////*/
-
+  // ERRORS
   error NullAddress();
   error NullAmount();
 
-  /*//////////////////////////////////////////////////////////////
-                              EVENTS
-    //////////////////////////////////////////////////////////////*/
-
+  // EVENTS
   event AuthSet(address indexed auth);
   event TotalAssetsCapSet(uint256 indexed totalAssetsCapBefore, uint256 indexed totalAssetsCapAfter);
   event VaultStatus(uint256 totalShares, uint256 totalAssets);
 
-  /*//////////////////////////////////////////////////////////////
-                              CONSTRUCTOR / INITIALIZER
-    //////////////////////////////////////////////////////////////*/
-
+  // CONSTRUCTOR / INITIALIZER
   /// @custom:oz-upgrades-unsafe-allow constructor
   constructor() {
     _disableInitializers();
@@ -93,10 +81,7 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     _firstDeposit(fundingAccount_, firstDepositAmount_);
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              MODIFIERS
-    //////////////////////////////////////////////////////////////*/
-
+  // MODIFIERS
   /// @notice Modifier to restrict function access to addresses with specific roles
   /// @dev Reverts if the caller doesn't have the required role
   modifier onlyAuth(bytes32 role) {
@@ -118,10 +103,7 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     emit VaultStatus(totalSupply(), totalAssets());
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
+  // INTERNAL/PRIVATE
   /// @notice Authorizes contract upgrades
   /// @dev Only addresses with DEFAULT_ADMIN_ROLE can authorize upgrades
   function _authorizeUpgrade(address newImplementation) internal override onlyAuth(DEFAULT_ADMIN_ROLE) {}
@@ -169,19 +151,13 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     return paused() || auth().paused();
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              ERC20 OVERRIDES
-    //////////////////////////////////////////////////////////////*/
-
+  // ERC20 OVERRIDES
   /// @notice Returns the number of decimals for the vault token
   function decimals() public view virtual override(ERC20Upgradeable, ERC4626Upgradeable, IERC20Metadata) returns (uint8) {
     return super.decimals();
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              ERC4626 OVERRIDES
-    //////////////////////////////////////////////////////////////*/
-
+  // ERC4626 OVERRIDES
   /// @notice Deposits assets into the vault
   /// @dev Prevents deposits that would result in 0 shares received
   function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
@@ -229,10 +205,7 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     return Math.saturatingSub(totalAssetsCap(), totalAssets());
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              VIEW FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
+  // VIEW FUNCTIONS
   /// @notice Returns the auth contract
   function auth() public view override returns (Auth) {
     return _getBaseVaultStorage()._auth;

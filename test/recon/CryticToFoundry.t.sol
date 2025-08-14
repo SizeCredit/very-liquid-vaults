@@ -19,9 +19,7 @@ contract CryticToFoundry is Test, TargetFunctions, FoundryAsserts {
   // forge test --match-test test_crytic -vvv
   function test_CryticToFoundry_01() public {
     sizeMetaVault_addStrategy(cryticSizeMetaVault);
-    try this.sizeMetaVault_removeStrategy(
-      cashStrategyVault, cryticSizeMetaVault, 0, 12_309_285_055_488_365_505_482_212_365_492_300_592_776_939_712_510_733_309_382_679_362_574_362_184_841
-    ) {
+    try this.sizeMetaVault_removeStrategy(cashStrategyVault, cryticSizeMetaVault, 0, 12_309_285_055_488_365_505_482_212_365_492_300_592_776_939_712_510_733_309_382_679_362_574_362_184_841) {
       assertTrue(false, "should revert");
     } catch (bytes memory err) {
       assertEq(err, abi.encodeWithSelector(BaseVault.NullAmount.selector));

@@ -187,10 +187,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     vm.prank(alice);
     ERC4626StrategyVault(
       payable(
-        new ERC1967Proxy(
-          ERC4626StrategyVaultImplementation,
-          abi.encodeCall(ERC4626StrategyVault.initialize, (Auth(address(0)), "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, vaultMock))
-        )
+        new ERC1967Proxy(ERC4626StrategyVaultImplementation, abi.encodeCall(ERC4626StrategyVault.initialize, (Auth(address(0)), "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, vaultMock)))
       )
     );
   }
@@ -205,9 +202,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
     vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAmount.selector));
     vm.prank(alice);
-    ERC4626StrategyVault(
-      payable(new ERC1967Proxy(ERC4626StrategyVaultImplementation, abi.encodeCall(ERC4626StrategyVault.initialize, (auth, "VAULT", "VAULT", address(this), 0, vaultMock))))
-    );
+    ERC4626StrategyVault(payable(new ERC1967Proxy(ERC4626StrategyVaultImplementation, abi.encodeCall(ERC4626StrategyVault.initialize, (auth, "VAULT", "VAULT", address(this), 0, vaultMock)))));
   }
 
   function test_ERC4626StrategyVault_initialize_with_zero_address_vault_must_revert() public {
@@ -224,10 +219,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     vm.prank(alice);
     ERC4626StrategyVault(
       payable(
-        new ERC1967Proxy(
-          ERC4626StrategyVaultImplementation,
-          abi.encodeCall(ERC4626StrategyVault.initialize, (auth, "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, VaultMock(address(0))))
-        )
+        new ERC1967Proxy(ERC4626StrategyVaultImplementation, abi.encodeCall(ERC4626StrategyVault.initialize, (auth, "VAULT", "VAULT", address(this), FIRST_DEPOSIT_AMOUNT, VaultMock(address(0)))))
       )
     );
   }
@@ -360,9 +352,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 totalAssetsBefore = erc4626StrategyVault.totalAssets();
     uint256 underlyingVaultCap = 100e6;
 
-    vm.mockCall(
-      address(erc4626StrategyVault.vault()), abi.encodeCall(erc4626StrategyVault.vault().maxDeposit, (address(erc4626StrategyVault))), abi.encode(underlyingVaultCap)
-    );
+    vm.mockCall(address(erc4626StrategyVault.vault()), abi.encodeCall(erc4626StrategyVault.vault().maxDeposit, (address(erc4626StrategyVault))), abi.encode(underlyingVaultCap));
     vm.mockCall(address(erc4626StrategyVault.vault()), abi.encodeCall(erc4626StrategyVault.vault().maxMint, (address(erc4626StrategyVault))), abi.encode(underlyingVaultCap));
 
     assertEq(erc4626StrategyVault.maxDeposit(address(alice)), underlyingVaultCap);

@@ -44,9 +44,7 @@ contract PoolMock is IPool, Ownable {
       string memory name = IERC20Metadata(asset).name();
       string memory symbol = IERC20Metadata(asset).symbol();
 
-      data.aToken.initialize(
-        IPool(address(this)), owner(), asset, incentivesController, decimals, string.concat("AToken ", name), string.concat("a", IERC20Metadata(asset).symbol()), ""
-      );
+      data.aToken.initialize(IPool(address(this)), owner(), asset, incentivesController, decimals, string.concat("AToken ", name), string.concat("a", IERC20Metadata(asset).symbol()), "");
       data.debtToken.initialize(IPool(address(this)), asset, incentivesController, decimals, string.concat("VariableDebtToken ", name), string.concat("d", symbol), "");
       // Bit 56 = 1 (active), Bit 57 = 0 (not frozen), Bit 60 = 0 (not paused), Bits 48-55 = decimals
       data.configuration = DataTypes.ReserveConfigurationMap({data: (1 << 56) | (decimals << 48)});

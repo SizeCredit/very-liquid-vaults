@@ -19,10 +19,7 @@ import {NonReentrantVault} from "@src/utils/NonReentrantVault.sol";
 contract ERC4626StrategyVault is NonReentrantVault {
   using SafeERC20 for IERC20;
 
-  /*//////////////////////////////////////////////////////////////
-                              STORAGE
-    //////////////////////////////////////////////////////////////*/
-
+  // STORAGE
   /// @custom:storage-location erc7201:size.storage.ERC4626StrategyVault
   struct ERC4626StrategyVaultStorage {
     IERC4626 _vault;
@@ -37,16 +34,10 @@ contract ERC4626StrategyVault is NonReentrantVault {
     }
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              EVENTS
-    //////////////////////////////////////////////////////////////*/
-
+  // EVENTS
   event VaultSet(address indexed vault);
 
-  /*//////////////////////////////////////////////////////////////
-                              INITIALIZER
-    //////////////////////////////////////////////////////////////*/
-
+  // INITIALIZER
   /// @notice Initializes the ERC4626StrategyVault with an external vault
   /// @dev Sets the external vault and calls parent initialization
   function initialize(Auth auth_, string memory name_, string memory symbol_, address fundingAccount, uint256 firstDepositAmount, IERC4626 vault_) public virtual initializer {
@@ -59,10 +50,7 @@ contract ERC4626StrategyVault is NonReentrantVault {
     super.initialize(auth_, IERC20(address(vault_.asset())), name_, symbol_, fundingAccount, firstDepositAmount);
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              ERC4626 OVERRIDES
-    //////////////////////////////////////////////////////////////*/
-
+  // ERC4626 OVERRIDES
   /// @notice Returns the maximum amount that can be deposited
   function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
     return Math.min(vault().maxDeposit(address(this)), super.maxDeposit(receiver));
@@ -113,10 +101,7 @@ contract ERC4626StrategyVault is NonReentrantVault {
     super._withdraw(caller, receiver, owner, assets, shares);
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              VIEW FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
+  // VIEW FUNCTIONS
   /// @notice Returns the external vault
   function vault() public view returns (IERC4626) {
     return _getERC4626StrategyVaultStorage()._vault;

@@ -10,21 +10,12 @@ import {BaseVault} from "@src/utils/BaseVault.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice Vault that collects performance fees
-/// @dev performanceFee = (currentPPS - highWaterMark) * totalSupply * feePercent
-///      - currentPPS = current price per share = totalAssets() / totalSupply()
-///      - highWaterMark = highest PPS previously recorded (stored in state)
-///      - feePercent = fee percentage (e.g., 20% = 0.2e18)
-///      - totalSupply = total shares in circulation
-///      - Fees are only charged when the vault makes a profit, i.e., current PPS > highWaterMark.
-/// Reference https://docs.dhedge.org/dhedge-protocol/vault-fees/performance-fees
+/// @dev Reference https://docs.dhedge.org/dhedge-protocol/vault-fees/performance-fees
 abstract contract PerformanceVault is BaseVault {
   uint256 public constant PERCENT = 1e18;
   uint256 public constant MAXIMUM_PERFORMANCE_FEE_PERCENT = 0.5e18;
 
-  /*//////////////////////////////////////////////////////////////
-                              STORAGE
-    //////////////////////////////////////////////////////////////*/
-
+  // STORAGE
   /// @custom:storage-location erc7201:size.storage.PerformanceVault
   struct PerformanceVaultStorage {
     uint256 _highWaterMark;
@@ -41,25 +32,16 @@ abstract contract PerformanceVault is BaseVault {
     }
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              ERRORS
-    //////////////////////////////////////////////////////////////*/
-
+  // ERRORS
   error PerformanceFeePercentTooHigh(uint256 performanceFeePercent, uint256 maximumPerformanceFeePercent);
 
-  /*//////////////////////////////////////////////////////////////
-                              EVENTS
-    //////////////////////////////////////////////////////////////*/
-
+  // EVENTS
   event PerformanceFeePercentSet(uint256 indexed performanceFeePercentBefore, uint256 indexed performanceFeePercentAfter);
   event FeeRecipientSet(address indexed feeRecipientBefore, address indexed feeRecipientAfter);
   event HighWaterMarkUpdated(uint256 highWaterMarkBefore, uint256 highWaterMarkAfter);
   event PerformanceFeeMinted(address indexed to, uint256 shares, uint256 assets);
 
-  /*//////////////////////////////////////////////////////////////
-                              INITIALIZER
-    //////////////////////////////////////////////////////////////*/
-
+  // INITIALIZER
   /// @notice Initializes the PerformanceVault with a fee recipient and performance fee percent
   // solhint-disable-next-line func-name-mixedcase
   function __PerformanceVault_init(address feeRecipient_, uint256 performanceFeePercent_) internal onlyInitializing {
@@ -67,20 +49,14 @@ abstract contract PerformanceVault is BaseVault {
     _setPerformanceFeePercent(performanceFeePercent_);
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              MODIFIERS
-    //////////////////////////////////////////////////////////////*/
-
+  // MODIFIERS
   /// @notice Modifier to ensure the performance fee is minted before the function is executed
   modifier mintPerformanceFee() {
     _mintPerformanceFee();
     _;
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
+  // INTERNAL/PRIVATE
   /// @notice Sets the performance fee percent
   /// @dev Reverts if the performance fee percent is greater than the maximum performance fee percent
   function _setPerformanceFeePercent(uint256 performanceFeePercent_) internal {
@@ -147,46 +123,24 @@ abstract contract PerformanceVault is BaseVault {
     emit HighWaterMarkUpdated(highWaterMarkBefore, highWaterMark_);
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              ERC4626 OVERRIDES
-    //////////////////////////////////////////////////////////////*/
-
-  function deposit(uint256 assets, address receiver) public virtual override(ERC4626Upgradeable, IERC4626) nonReentrant mintPerformanceFee emitVaultStatus returns (uint256) {
+  // ERC4626 OVERRIDES
+  function deposit(uint256 assets, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.deposit(assets, receiver);
   }
 
-  function mint(uint256 shares, address receiver) public virtual override(ERC4626Upgradeable, IERC4626) nonReentrant mintPerformanceFee emitVaultStatus returns (uint256) {
+  function mint(uint256 shares, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.mint(shares, receiver);
   }
 
-  function withdraw(uint256 assets, address receiver, address owner)
-    public
-    virtual
-    override(ERC4626Upgradeable, IERC4626)
-    nonReentrant
-    mintPerformanceFee
-    emitVaultStatus
-    returns (uint256)
-  {
+  function withdraw(uint256 assets, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.withdraw(assets, receiver, owner);
   }
 
-  function redeem(uint256 shares, address receiver, address owner)
-    public
-    virtual
-    override(ERC4626Upgradeable, IERC4626)
-    nonReentrant
-    mintPerformanceFee
-    emitVaultStatus
-    returns (uint256)
-  {
+  function redeem(uint256 shares, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.redeem(shares, receiver, owner);
   }
 
-  /*//////////////////////////////////////////////////////////////
-                              VIEW FUNCTIONS
-    //////////////////////////////////////////////////////////////*/
-
+  // VIEW FUNCTIONS
   /// @notice Returns the high water mark
   function highWaterMark() public view returns (uint256) {
     return _getPerformanceVaultStorage()._highWaterMark;
