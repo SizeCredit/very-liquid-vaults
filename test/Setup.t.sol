@@ -168,7 +168,7 @@ abstract contract Setup {
     // Generate target allocations (percentages that sum to totalAssets)
     uint256[] memory targetAllocations = new uint256[](strategies.length);
     targetAllocations[0] = totalAssets;
-    _split(targetAllocations, getRandomUint);
+    _splitBiased(targetAllocations, getRandomUint);
 
     // Since we start at [totalAssets, 0, 0], we just need to move assets from strategy 0 to others
     for (uint256 i = 1; i < strategies.length; i++) {
@@ -192,13 +192,18 @@ abstract contract Setup {
     }
   }
 
-  function _split(uint256[] memory parts, function(uint256, uint256) returns (uint256) getRandomUint) private {
+  function _splitBiased(uint256[] memory parts, function(uint256, uint256) returns (uint256) getRandomUint) private {
     uint256 sum = 0;
     for (uint256 i = 0; i < parts.length; i++) {
       sum += parts[i];
     }
     for (uint256 i = 0; i < parts.length; i++) {
-      parts[i] = getRandomUint(0, sum);
+      uint256 rand = getRandomUint(0, 100);
+      if (rand < 33) parts[i] = 0; // 1/3 chance for 0
+
+      else if (rand < 66) parts[i] = sum; // 1/3 chance for sum
+
+      else parts[i] = getRandomUint(0, sum); // 1/3 chance for uniform
       sum -= parts[i];
     }
   }

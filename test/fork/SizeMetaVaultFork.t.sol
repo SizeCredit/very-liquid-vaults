@@ -23,7 +23,9 @@ contract SizeMetaVaultForkTest is ForkTest {
     sizeMetaVault.deposit(amount, alice);
 
     vm.prank(admin);
-    sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount / 2, 1e18);
+    sizeMetaVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount / 3, 1e18);
+    vm.prank(admin);
+    sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, amount / 3, 1e18);
 
     vm.warp(block.timestamp + 1 weeks);
 
