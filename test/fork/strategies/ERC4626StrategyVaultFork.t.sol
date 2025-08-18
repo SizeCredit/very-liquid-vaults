@@ -43,4 +43,26 @@ contract ERC4626StrategyVaultForkTest is ForkTest {
 
     assertGt(redeemedAssets, amount);
   }
+
+  function testFork_ERC4626StrategyVault_deposit_withdraw_no_liquidity() public {
+    uint256 amount = 10 * 10 ** erc20Asset.decimals();
+
+    _mint(erc20Asset, alice, amount);
+    _approve(alice, erc20Asset, address(erc4626StrategyVault), amount);
+
+    vm.startPrank(alice);
+
+    erc4626StrategyVault.deposit(amount, alice);
+
+    vm.warp(block.timestamp + 1 weeks);
+
+    vm.mockCall(address(erc4626StrategyVault.vault()), abi.encodeWithSelector(erc4626StrategyVault.vault().maxWithdraw.selector, address(erc4626StrategyVault)), abi.encode(0));
+
+    uint256 maxWithdraw = erc4626StrategyVault.maxWithdraw(alice);
+    assertEq(maxWithdraw, 0);
+
+    uint256 withdrawnAssets = erc4626StrategyVault.withdraw(maxWithdraw, alice, alice);
+
+    assertEq(withdrawnAssets, 0);
+  }
 }
