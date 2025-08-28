@@ -212,9 +212,11 @@ contract SizeMetaVault is PerformanceVault {
     if (!isStrategy(strategyToReceiveAssets)) revert InvalidStrategy(address(strategyToReceiveAssets));
     if (strategyToRemove == strategyToReceiveAssets) revert InvalidStrategy(address(strategyToReceiveAssets));
 
-    uint256 assetsToRemove = strategyToRemove.convertToAssets(strategyToRemove.balanceOf(address(this)));
-    amount = Math.min(amount, assetsToRemove);
-    _rebalance(strategyToRemove, strategyToReceiveAssets, amount, maxSlippagePercent);
+    if (amount > 0) {
+      uint256 assetsToRemove = strategyToRemove.convertToAssets(strategyToRemove.balanceOf(address(this)));
+      amount = Math.min(amount, assetsToRemove);
+      _rebalance(strategyToRemove, strategyToReceiveAssets, amount, maxSlippagePercent);
+    }
     _removeStrategy(strategyToRemove);
 
     // slither-disable-next-line incorrect-equality
