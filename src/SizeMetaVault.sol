@@ -130,6 +130,8 @@ contract SizeMetaVault is PerformanceVault {
 
     uint256 length = strategies().length;
     for (uint256 i = 0; i < length; ++i) {
+      if (assetsToDeposit == 0) break;
+
       IVault strategy = strategies(i);
       uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
       uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
@@ -156,6 +158,8 @@ contract SizeMetaVault is PerformanceVault {
 
     uint256 length = strategies().length;
     for (uint256 i = 0; i < length; ++i) {
+      if (assetsToWithdraw == 0) break;
+
       IVault strategy = strategies(i);
 
       uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
