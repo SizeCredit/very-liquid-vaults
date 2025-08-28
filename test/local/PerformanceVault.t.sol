@@ -68,4 +68,14 @@ contract PerformanceVaultTest is BaseTest {
     uint256 sharesFinal = sizeMetaVault.balanceOf(admin);
     assertEq(sharesFinal, sharesAfter);
   }
+
+  function test_PerformanceVault_highWaterMark_check() public {
+    vm.prank(admin);
+    sizeMetaVault.setPerformanceFeePercent(0.2e18);
+    _deposit(alice, sizeMetaVault, 100e6);
+    _mint(erc20Asset, address(cashStrategyVault), 300e6);
+    assertEq(sizeMetaVault.highWaterMark(), 1e18);
+    _deposit(alice, sizeMetaVault, 0);
+    assertEq(sizeMetaVault.highWaterMark(), sizeMetaVault.pps());
+  }
 }

@@ -14,4 +14,7 @@ interface IVault is IERC4626 {
 
   /// @notice Returns the total assets cap of the vault
   function totalAssetsCap() external view returns (uint256);
+
+  /// @notice Returns the price per share
+  function pps() external view returns (uint256);
 }

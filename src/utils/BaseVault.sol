@@ -28,6 +28,8 @@ import {DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.s
 /// @notice Abstract base contract for all vaults in the Size Meta Vault system
 /// @dev Provides common functionality including ERC4626 compliance, access control, and upgradeability
 abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeable, ReentrancyGuardUpgradeable, PausableUpgradeable, MulticallUpgradeable, UUPSUpgradeable {
+  uint256 public constant PERCENT = 1e18;
+
   // STORAGE
   /// @custom:storage-location erc7201:size.storage.BaseVault
   struct BaseVaultStorage {
@@ -215,5 +217,12 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   /// @notice Returns the total assets cap
   function totalAssetsCap() public view override returns (uint256) {
     return _getBaseVaultStorage()._totalAssetsCap;
+  }
+
+  /// @notice Returns the price per share
+  function pps() public view returns (uint256) {
+    uint256 totalAssets_ = totalAssets();
+    uint256 totalSupply_ = totalSupply();
+    return totalSupply_ > 0 ? Math.mulDiv(totalAssets_, PERCENT, totalSupply_) : PERCENT;
   }
 }
