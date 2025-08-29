@@ -12,6 +12,9 @@ import {BaseVault} from "@src/utils/BaseVault.sol";
 /// @notice Vault that collects performance fees
 /// @dev Reference https://docs.dhedge.org/dhedge-protocol/vault-fees/performance-fees
 abstract contract PerformanceVault is BaseVault {
+  /// @dev Constant representing 100%
+  uint256 public constant PERCENT = 1e18;
+  /// @dev Constant representing the maximum performance fee in PERCENT
   uint256 public constant MAXIMUM_PERFORMANCE_FEE_PERCENT = 0.5e18;
 
   // STORAGE
@@ -42,6 +45,8 @@ abstract contract PerformanceVault is BaseVault {
 
   // INITIALIZER
   /// @notice Initializes the PerformanceVault with a fee recipient and performance fee percent
+  /// @param feeRecipient_ The address of the fee recipient
+  /// @param performanceFeePercent_ The performance fee percent
   // solhint-disable-next-line func-name-mixedcase
   function __PerformanceVault_init(address feeRecipient_, uint256 performanceFeePercent_) internal onlyInitializing {
     _setFeeRecipient(feeRecipient_);
@@ -57,6 +62,7 @@ abstract contract PerformanceVault is BaseVault {
 
   // INTERNAL/PRIVATE
   /// @notice Sets the performance fee percent
+  /// @param performanceFeePercent_ The new performance fee percent
   /// @dev Reverts if the performance fee percent is greater than the maximum performance fee percent
   function _setPerformanceFeePercent(uint256 performanceFeePercent_) internal {
     if (performanceFeePercent_ > MAXIMUM_PERFORMANCE_FEE_PERCENT) revert PerformanceFeePercentTooHigh(performanceFeePercent_, MAXIMUM_PERFORMANCE_FEE_PERCENT);
@@ -73,6 +79,7 @@ abstract contract PerformanceVault is BaseVault {
   }
 
   /// @notice Sets the fee recipient
+  /// @param feeRecipient_ The new fee recipient
   function _setFeeRecipient(address feeRecipient_) internal {
     if (feeRecipient_ == address(0)) revert NullAddress();
 
@@ -108,6 +115,7 @@ abstract contract PerformanceVault is BaseVault {
   }
 
   /// @notice Sets the high water mark
+  /// @param highWaterMark_ The new high water mark
   function _setHighWaterMark(uint256 highWaterMark_) internal {
     PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
     uint256 highWaterMarkBefore = $._highWaterMark;
@@ -116,18 +124,26 @@ abstract contract PerformanceVault is BaseVault {
   }
 
   // ERC4626 OVERRIDES
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
   function deposit(uint256 assets, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.deposit(assets, receiver);
   }
 
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
   function mint(uint256 shares, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.mint(shares, receiver);
   }
 
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
   function withdraw(uint256 assets, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.withdraw(assets, receiver, owner);
   }
 
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
   function redeem(uint256 shares, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
     return super.redeem(shares, receiver, owner);
   }

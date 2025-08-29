@@ -18,9 +18,9 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-import {IVault} from "@src//IVault.sol";
 import {Auth} from "@src/Auth.sol";
 import {DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
+import {IVault} from "@src/IVault.sol";
 
 /// @title BaseVault
 /// @custom:security-contact security@size.credit
@@ -62,6 +62,12 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   }
 
   /// @notice Initializes the BaseVault with necessary parameters
+  /// @param auth_ The address of the Auth contract
+  /// @param asset_ The address of the asset
+  /// @param name_ The name of the vault
+  /// @param symbol_ The symbol of the vault
+  /// @param fundingAccount_ The address of the funding account for the first deposit, which will be treated as dead shares
+  /// @param firstDepositAmount_ The amount of the first deposit, which will be treated as dead shares
   /// @dev Sets up all inherited contracts and makes the first deposit to prevent inflation attacks
   function initialize(Auth auth_, IERC20 asset_, string memory name_, string memory symbol_, address fundingAccount_, uint256 firstDepositAmount_) public virtual initializer {
     __ERC4626_init(asset_);
@@ -124,13 +130,14 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   }
 
   /// @notice Sets the maximum total assets of the vault
-  /// @dev Only callable by the auth contract
+  /// @param totalAssetsCap_ The new total assets cap
+  /// @dev Only addresses with VAULT_MANAGER_ROLE can set the vault cap
   /// @dev Lowering the total assets cap does not affect existing deposited assets
   function setTotalAssetsCap(uint256 totalAssetsCap_) external onlyAuth(VAULT_MANAGER_ROLE) {
     _setTotalAssetsCap(totalAssetsCap_);
   }
 
-  /// @notice Sets the maximum total assets of the vault
+  /// @notice Internal function to set the total assets cap
   function _setTotalAssetsCap(uint256 totalAssetsCap_) private {
     BaseVaultStorage storage $ = _getBaseVaultStorage();
     uint256 oldTotalAssetsCap = $._totalAssetsCap;
@@ -150,18 +157,19 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   }
 
   /// @notice Returns true if the vault is paused
+  /// @dev Checks both local pause state and global pause state from Auth
   function _isPaused() private view returns (bool) {
     return paused() || auth().paused();
   }
 
   // ERC20 OVERRIDES
-  /// @notice Returns the number of decimals for the vault token
+  /// @inheritdoc IERC20Metadata
   function decimals() public view virtual override(ERC20Upgradeable, ERC4626Upgradeable, IERC20Metadata) returns (uint8) {
     return super.decimals();
   }
 
   // ERC4626 OVERRIDES
-  /// @notice Deposits assets into the vault
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Prevents deposits that would result in 0 shares received
   function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
     // slither-disable-next-line incorrect-equality
@@ -169,7 +177,7 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     super._deposit(caller, receiver, assets, shares);
   }
 
-  /// @notice Withdraws assets from the vault
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Prevents withdrawals that would result in 0 assets taken
   function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares) internal virtual override {
     // slither-disable-next-line incorrect-equality
@@ -177,38 +185,45 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     super._withdraw(caller, receiver, owner, assets, shares);
   }
 
-  /// @notice Returns the maximum amount that can be deposited
+  /// @inheritdoc ERC20Upgradeable
+  /// @dev This function is overridden to ensure that the vault is not paused
+  function _update(address from, address to, uint256 value) internal virtual override notPaused {
+    super._update(from, to, value);
+  }
+
+  /// @inheritdoc ERC4626Upgradeable
   function maxDeposit(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
     return _isPaused() ? 0 : totalAssetsCap() == type(uint256).max ? super.maxDeposit(receiver) : _maxDeposit();
   }
 
-  /// @notice Returns the maximum amount that can be minted
+  /// @inheritdoc ERC4626Upgradeable
   function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
     return _isPaused() ? 0 : totalAssetsCap() == type(uint256).max ? super.maxMint(receiver) : convertToShares(_maxDeposit());
   }
 
-  /// @notice Returns the maximum amount that can be withdrawn
+  /// @inheritdoc ERC4626Upgradeable
   function maxWithdraw(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
     return _isPaused() ? 0 : super.maxWithdraw(owner);
   }
 
-  /// @notice Returns the maximum amount that can be redeemed
+  /// @inheritdoc ERC4626Upgradeable
   function maxRedeem(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
     return _isPaused() ? 0 : super.maxRedeem(owner);
   }
 
-  /// @notice Returns the maximum amount that can be deposited
+  /// @notice Internal function to calculate the maximum amount that can be deposited
+  /// @dev The maximum amount that can be deposited is the total assets cap minus the total assets
   function _maxDeposit() private view returns (uint256) {
     return Math.saturatingSub(totalAssetsCap(), totalAssets());
   }
 
   // VIEW FUNCTIONS
-  /// @notice Returns the auth contract
+  /// @inheritdoc IVault
   function auth() public view override returns (Auth) {
     return _getBaseVaultStorage()._auth;
   }
 
-  /// @notice Returns the total assets cap
+  /// @inheritdoc IVault
   function totalAssetsCap() public view override returns (uint256) {
     return _getBaseVaultStorage()._totalAssetsCap;
   }
