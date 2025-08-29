@@ -241,6 +241,7 @@ contract BaseVaultTest is BaseTest {
 
     vm.prank(admin);
     baseVault.pause();
+    assertTrue(baseVault.pausedOrAuthPaused());
 
     assertEq(baseVault.maxDeposit(alice), 0);
     assertEq(baseVault.maxMint(alice), 0);
@@ -249,6 +250,7 @@ contract BaseVaultTest is BaseTest {
 
     vm.prank(admin);
     baseVault.unpause();
+    assertTrue(!baseVault.pausedOrAuthPaused());
 
     assertEq(baseVault.maxDeposit(alice), type(uint256).max);
     assertEq(baseVault.maxMint(alice), type(uint256).max);
@@ -257,6 +259,7 @@ contract BaseVaultTest is BaseTest {
 
     vm.prank(admin);
     auth.pause();
+    assertTrue(baseVault.pausedOrAuthPaused());
 
     assertEq(baseVault.maxDeposit(alice), 0);
     assertEq(baseVault.maxMint(alice), 0);
