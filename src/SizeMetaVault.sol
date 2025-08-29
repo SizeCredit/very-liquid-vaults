@@ -44,6 +44,7 @@ contract SizeMetaVault is PerformanceVault {
   // EVENTS
   event StrategyAdded(address indexed strategy);
   event StrategyRemoved(address indexed strategy);
+  event StrategyReordered(address indexed strategyOld, address indexed strategyNew, uint256 indexed index);
   event Rebalanced(address indexed strategyFrom, address indexed strategyTo, uint256 rebalancedAmount, uint256 maxSlippagePercent);
   event RebalanceMaxSlippagePercentSet(uint256 oldRebalanceMaxSlippagePercent, uint256 newRebalanceMaxSlippagePercent);
   event DepositFailed(address indexed strategy, uint256 amount);
@@ -257,21 +258,21 @@ contract SizeMetaVault is PerformanceVault {
   /// @dev Verifies that the new strategies order is valid and that there are no duplicates
   /// @dev Clears current strategies and adds them in the new order
   function reorderStrategies(IVault[] calldata newStrategiesOrder) external nonReentrant notPaused onlyAuth(STRATEGIST_ROLE) {
-    if (_strategies().length != newStrategiesOrder.length) revert ArrayLengthMismatch(_strategies().length, newStrategiesOrder.length);
+    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    uint256 length = $._strategies.length;
+    if (length != newStrategiesOrder.length) revert ArrayLengthMismatch(length, newStrategiesOrder.length);
 
-    for (uint256 i = 0; i < newStrategiesOrder.length; ++i) {
-      if (!_isStrategy(newStrategiesOrder[i])) revert InvalidStrategy(address(newStrategiesOrder[i]));
-      for (uint256 j = i + 1; j < newStrategiesOrder.length; ++j) {
+    for (uint256 i = 0; i < length; ++i) {
+      if (!isStrategy(newStrategiesOrder[i])) revert InvalidStrategy(address(newStrategiesOrder[i]));
+      for (uint256 j = i + 1; j < length; ++j) {
         if (newStrategiesOrder[i] == newStrategiesOrder[j]) revert InvalidStrategy(address(newStrategiesOrder[i]));
       }
     }
 
-    IVault[] memory oldStrategiesOrder = _strategies();
-    for (uint256 i = 0; i < oldStrategiesOrder.length; ++i) {
-      _removeStrategy(oldStrategiesOrder[i]);
-    }
-    for (uint256 i = 0; i < newStrategiesOrder.length; ++i) {
-      _addStrategy(newStrategiesOrder[i], asset(), address(auth()));
+    for (uint256 i = 0; i < length; ++i) {
+      IVault strategyOld = $._strategies[i];
+      $._strategies[i] = newStrategiesOrder[i];
+      emit StrategyReordered(address(strategyOld), address(newStrategiesOrder[i]), i);
     }
   }
 

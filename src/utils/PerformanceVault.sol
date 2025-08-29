@@ -12,8 +12,6 @@ import {BaseVault} from "@src/utils/BaseVault.sol";
 /// @notice Vault that collects performance fees
 /// @dev Reference https://docs.dhedge.org/dhedge-protocol/vault-fees/performance-fees
 abstract contract PerformanceVault is BaseVault {
-  /// @dev Constant representing 100%
-  uint256 public constant PERCENT = 1e18;
   /// @dev Constant representing the maximum performance fee in PERCENT
   uint256 public constant MAXIMUM_PERFORMANCE_FEE_PERCENT = 0.5e18;
 

@@ -28,6 +28,7 @@ import {IVault} from "@src/IVault.sol";
 /// @notice Abstract base contract for all vaults in the Size Meta Vault system
 /// @dev Provides common functionality including ERC4626 compliance, access control, and upgradeability
 abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeable, ReentrancyGuardUpgradeableWithViewModifier, PausableUpgradeable, MulticallUpgradeable, UUPSUpgradeable {
+  /// @dev Constant representing 100%
   uint256 public constant PERCENT = 1e18;
 
   // STORAGE
