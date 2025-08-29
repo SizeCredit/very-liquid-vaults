@@ -12,6 +12,7 @@ import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
+import {console} from "forge-std/console.sol";
 
 contract CryticERC4626StrategyVaultMockScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
@@ -33,7 +34,7 @@ contract CryticERC4626StrategyVaultMockScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, firstDepositAmount, vault);
+    console.log("CryticERC4626StrategyVaultMock", address(deploy(auth, firstDepositAmount, vault)));
 
     vm.stopBroadcast();
   }

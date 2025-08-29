@@ -11,6 +11,7 @@ contract BaseScript is Script, ICreate2Deployer {
 
   function setUp() public virtual {
     create2Deployer = ICreate2Deployer(0x13b0D85CcB8bf860b6b79AF3029fCA081AE9beF2);
+    vm.label(address(create2Deployer), "Create2Deployer");
   }
 
   function deploy(uint256 value, bytes32 salt, bytes memory code) public {

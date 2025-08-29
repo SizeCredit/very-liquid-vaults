@@ -15,7 +15,7 @@ contract AuthScript is Script {
   function run() public {
     vm.startBroadcast();
 
-    deploy(admin);
+    console.log("Auth", address(deploy(admin)));
 
     vm.stopBroadcast();
   }

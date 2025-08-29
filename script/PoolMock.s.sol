@@ -19,7 +19,7 @@ contract PoolMockScript is Script {
   function run() public {
     vm.startBroadcast();
 
-    deploy(owner, asset);
+    console.log("PoolMock", address(deploy(owner, asset)));
 
     vm.stopBroadcast();
   }

@@ -9,6 +9,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {BaseScript} from "@script/BaseScript.s.sol";
 import {Auth} from "@src/Auth.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
+import {console} from "forge-std/console.sol";
 
 contract ERC4626StrategyVaultScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
@@ -30,7 +31,7 @@ contract ERC4626StrategyVaultScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, firstDepositAmount, vault);
+    console.log("ERC4626StrategyVault", address(deploy(auth, firstDepositAmount, vault)));
 
     vm.stopBroadcast();
   }

@@ -10,6 +10,7 @@ import {BaseScript} from "@script/BaseScript.s.sol";
 import {Auth} from "@src/Auth.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMock.t.sol";
+import {console} from "forge-std/console.sol";
 
 contract CryticCashStrategyVaultMockScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
@@ -31,7 +32,7 @@ contract CryticCashStrategyVaultMockScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, asset, firstDepositAmount);
+    console.log("CryticCashStrategyVaultMock", address(deploy(auth, asset, firstDepositAmount)));
 
     vm.stopBroadcast();
   }

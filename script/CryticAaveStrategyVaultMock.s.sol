@@ -11,6 +11,7 @@ import {Auth} from "@src/Auth.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {CryticAaveStrategyVaultMock} from "@test/mocks/CryticAaveStrategyVaultMock.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
+import {console} from "forge-std/console.sol";
 
 contract CryticAaveStrategyVaultMockScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
@@ -34,7 +35,7 @@ contract CryticAaveStrategyVaultMockScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, asset, firstDepositAmount, pool);
+    console.log("CryticAaveStrategyVaultMock", address(deploy(auth, asset, firstDepositAmount, pool)));
 
     vm.stopBroadcast();
   }

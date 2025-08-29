@@ -9,6 +9,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {BaseScript} from "@script/BaseScript.s.sol";
 import {Auth} from "@src/Auth.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
+import {console} from "forge-std/console.sol";
 
 contract AaveStrategyVaultScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
@@ -32,7 +33,7 @@ contract AaveStrategyVaultScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, asset, firstDepositAmount, pool);
+    console.log("AaveStrategyVault", address(deploy(auth, asset, firstDepositAmount, pool)));
 
     vm.stopBroadcast();
   }

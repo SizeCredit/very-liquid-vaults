@@ -23,7 +23,7 @@ contract VaultMockScript is Script {
   function run() public {
     vm.startBroadcast();
 
-    deploy(owner, asset, name, symbol);
+    console.log("VaultMock", address(deploy(owner, asset, name, symbol)));
 
     vm.stopBroadcast();
   }

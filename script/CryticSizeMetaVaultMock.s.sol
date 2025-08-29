@@ -12,6 +12,7 @@ import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 
 import {IVault} from "@src/IVault.sol";
 import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
+import {console} from "forge-std/console.sol";
 
 contract CryticSizeMetaVaultMockScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
@@ -39,7 +40,7 @@ contract CryticSizeMetaVaultMockScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, asset, firstDepositAmount, strategies);
+    console.log("CryticSizeMetaVaultMock", address(deploy(auth, asset, firstDepositAmount, strategies)));
 
     vm.stopBroadcast();
   }

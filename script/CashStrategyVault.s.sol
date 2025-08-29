@@ -10,6 +10,7 @@ import {BaseScript} from "@script/BaseScript.s.sol";
 import {Auth} from "@src/Auth.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
+import {console} from "forge-std/console.sol";
 
 contract CashStrategyVaultScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
@@ -31,7 +32,7 @@ contract CashStrategyVaultScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, asset, firstDepositAmount);
+    console.log("CashStrategyVault", address(deploy(auth, asset, firstDepositAmount)));
 
     vm.stopBroadcast();
   }

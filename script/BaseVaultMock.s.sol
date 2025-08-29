@@ -31,7 +31,7 @@ contract BaseVaultMockScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, asset, firstDepositAmount);
+    console.log("BaseVaultMock", address(deploy(auth, asset, firstDepositAmount)));
 
     vm.stopBroadcast();
   }

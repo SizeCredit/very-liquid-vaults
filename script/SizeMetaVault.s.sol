@@ -12,6 +12,7 @@ import {Auth} from "@src/Auth.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 
 import {IVault} from "@src/IVault.sol";
+import {console} from "forge-std/console.sol";
 
 contract SizeMetaVaultScript is BaseScript {
   using SafeERC20 for IERC20;
@@ -39,7 +40,7 @@ contract SizeMetaVaultScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    deploy(auth, asset, sizeMetaVaultFirstDepositAmount, strategies);
+    console.log("SizeMetaVault", address(deploy(auth, asset, sizeMetaVaultFirstDepositAmount, strategies)));
 
     vm.stopBroadcast();
   }
