@@ -27,7 +27,7 @@ abstract contract PerformanceVault is BaseVault {
   bytes32 private constant PerformanceVaultStorageLocation = 0x804999a460baf311df4304e76bf097cd616ad3bef609b825c3e42a145296b200;
 
   function _getPerformanceVaultStorage() private pure returns (PerformanceVaultStorage storage $) {
-    assembly {
+    assembly ("memory-safe") {
       $.slot := PerformanceVaultStorageLocation
     }
   }
