@@ -147,6 +147,7 @@ contract SizeMetaVault is PerformanceVault {
     SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
+      // slither-disable-next-line incorrect-equality
       if (assetsToDeposit == 0) break;
       IVault strategy = $._strategies[i];
       uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
@@ -175,6 +176,7 @@ contract SizeMetaVault is PerformanceVault {
     SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
+      // slither-disable-next-line incorrect-equality
       if (assetsToWithdraw == 0) break;
       IVault strategy = $._strategies[i];
 
