@@ -147,6 +147,7 @@ contract SizeMetaVault is PerformanceVault {
     SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
+      if (assetsToDeposit == 0) break;
       IVault strategy = $._strategies[i];
       uint256 strategyMaxDeposit = strategy.maxDeposit(address(this));
       uint256 depositAmount = Math.min(assetsToDeposit, strategyMaxDeposit);
@@ -174,6 +175,7 @@ contract SizeMetaVault is PerformanceVault {
     SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
+      if (assetsToWithdraw == 0) break;
       IVault strategy = $._strategies[i];
 
       uint256 strategyMaxWithdraw = strategy.maxWithdraw(address(this));
