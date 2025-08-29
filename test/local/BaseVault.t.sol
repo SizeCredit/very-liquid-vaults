@@ -127,7 +127,7 @@ contract BaseVaultTest is BaseTest {
     assertEq(baseVault.balanceOf(alice), amount);
   }
 
-  function test_BaseVault_transfer_whenPaused_reverts() public {
+  function test_BaseVault_transfer_whenPaused_does_not_revert() public {
     uint256 amount = 100e6;
     _mint(erc20Asset, alice, amount);
     _approve(alice, erc20Asset, address(baseVault), amount);
@@ -142,11 +142,13 @@ contract BaseVaultTest is BaseTest {
     baseVault.pause();
 
     vm.prank(alice);
-    vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
     baseVault.transfer(bob, amount);
+
+    assertEq(baseVault.balanceOf(alice), 0);
+    assertEq(baseVault.balanceOf(bob), amount);
   }
 
-  function test_BaseVault_transfer_whenAuthPaused_reverts() public {
+  function test_BaseVault_transfer_whenAuthPaused_does_not_revert() public {
     uint256 amount = 100e6;
     _mint(erc20Asset, alice, amount);
     _approve(alice, erc20Asset, address(baseVault), amount);
@@ -158,8 +160,10 @@ contract BaseVaultTest is BaseTest {
     auth.pause();
 
     vm.prank(alice);
-    vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
     baseVault.transfer(bob, amount);
+
+    assertEq(baseVault.balanceOf(alice), 0);
+    assertEq(baseVault.balanceOf(bob), amount);
   }
 
   function test_BaseVault_deposit_withdraw_basic() public {
