@@ -340,6 +340,7 @@ contract SizeMetaVault is PerformanceVault {
 
   /// @notice Internal function to calculate maximum depositable amount in all strategies
   /// @dev The maximum amount that can be deposited to all strategies is the sum of the maximum amount that can be deposited to each strategy
+  /// @dev This value might be overstated if nested strategies are used. For example, if a meta vault has two strategies, one of which is an ERC4626StrategyVault and the other is a SizeMetaVault that has the same ERC4626StrategyVault instance. In this scenario, if the ERC-4626 strategy has 100 maxDeposit remaining, the top-level meta vault would double count this value and return 200. However, in practice, trying to deposit 200 would cause a revert, because only 100 can be deposited.
   // slither-disable-next-line calls-loop
   function _maxDepositToStrategies() private view returns (uint256 maxAssets) {
     uint256 length = strategies().length;
@@ -350,6 +351,7 @@ contract SizeMetaVault is PerformanceVault {
 
   /// @notice Internal function to calculate maximum withdrawable amount from all strategies
   /// @dev The maximum amount that can be withdrawn from all strategies is the sum of the maximum amount that can be withdrawn from each strategy
+  /// @dev This value might be overstated if nested strategies are used. For example, if a meta vault has two strategies, one of which is an ERC4626StrategyVault and the other is a SizeMetaVault that has the same ERC4626StrategyVault instance. In this scenario, if the ERC-4626 strategy has 100 maxWithdraw remaining, the top-level meta vault would double count this value and return 200. However, in practice, trying to withdraw 200 would cause a revert, because only 100 can be withdrawn.
   // slither-disable-next-line calls-loop
   function _maxWithdrawFromStrategies() private view returns (uint256 maxAssets) {
     uint256 length = strategies().length;
