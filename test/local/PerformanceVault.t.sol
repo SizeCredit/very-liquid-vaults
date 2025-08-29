@@ -49,6 +49,8 @@ contract PerformanceVaultTest is BaseTest {
   }
 
   function test_PerformanceVault_performace_fee_is_minted_as_shares_to_the_feeRecipient() public {
+    _setupSimpleConfiguration();
+
     vm.prank(admin);
     sizeMetaVault.setPerformanceFeePercent(0.2e18);
 
