@@ -150,17 +150,32 @@ abstract contract PerformanceVault is BaseVault {
 
   // VIEW FUNCTIONS
   /// @notice Returns the high water mark
-  function highWaterMark() public view returns (uint256) {
+  function highWaterMark() public view nonReentrantView returns (uint256) {
+    return _highWaterMark();
+  }
+
+  /// @notice Internal function to return the high water mark
+  function _highWaterMark() private view returns (uint256) {
     return _getPerformanceVaultStorage()._highWaterMark;
   }
 
   /// @notice Returns the performance fee percent
-  function performanceFeePercent() public view returns (uint256) {
+  function performanceFeePercent() public view nonReentrantView returns (uint256) {
+    return _performanceFeePercent();
+  }
+
+  /// @notice Internal function to return the performance fee percent
+  function _performanceFeePercent() private view returns (uint256) {
     return _getPerformanceVaultStorage()._performanceFeePercent;
   }
 
   /// @notice Returns the fee recipient
-  function feeRecipient() public view returns (address) {
+  function feeRecipient() public view nonReentrantView returns (address) {
+    return _feeRecipient();
+  }
+
+  /// @notice Internal function to return the fee recipient
+  function _feeRecipient() private view returns (address) {
     return _getPerformanceVaultStorage()._feeRecipient;
   }
 }

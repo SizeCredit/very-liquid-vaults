@@ -116,7 +116,7 @@ contract AaveStrategyVault is NonReentrantVault {
   /// @inheritdoc ERC4626Upgradeable
   /// @dev Converts the max deposit amount to shares
   function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
-    return Math.min(convertToShares(maxDeposit(receiver)), super.maxMint(receiver));
+    return Math.min(_convertToShares(maxDeposit(receiver), Math.Rounding.Floor), super.maxMint(receiver));
   }
 
   /// @inheritdoc ERC4626Upgradeable
@@ -127,7 +127,7 @@ contract AaveStrategyVault is NonReentrantVault {
     if (!(config.getActive() && !config.getPaused())) return 0;
 
     uint256 cash = IERC20(asset()).balanceOf(address(aToken()));
-    uint256 assetsBalance = convertToAssets(balanceOf(owner));
+    uint256 assetsBalance = _convertToAssets(balanceOf(owner), Math.Rounding.Floor);
     return Math.min(cash < assetsBalance ? cash : assetsBalance, super.maxWithdraw(owner));
   }
 
@@ -139,7 +139,7 @@ contract AaveStrategyVault is NonReentrantVault {
     if (!(config.getActive() && !config.getPaused())) return 0;
 
     uint256 cash = IERC20(asset()).balanceOf(address(aToken()));
-    uint256 cashInShares = convertToShares(cash);
+    uint256 cashInShares = _convertToShares(cash, Math.Rounding.Floor);
     uint256 shareBalance = balanceOf(owner);
     return Math.min(cashInShares < shareBalance ? cashInShares : shareBalance, super.maxRedeem(owner));
   }
