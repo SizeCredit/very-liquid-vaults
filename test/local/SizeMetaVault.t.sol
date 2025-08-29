@@ -388,7 +388,15 @@ contract SizeMetaVaultTest is BaseTest {
     assertGt(cryticCashStrategyVault.totalAssets(), 0);
   }
 
-  function test_SizeMetaVault_removeStrategy_paused_should_revert() public {}
+  function test_SizeMetaVault_removeStrategy_0() public {
+    _setupSimpleConfiguration();
+
+    uint256 strategiesCountBefore = sizeMetaVault.strategiesCount();
+    vm.prank(admin);
+    sizeMetaVault.removeStrategy(erc4626StrategyVault, cashStrategyVault, 0, 1e18);
+
+    assertEq(sizeMetaVault.strategiesCount(), strategiesCountBefore - 1);
+  }
 
   function test_SizeMetaVault_removeStrategy_invalid_strategy_must_revert() public {
     vm.prank(admin);
