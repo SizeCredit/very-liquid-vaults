@@ -66,6 +66,13 @@ contract AaveStrategyVault is NonReentrantVault {
     //////////////////////////////////////////////////////////////*/
 
   /// @notice Initializes the AaveStrategyVault with an Aave pool
+  /// @param auth_ The address of the Auth contract
+  /// @param asset_ The address of the asset
+  /// @param name_ The name of the vault
+  /// @param symbol_ The symbol of the vault
+  /// @param fundingAccount The address of the funding account for the first deposit, which will be treated as dead shares
+  /// @param firstDepositAmount The amount of the first deposit, which will be treated as dead shares
+  /// @param pool_ The address of the Aave pool
   /// @dev Sets the Aave pool and retrieves the corresponding aToken address
   function initialize(Auth auth_, IERC20 asset_, string memory name_, string memory symbol_, address fundingAccount, uint256 firstDepositAmount, IPool pool_) public virtual initializer {
     if (address(pool_) == address(0)) revert NullAddress();
@@ -84,7 +91,7 @@ contract AaveStrategyVault is NonReentrantVault {
                               ERC4626 OVERRIDES
     //////////////////////////////////////////////////////////////*/
 
-  /// @notice Returns the maximum amount that can be deposited
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Checks Aave reserve configuration and supply cap to determine max deposit
   /// @dev Updates Superform implementation to comply with https://github.com/aave-dao/aave-v3-origin/blob/v3.4.0/src/contracts/protocol/libraries/logic/ValidationLogic.sol#L79-L85
   /// @return The maximum deposit amount allowed by Aave
@@ -106,13 +113,13 @@ contract AaveStrategyVault is NonReentrantVault {
     return Math.min(supplyCap - usedSupply, super.maxDeposit(receiver));
   }
 
-  /// @notice Returns the maximum number of shares that can be minted
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Converts the max deposit amount to shares
   function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
     return Math.min(convertToShares(maxDeposit(receiver)), super.maxMint(receiver));
   }
 
-  /// @notice Returns the maximum amount that can be withdrawn by an owner
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Limited by both owner's balance and Aave pool liquidity
   function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
     // check if asset is paused
@@ -124,8 +131,7 @@ contract AaveStrategyVault is NonReentrantVault {
     return Math.min(cash < assetsBalance ? cash : assetsBalance, super.maxWithdraw(owner));
   }
 
-  /// @notice Returns the maximum number of shares that can be redeemed
-  /// @dev Updates Superform implementation to allow the SizeMetaVault to redeem all
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Limited by both owner's balance and Aave pool liquidity
   function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
     // check if asset is paused
@@ -138,7 +144,7 @@ contract AaveStrategyVault is NonReentrantVault {
     return Math.min(cashInShares < shareBalance ? cashInShares : shareBalance, super.maxRedeem(owner));
   }
 
-  /// @notice Returns the total assets managed by this strategy
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Returns the aToken balance since aTokens represent the underlying asset with accrued interest
   /// @dev Round down to avoid stealing assets in roundtrip operations https://github.com/a16z/erc4626-tests/issues/13
   function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
@@ -147,7 +153,7 @@ contract AaveStrategyVault is NonReentrantVault {
     return Math.mulDiv(aToken().scaledBalanceOf(address(this)), liquidityIndex, WadRayMath.RAY);
   }
 
-  /// @notice Internal deposit function that supplies assets to Aave
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Calls parent deposit then supplies the assets to the Aave pool
   function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
     super._deposit(caller, receiver, assets, shares);
@@ -155,7 +161,7 @@ contract AaveStrategyVault is NonReentrantVault {
     pool().supply(asset(), assets, address(this), 0);
   }
 
-  /// @notice Internal withdraw function that withdraws from Aave
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Withdraws from the Aave pool then calls parent withdraw
   function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares) internal override {
     // slither-disable-next-line unused-return
@@ -168,11 +174,13 @@ contract AaveStrategyVault is NonReentrantVault {
     //////////////////////////////////////////////////////////////*/
 
   /// @notice Returns the Aave pool
+  /// @return The Aave pool
   function pool() public view returns (IPool) {
     return _getAaveStrategyVaultStorage()._pool;
   }
 
   /// @notice Returns the Aave aToken
+  /// @return The Aave aToken
   function aToken() public view returns (IAToken) {
     return _getAaveStrategyVaultStorage()._aToken;
   }

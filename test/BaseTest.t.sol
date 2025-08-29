@@ -10,8 +10,8 @@ import {BaseScript} from "@script/BaseScript.s.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
 import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
 
-import {IVault} from "@src//IVault.sol";
 import {Auth, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
+import {IVault} from "@src/IVault.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";

@@ -7,8 +7,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-import {IVault} from "@src//IVault.sol";
 import {Auth, DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
+import {IVault} from "@src/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 
@@ -20,7 +20,10 @@ import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 contract SizeMetaVault is PerformanceVault {
   using SafeERC20 for IERC20;
 
+  /// @dev The maximum number of strategies that can be added to the vault
   uint256 public constant MAX_STRATEGIES = 10;
+  /// @dev The default maximum slippage percent for rebalancing in PERCENT
+  uint256 public constant DEFAULT_MAX_SLIPPAGE_PERCENT = 0.01e18;
 
   // STORAGE
   /// @custom:storage-location erc7201:size.storage.SizeMetaVault
@@ -62,7 +65,13 @@ contract SizeMetaVault is PerformanceVault {
   }
 
   /// @notice Initializes the SizeMetaVault with strategies
-  /// @dev Adds all provided strategies and calls parent initialization
+  /// @param auth_ The address of the Auth contract
+  /// @param asset_ The address of the asset
+  /// @param name_ The name of the vault
+  /// @param symbol_ The symbol of the vault
+  /// @param fundingAccount The address of the funding account for the first deposit, which will be treated as dead shares
+  /// @param firstDepositAmount The amount of the first deposit, which will be treated as dead shares
+  /// @param strategies_ The initial strategies to add to the vault
   function initialize(Auth auth_, IERC20 asset_, string memory name_, string memory symbol_, address fundingAccount, uint256 firstDepositAmount, IVault[] memory strategies_)
     public
     virtual
@@ -73,18 +82,20 @@ contract SizeMetaVault is PerformanceVault {
     for (uint256 i = 0; i < strategies_.length; ++i) {
       _addStrategy(strategies_[i], address(asset_), address(auth_));
     }
-    _setRebalanceMaxSlippagePercent(0.01e18);
+    _setRebalanceMaxSlippagePercent(DEFAULT_MAX_SLIPPAGE_PERCENT);
 
     super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
   }
 
   // ERC4626 OVERRIDES
-  /// @notice Returns the maximum amount that can be deposited
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev The maximum amount that can be deposited is the minimum between this receiver specific limit and the maximum asset amount that can be deposited to all strategies
   function maxDeposit(address receiver) public view override(BaseVault) returns (uint256) {
     return Math.min(_maxDepositToStrategies(), super.maxDeposit(receiver));
   }
 
-  /// @notice Returns the maximum number of shares that can be minted
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev The maximum amount that can be minted is the minimum between this receiver specific limit and the maximum asset amount that can be minted to all strategies, converted to shares
   function maxMint(address receiver) public view override(BaseVault) returns (uint256) {
     uint256 maxDepositReceiver = maxDeposit(receiver);
     // slither-disable-next-line incorrect-equality
@@ -92,12 +103,14 @@ contract SizeMetaVault is PerformanceVault {
     return Math.min(maxDepositInShares, super.maxMint(receiver));
   }
 
-  /// @notice Returns the maximum amount that can be withdrawn by an owner
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev The maximum amount that can be withdrawn is the minimum between this owner specific limit and the maximum asset amount that can be withdrawn from all strategies
   function maxWithdraw(address owner) public view override(BaseVault) returns (uint256) {
     return Math.min(_maxWithdrawFromStrategies(), super.maxWithdraw(owner));
   }
 
-  /// @notice Returns the maximum number of shares that can be redeemed
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev The maximum amount that can be redeemed is the minimum between this owner specific limit and the maximum asset amount that can be redeemed from all strategies, converted to shares
   function maxRedeem(address owner) public view override(BaseVault) returns (uint256) {
     uint256 maxWithdrawOwner = maxWithdraw(owner);
     // slither-disable-next-line incorrect-equality
@@ -105,7 +118,8 @@ contract SizeMetaVault is PerformanceVault {
     return Math.min(maxWithdrawInShares, super.maxRedeem(owner));
   }
 
-  /// @notice Returns the total assets managed by the vault
+  /// @inheritdoc ERC4626Upgradeable
+  /// @dev The total assets is the sum of the assets in all strategies
   // slither-disable-next-line calls-loop
   function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
     uint256 length = strategies().length;
@@ -115,7 +129,7 @@ contract SizeMetaVault is PerformanceVault {
     }
   }
 
-  /// @notice Deposits assets to strategies in order
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Tries to deposit to strategies sequentially, reverts if not all assets can be deposited
   // slither-disable-next-line calls-loop
   function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal override {
@@ -148,7 +162,7 @@ contract SizeMetaVault is PerformanceVault {
     if (assetsToDeposit > 0) revert CannotDepositToStrategies(assets, shares, assetsToDeposit);
   }
 
-  /// @notice Withdraws assets from strategies in order
+  /// @inheritdoc ERC4626Upgradeable
   /// @dev Tries to withdraw from strategies sequentially, reverts if not enough assets available
   // slither-disable-next-line calls-loop
   function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares) internal override {
@@ -177,23 +191,29 @@ contract SizeMetaVault is PerformanceVault {
 
   // ADMIN FUNCTIONS
   /// @notice Sets the performance fee percent
+  /// @param performanceFeePercent_ The new performance fee percent
+  /// @dev Only callable by addresses with DEFAULT_ADMIN_ROLE
   function setPerformanceFeePercent(uint256 performanceFeePercent_) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
     _setPerformanceFeePercent(performanceFeePercent_);
   }
 
   /// @notice Sets the fee recipient
+  /// @param feeRecipient_ The new fee recipient
+  /// @dev Only callable by addresses with DEFAULT_ADMIN_ROLE
   function setFeeRecipient(address feeRecipient_) external notPaused onlyAuth(DEFAULT_ADMIN_ROLE) {
     _setFeeRecipient(feeRecipient_);
   }
 
   // VAULT MANAGER FUNCTIONS
   /// @notice Sets the rebalance max slippage percent
+  /// @param rebalanceMaxSlippagePercent_ The new rebalance max slippage percent
   /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
   function setRebalanceMaxSlippagePercent(uint256 rebalanceMaxSlippagePercent_) external notPaused onlyAuth(VAULT_MANAGER_ROLE) {
     _setRebalanceMaxSlippagePercent(rebalanceMaxSlippagePercent_);
   }
 
   /// @notice Adds a new strategy to the vault
+  /// @param strategy_ The new strategy to add
   /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
   function addStrategy(IVault strategy_) external nonReentrant notPaused emitVaultStatus onlyAuth(VAULT_MANAGER_ROLE) {
     _addStrategy(strategy_, asset(), address(auth()));
@@ -201,7 +221,11 @@ contract SizeMetaVault is PerformanceVault {
 
   // GUARDIAN FUNCTIONS
   /// @notice Removes a strategy from the vault and transfers all assets, if any, to another strategy
-  /// @dev Only callable by addresses with VAULT_MANAGER_ROLE
+  /// @param strategyToRemove The strategy to remove
+  /// @param strategyToReceiveAssets The strategy to receive the assets
+  /// @param amount The amount of assets to transfer
+  /// @param maxSlippagePercent The maximum slippage percent allowed for the rebalance
+  /// @dev Only callable by addresses with GUARDIAN_ROLE
   /// @dev Using `amount` = 0 will forfeit all assets from `strategyToRemove`
   /// @dev Using `amount` = type(uint256).max will attempt to transfer the entire balance from `strategyToRemove`
   /// @dev If `convertToAssets(balanceOf)` > `maxWithdraw`, e.g. due to pause/withdraw limits, the _rebalance step will revert, so an appropriate `amount` should be used
@@ -223,6 +247,8 @@ contract SizeMetaVault is PerformanceVault {
 
   // STRATEGIST FUNCTIONS
   /// @notice Reorders the strategies
+  /// @param newStrategiesOrder The new strategies order
+  /// @dev Only callable by addresses with STRATEGIST_ROLE
   /// @dev Verifies that the new strategies order is valid and that there are no duplicates
   /// @dev Clears current strategies and adds them in the new order
   function reorderStrategies(IVault[] calldata newStrategiesOrder) external notPaused onlyAuth(STRATEGIST_ROLE) {
@@ -245,6 +271,11 @@ contract SizeMetaVault is PerformanceVault {
   }
 
   /// @notice Rebalances assets between two strategies
+  /// @param strategyFrom The strategy to transfer assets from
+  /// @param strategyTo The strategy to transfer assets to
+  /// @param amount The amount of assets to transfer
+  /// @param maxSlippagePercent The maximum slippage percent allowed for the rebalance
+  /// @dev Only callable by addresses with STRATEGIST_ROLE
   /// @dev Transfers assets from one strategy to another
   /// @dev We have maxSlippagePercent <= PERCENT since rebalanceMaxSlippagePercent has already been checked in setRebalanceMaxSlippagePercent
   function rebalance(IVault strategyFrom, IVault strategyTo, uint256 amount, uint256 maxSlippagePercent) external nonReentrant notPaused emitVaultStatus onlyAuth(STRATEGIST_ROLE) {
@@ -260,6 +291,9 @@ contract SizeMetaVault is PerformanceVault {
 
   // PRIVATE FUNCTIONS
   /// @notice Internal function to add a strategy
+  /// @param strategy_ The strategy to add
+  /// @param asset_ The asset of the strategy
+  /// @param auth_ The auth of the strategy
   /// @dev Strategy configuration is assumed to be correct (non-malicious, no circular dependencies, etc.)
   // slither-disable-next-line calls-loop
   function _addStrategy(IVault strategy_, address asset_, address auth_) private {
@@ -274,6 +308,7 @@ contract SizeMetaVault is PerformanceVault {
   }
 
   /// @notice Internal function to remove a strategy
+  /// @param strategy The strategy to remove
   /// @dev No NullAddress check is needed because only whitelisted strategies can be removed, and it is checked in _addStrategy
   /// @dev Removes the strategy in-place to keep the order
   function _removeStrategy(IVault strategy) private {
@@ -291,6 +326,7 @@ contract SizeMetaVault is PerformanceVault {
   }
 
   /// @notice Internal function to set the default max slippage percent
+  /// @param rebalanceMaxSlippagePercent_ The new rebalance max slippage percent
   function _setRebalanceMaxSlippagePercent(uint256 rebalanceMaxSlippagePercent_) private {
     if (rebalanceMaxSlippagePercent_ > PERCENT) revert InvalidMaxSlippagePercent(rebalanceMaxSlippagePercent_);
 
@@ -301,6 +337,7 @@ contract SizeMetaVault is PerformanceVault {
   }
 
   /// @notice Internal function to calculate maximum depositable amount in all strategies
+  /// @dev The maximum amount that can be deposited to all strategies is the sum of the maximum amount that can be deposited to each strategy
   // slither-disable-next-line calls-loop
   function _maxDepositToStrategies() private view returns (uint256 maxAssets) {
     uint256 length = strategies().length;
@@ -310,6 +347,7 @@ contract SizeMetaVault is PerformanceVault {
   }
 
   /// @notice Internal function to calculate maximum withdrawable amount from all strategies
+  /// @dev The maximum amount that can be withdrawn from all strategies is the sum of the maximum amount that can be withdrawn from each strategy
   // slither-disable-next-line calls-loop
   function _maxWithdrawFromStrategies() private view returns (uint256 maxAssets) {
     uint256 length = strategies().length;
@@ -321,6 +359,10 @@ contract SizeMetaVault is PerformanceVault {
   /// @notice Internal function to rebalance assets between two strategies
   /// @dev If before - after > maxSlippagePercent * amount, the _rebalance operation reverts
   /// @dev Assumes input is validated by caller functions
+  /// @param strategyFrom The strategy to transfer assets from
+  /// @param strategyTo The strategy to transfer assets to
+  /// @param amount The amount of assets to transfer
+  /// @param maxSlippagePercent The maximum slippage percent allowed for the rebalance
   function _rebalance(IVault strategyFrom, IVault strategyTo, uint256 amount, uint256 maxSlippagePercent) private {
     uint256 assetsBefore = strategyFrom.convertToAssets(strategyFrom.balanceOf(address(this))) + strategyTo.convertToAssets(strategyTo.balanceOf(address(this)));
 
@@ -348,26 +390,33 @@ contract SizeMetaVault is PerformanceVault {
 
   // VIEW FUNCTIONS
   /// @notice Returns the strategies in the vault
+  /// @return The strategies in the vault
   function strategies() public view returns (IVault[] memory) {
     return _getSizeMetaVaultStorage()._strategies;
   }
 
   /// @notice Returns the strategy at the given index
+  /// @param index The index of the strategy
+  /// @return The strategy at the given index
   function strategies(uint256 index) public view returns (IVault) {
     return _getSizeMetaVaultStorage()._strategies[index];
   }
 
   /// @notice Returns the number of strategies in the vault
+  /// @return The number of strategies in the vault
   function strategiesCount() public view returns (uint256) {
     return strategies().length;
   }
 
   /// @notice Returns the rebalance max slippage percent
+  /// @return The rebalance max slippage percent
   function rebalanceMaxSlippagePercent() public view returns (uint256) {
     return _getSizeMetaVaultStorage()._rebalanceMaxSlippagePercent;
   }
 
   /// @notice Returns true if the strategy is in the vault
+  /// @param strategy The strategy to check
+  /// @return True if the strategy is in the vault
   function isStrategy(IVault strategy) public view returns (bool) {
     uint256 length = strategies().length;
     for (uint256 i = 0; i < length; ++i) {

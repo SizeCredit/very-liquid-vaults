@@ -10,7 +10,7 @@ import {BaseScript} from "@script/BaseScript.s.sol";
 import {Auth} from "@src/Auth.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 
-import {IVault} from "@src//IVault.sol";
+import {IVault} from "@src/IVault.sol";
 import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
 
 contract CryticSizeMetaVaultMockScript is BaseScript {

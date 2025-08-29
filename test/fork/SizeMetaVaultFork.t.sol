@@ -6,7 +6,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
 
-import {IVault} from "@src//IVault.sol";
+import {IVault} from "@src/IVault.sol";
 import {SizeMetaVault} from "@src/SizeMetaVault.sol";
 import {ForkTest} from "@test/fork/ForkTest.t.sol";
 

@@ -11,8 +11,8 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
 
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
-import {IVault} from "@src//IVault.sol";
 import {Auth} from "@src/Auth.sol";
+import {IVault} from "@src/IVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
