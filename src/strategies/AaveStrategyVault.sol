@@ -43,7 +43,7 @@ contract AaveStrategyVault is NonReentrantVault {
   bytes32 private constant AaveStrategyVaultStorageLocation = 0x6b03c294048d7633f1826f4a825d1f9c054949a92b1cf388dba41a6d4d2b4500;
 
   function _getAaveStrategyVaultStorage() private pure returns (AaveStrategyVaultStorage storage $) {
-    assembly {
+    assembly ("memory-safe") {
       $.slot := AaveStrategyVaultStorageLocation
     }
   }

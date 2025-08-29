@@ -36,7 +36,7 @@ contract SizeMetaVault is PerformanceVault {
   bytes32 private constant SizeMetaVaultStorageLocation = 0x147748455d2ea6ff81c5c3f61eeea0b95acd3c4525df2bf45d2d538784d4f400;
 
   function _getSizeMetaVaultStorage() private pure returns (SizeMetaVaultStorage storage $) {
-    assembly {
+    assembly ("memory-safe") {
       $.slot := SizeMetaVaultStorageLocation
     }
   }
