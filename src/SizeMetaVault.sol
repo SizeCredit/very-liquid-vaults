@@ -265,7 +265,7 @@ contract SizeMetaVault is PerformanceVault {
     if (length != newStrategiesOrder.length) revert ArrayLengthMismatch(length, newStrategiesOrder.length);
 
     for (uint256 i = 0; i < length; ++i) {
-      if (!isStrategy(newStrategiesOrder[i])) revert InvalidStrategy(address(newStrategiesOrder[i]));
+      if (!_isStrategy(newStrategiesOrder[i])) revert InvalidStrategy(address(newStrategiesOrder[i]));
       for (uint256 j = i + 1; j < length; ++j) {
         if (newStrategiesOrder[i] == newStrategiesOrder[j]) revert InvalidStrategy(address(newStrategiesOrder[i]));
       }

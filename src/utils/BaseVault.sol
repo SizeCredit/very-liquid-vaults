@@ -202,12 +202,6 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
     super._withdraw(caller, receiver, owner, assets, shares);
   }
 
-  /// @inheritdoc ERC20Upgradeable
-  /// @dev This function is overridden to ensure that the vault is not paused
-  function _update(address from, address to, uint256 value) internal virtual override notPaused {
-    super._update(from, to, value);
-  }
-
   /// @inheritdoc ERC4626Upgradeable
   function maxDeposit(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
     return pausedOrAuthPaused() ? 0 : _totalAssetsCap() == type(uint256).max ? super.maxDeposit(receiver) : _maxDeposit();
