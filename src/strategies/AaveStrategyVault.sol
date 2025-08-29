@@ -76,12 +76,13 @@ contract AaveStrategyVault is NonReentrantVault {
   /// @dev Sets the Aave pool and retrieves the corresponding aToken address
   function initialize(Auth auth_, IERC20 asset_, string memory name_, string memory symbol_, address fundingAccount, uint256 firstDepositAmount, IPool pool_) public virtual initializer {
     if (address(pool_) == address(0)) revert NullAddress();
-    if (address(pool_.getReserveData(address(asset_)).aTokenAddress) == address(0)) revert InvalidAsset(address(asset_));
+    IAToken aToken_ = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
+    if (address(aToken_) == address(0)) revert InvalidAsset(address(asset_));
 
     AaveStrategyVaultStorage storage $ = _getAaveStrategyVaultStorage();
     $._pool = pool_;
     emit PoolSet(address(pool_));
-    $._aToken = IAToken(pool_.getReserveData(address(asset_)).aTokenAddress);
+    $._aToken = aToken_;
     emit ATokenSet(address($._aToken));
 
     super.initialize(auth_, asset_, name_, symbol_, fundingAccount, firstDepositAmount);
