@@ -7,13 +7,13 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {BaseScript} from "@script/BaseScript.s.sol";
 
 import {IVault} from "@src/IVault.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ForkTest} from "@test/fork/ForkTest.t.sol";
 
-contract SizeMetaVaultForkTest is ForkTest {
+contract VeryLiquidVaultForkTest is ForkTest {
   using SafeERC20 for IERC20Metadata;
 
-  function testFork_SizeMetaVault_deposit_withdraw_with_interest() public {
+  function testFork_VeryLiquidVault_deposit_withdraw_with_interest() public {
     uint256 amount = 10 * 10 ** erc20Asset.decimals();
 
     _mint(erc20Asset, alice, amount);

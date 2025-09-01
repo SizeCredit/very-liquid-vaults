@@ -10,9 +10,9 @@ import {vm} from "@chimera/Hevm.sol";
 // Helpers
 import {Panic} from "@recon/Panic.sol";
 
-import "src/SizeMetaVault.sol";
+import "src/VeryLiquidVault.sol";
 
-abstract contract SizeMetaVaultTargets is BaseTargetFunctions, Properties {
+abstract contract VeryLiquidVaultTargets is BaseTargetFunctions, Properties {
   /// CUSTOM TARGET FUNCTIONS - Add your own target functions here ///
 
   /// AUTO GENERATED TARGET FUNCTIONS - WARNING: DO NOT DELETE OR MODIFY THIS LINE ///

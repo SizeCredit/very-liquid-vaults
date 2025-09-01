@@ -293,10 +293,10 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 maxWithdrawAlice = erc4626StrategyVault.maxWithdraw(alice);
     uint256 maxWithdrawBob = erc4626StrategyVault.maxWithdraw(bob);
     uint256 maxWithdrawSelf = erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault));
-    uint256 maxWithdrawSizeMetaVault = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+    uint256 maxWithdrawVeryLiquidVault = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
     uint256 maxWithdrawVault = erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault));
 
-    assertEq(maxWithdrawAlice + maxWithdrawBob + maxWithdrawSizeMetaVault + maxWithdrawSelf, maxWithdrawVault);
+    assertEq(maxWithdrawAlice + maxWithdrawBob + maxWithdrawVeryLiquidVault + maxWithdrawSelf, maxWithdrawVault);
 
     uint256 burnAmount = (depositAmount + depositAmount2) / 2;
     _burn(erc20Asset, address(erc4626StrategyVault.vault()), burnAmount);
@@ -312,11 +312,11 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 maxWithdrawAliceAfter = erc4626StrategyVault.maxWithdraw(alice);
     uint256 maxWithdrawBobAfter = erc4626StrategyVault.maxWithdraw(bob);
     uint256 maxWithdrawSelfAfter = erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault));
-    uint256 maxWithdrawSizeMetaVaultAfter = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+    uint256 maxWithdrawVeryLiquidVaultAfter = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
     uint256 maxWithdrawVaultAfter = erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault));
 
-    assertLe(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawSizeMetaVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter);
-    assertApproxEqAbs(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawSizeMetaVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter, 10);
+    assertLe(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawVeryLiquidVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter);
+    assertApproxEqAbs(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawVeryLiquidVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter, 10);
   }
 
   function test_ERC4626StrategyVault_maxRedeem() public {

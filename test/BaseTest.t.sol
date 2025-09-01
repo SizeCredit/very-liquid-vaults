@@ -8,11 +8,11 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
-import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
+import {VeryLiquidVaultScript} from "@script/VeryLiquidVault.s.sol";
 
 import {Auth, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {IVault} from "@src/IVault.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
@@ -52,12 +52,12 @@ contract BaseTest is Test, Setup, BaseScript {
     vm.prank(admin);
     auth.grantRole(GUARDIAN_ROLE, guardian);
 
-    _setupRandomSizeMetaVaultConfiguration(admin, _getRandomUint);
+    _setupRandomVeryLiquidVaultConfiguration(admin, _getRandomUint);
   }
 
   function _labels() internal {
     vm.label(address(auth), "Auth");
-    vm.label(address(sizeMetaVault), "SizeMetaVault");
+    vm.label(address(sizeMetaVault), "VeryLiquidVault");
 
     vm.label(address(cashStrategyVault), "CashStrategyVault");
     vm.label(address(aaveStrategyVault), "AaveStrategyVault");
@@ -129,8 +129,8 @@ contract BaseTest is Test, Setup, BaseScript {
     return vm.randomUint(min, max);
   }
 
-  function _log(SizeMetaVault _sizeMetaVault) internal view {
-    string memory log = "SizeMetaVault\n";
+  function _log(VeryLiquidVault _sizeMetaVault) internal view {
+    string memory log = "VeryLiquidVault\n";
     log = string.concat(log, "  totalAssets             ", vm.toString(_sizeMetaVault.totalAssets()), "\n");
     log = string.concat(log, "  totalSupply             ", vm.toString(_sizeMetaVault.totalSupply()), "\n");
     log = string.concat(log, "  strategies              ", vm.toString(_sizeMetaVault.strategiesCount()), "\n");

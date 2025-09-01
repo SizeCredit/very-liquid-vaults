@@ -9,7 +9,7 @@ import {AaveStrategyVaultScript} from "@script/AaveStrategyVault.s.sol";
 import {AuthScript} from "@script/Auth.s.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
-import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
+import {VeryLiquidVaultScript} from "@script/VeryLiquidVault.s.sol";
 
 import {IVault} from "@src/IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
@@ -61,8 +61,8 @@ contract ForkTest is BaseTest {
     _mint(erc20Asset, address(aaveStrategyVaultScript), FIRST_DEPOSIT_AMOUNT);
     aaveStrategyVault = aaveStrategyVaultScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT, pool);
 
-    // deploy size meta vault
-    SizeMetaVaultScript sizeMetaVaultScript = new SizeMetaVaultScript();
+    // deploy very liquid vault
+    VeryLiquidVaultScript sizeMetaVaultScript = new VeryLiquidVaultScript();
     IVault[] memory strategies = new IVault[](3);
     strategies[0] = IVault(address(cashStrategyVault));
     strategies[1] = IVault(address(aaveStrategyVault));

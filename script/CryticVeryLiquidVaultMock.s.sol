@@ -8,13 +8,13 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {BaseScript} from "@script/BaseScript.s.sol";
 import {Auth} from "@src/Auth.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 
 import {IVault} from "@src/IVault.sol";
-import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
+import {CryticVeryLiquidVaultMock} from "@test/mocks/CryticVeryLiquidVaultMock.t.sol";
 import {console} from "forge-std/console.sol";
 
-contract CryticSizeMetaVaultMockScript is BaseScript {
+contract CryticVeryLiquidVaultMockScript is BaseScript {
   using SafeERC20 for IERC20Metadata;
 
   Auth auth;
@@ -40,20 +40,20 @@ contract CryticSizeMetaVaultMockScript is BaseScript {
   function run() public {
     vm.startBroadcast();
 
-    console.log("CryticSizeMetaVaultMock", address(deploy(auth, asset, firstDepositAmount, strategies)));
+    console.log("CryticVeryLiquidVaultMock", address(deploy(auth, asset, firstDepositAmount, strategies)));
 
     vm.stopBroadcast();
   }
 
-  function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, IVault[] memory strategies_) public returns (CryticSizeMetaVaultMock cryticSizeMetaVaultMock) {
-    string memory name = string.concat("Size Crytic ", asset_.name(), " Vault");
-    string memory symbol = string.concat("sz", "Crytic", asset_.symbol(), "Mock");
-    address implementation = address(new CryticSizeMetaVaultMock());
-    bytes memory initializationData = abi.encodeCall(SizeMetaVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_, strategies_));
+  function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_, IVault[] memory strategies_) public returns (CryticVeryLiquidVaultMock cryticVeryLiquidVaultMock) {
+    string memory name = string.concat("Very Liquid Crytic ", asset_.name(), " Vault");
+    string memory symbol = string.concat("vlv", "Crytic", asset_.symbol(), "Mock");
+    address implementation = address(new CryticVeryLiquidVaultMock());
+    bytes memory initializationData = abi.encodeCall(VeryLiquidVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_, strategies_));
     bytes memory creationCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
     bytes32 salt = keccak256(initializationData);
-    cryticSizeMetaVaultMock = CryticSizeMetaVaultMock(create2Deployer.computeAddress(salt, keccak256(creationCode)));
-    asset_.forceApprove(address(cryticSizeMetaVaultMock), firstDepositAmount_);
+    cryticVeryLiquidVaultMock = CryticVeryLiquidVaultMock(create2Deployer.computeAddress(salt, keccak256(creationCode)));
+    asset_.forceApprove(address(cryticVeryLiquidVaultMock), firstDepositAmount_);
     create2Deployer.deploy(0, salt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData)));
   }
 }

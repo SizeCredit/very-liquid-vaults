@@ -38,8 +38,8 @@ contract CryticCashStrategyVaultMockScript is BaseScript {
   }
 
   function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_) public returns (CryticCashStrategyVaultMock cryticCashStrategyVaultMock) {
-    string memory name = string.concat("Size Crytic Cash ", asset_.name(), " Strategy Mock Vault");
-    string memory symbol = string.concat("sz", "Cash", asset_.symbol(), "Mock");
+    string memory name = string.concat("Very Liquid Crytic Cash ", asset_.name(), " Strategy Mock Vault");
+    string memory symbol = string.concat("vlv", "Cash", asset_.symbol(), "Mock");
     address implementation = address(new CryticCashStrategyVaultMock());
     bytes memory initializationData = abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));
     bytes memory creationCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));

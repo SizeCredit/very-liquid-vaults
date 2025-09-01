@@ -28,10 +28,10 @@ contract SecurityTest is BaseTest {
     uint256 shares = sizeMetaVault.deposit(depositAmount, attacker); // deposit into metavault at normal share price
 
     console.log("[before inflating] pricePerShare: %e", sizeMetaVault.totalAssets() * 1e6 / sizeMetaVault.totalSupply());
-    erc4626StrategyVault.deposit(depositAmount, attacker); // deposit into underlying strategy to inflate meta vault share price
+    erc4626StrategyVault.deposit(depositAmount, attacker); // deposit into underlying strategy to inflate very liquid share price
     console.log("[after inflating] pricePerShare: %e", sizeMetaVault.totalAssets() * 1e6 / sizeMetaVault.totalSupply());
 
-    sizeMetaVault.redeem(shares, attacker, attacker); // redeem meta vault shares at higher share price
+    sizeMetaVault.redeem(shares, attacker, attacker); // redeem very liquid shares at higher share price
     erc4626StrategyVault.withdraw(depositAmount, attacker, attacker); // withdraw from underlying strategy to get back USDC
     console.log("attackerBalance: %e", erc20Asset.balanceOf(attacker));
 

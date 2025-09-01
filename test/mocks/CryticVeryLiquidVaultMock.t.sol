@@ -5,11 +5,11 @@ import {CryticIERC4626Internal} from "@crytic/properties/contracts/ERC4626/util/
 
 import {hevm as vm} from "@crytic/properties/contracts/util/Hevm.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 
 import {IERC20MintBurn} from "@test/mocks/IERC20MintBurn.t.sol";
 
-contract CryticSizeMetaVaultMock is SizeMetaVault, CryticIERC4626Internal {
+contract CryticVeryLiquidVaultMock is VeryLiquidVault, CryticIERC4626Internal {
   function recognizeProfit(uint256 profit) external override {
     address owner = Ownable(asset()).owner();
     address cashStrategy = address(strategies(0));

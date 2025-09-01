@@ -15,18 +15,18 @@ import {NonReentrantVault} from "@src/utils/NonReentrantVault.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A strategy that invests assets in an external ERC4626-compliant vault
-/// @dev Wraps an external ERC4626 vault to provide strategy functionality for the Size Meta Vault
+/// @dev Wraps an external ERC4626 vault to provide strategy functionality for the Very Liquid Vault
 contract ERC4626StrategyVault is NonReentrantVault {
   using SafeERC20 for IERC20;
 
   // STORAGE
-  /// @custom:storage-location erc7201:size.storage.ERC4626StrategyVault
+  /// @custom:storage-location erc7201:vlv.storage.ERC4626StrategyVault
   struct ERC4626StrategyVaultStorage {
     IERC4626 _vault;
   }
 
-  // keccak256(abi.encode(uint256(keccak256("size.storage.ERC4626StrategyVault")) - 1)) & ~bytes32(uint256(0xff));
-  bytes32 private constant ERC4626StrategyVaultStorageLocation = 0x38a1b2a83634e21b8a768b344dddb96ad68dbc29f8128301f8422f40aee65000;
+  // keccak256(abi.encode(uint256(keccak256("vlv.storage.ERC4626StrategyVault")) - 1)) & ~bytes32(uint256(0xff));
+  bytes32 private constant ERC4626StrategyVaultStorageLocation = 0x3b8a0d4803eb57c7c0aa976b144658fb15964621bd947089c2a92f64ff202000;
 
   function _getERC4626StrategyVaultStorage() private pure returns (ERC4626StrategyVaultStorage storage $) {
     assembly ("memory-safe") {

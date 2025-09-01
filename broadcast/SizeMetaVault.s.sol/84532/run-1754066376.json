@@ -3,7 +3,7 @@
     {
       "hash": "0x2d4845dc107c9d3a434392325e7bfbedcedf70f07e55cf49c677fa5e713e8d5d",
       "transactionType": "CREATE",
-      "contractName": "SizeMetaVault",
+      "contractName": "VeryLiquidVault",
       "contractAddress": "0x9b2a54b52c6aad61d69ad41ce4d832606284c878",
       "function": null,
       "arguments": null,

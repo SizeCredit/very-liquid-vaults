@@ -38,8 +38,8 @@ contract CashStrategyVaultScript is BaseScript {
   }
 
   function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_) public returns (CashStrategyVault cashStrategyVault) {
-    string memory name = string.concat("Size Cash ", asset_.name(), " Strategy Vault");
-    string memory symbol = string.concat("sz", "Cash", asset_.symbol());
+    string memory name = string.concat("Very Liquid Cash ", asset_.name(), " Strategy Vault");
+    string memory symbol = string.concat("vlv", "Cash", asset_.symbol());
     address implementation = address(new CashStrategyVault());
     bytes memory initializationData = abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));
     bytes memory creationCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));

@@ -37,8 +37,8 @@ contract ERC4626StrategyVaultScript is BaseScript {
   }
 
   function deploy(Auth auth_, uint256 firstDepositAmount_, IERC4626 vault_) public returns (ERC4626StrategyVault erc4626StrategyVault) {
-    string memory name = string.concat("Size ", vault_.name(), " Strategy Vault");
-    string memory symbol = string.concat("sz", vault_.symbol());
+    string memory name = string.concat("Very Liquid ", vault_.name(), " Strategy Vault");
+    string memory symbol = string.concat("vlv", vault_.symbol());
     address implementation = address(new ERC4626StrategyVault());
     bytes memory initializationData = abi.encodeCall(ERC4626StrategyVault.initialize, (auth_, name, symbol, fundingAccount, firstDepositAmount_, vault_));
     bytes memory creationCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));

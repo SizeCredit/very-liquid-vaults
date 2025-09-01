@@ -8,7 +8,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {BaseScript} from "@script/BaseScript.s.sol";
 import {Auth} from "@src/Auth.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
@@ -40,8 +40,8 @@ contract CryticERC4626StrategyVaultMockScript is BaseScript {
   }
 
   function deploy(Auth auth_, uint256 firstDepositAmount_, VaultMock vault_) public returns (CryticERC4626StrategyVaultMock cryticERC4626StrategyVaultMock) {
-    string memory name = string.concat("Size ", vault_.name(), " Strategy Mock Vault");
-    string memory symbol = string.concat("sz", vault_.symbol(), "Mock");
+    string memory name = string.concat("Very Liquid ", vault_.name(), " Strategy Mock Vault");
+    string memory symbol = string.concat("vlv", vault_.symbol(), "Mock");
     address implementation = address(new CryticERC4626StrategyVaultMock());
     bytes memory initializationData = abi.encodeCall(ERC4626StrategyVault.initialize, (auth_, name, symbol, fundingAccount, firstDepositAmount_, vault_));
     bytes memory creationCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));
