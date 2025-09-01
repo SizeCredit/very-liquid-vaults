@@ -12,12 +12,12 @@ import {IVault} from "@src/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
 
-/// @title SizeMetaVault
+/// @title VeryLiquidVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice Meta vault that distributes assets across multiple strategies
+/// @notice Very Liquid Vault that distributes assets across multiple strategies
 /// @dev Extends PerformanceVault to manage multiple strategy vaults for asset allocation. By default, the performance fee is 0.
-contract SizeMetaVault is PerformanceVault {
+contract VeryLiquidVault is PerformanceVault {
   using SafeERC20 for IERC20;
 
   /// @dev The maximum number of strategies that can be added to the vault
@@ -26,18 +26,18 @@ contract SizeMetaVault is PerformanceVault {
   uint256 public constant DEFAULT_MAX_SLIPPAGE_PERCENT = 0.01e18;
 
   // STORAGE
-  /// @custom:storage-location erc7201:size.storage.SizeMetaVault
-  struct SizeMetaVaultStorage {
+  /// @custom:storage-location erc7201:vlv.storage.VeryLiquidVault
+  struct VeryLiquidVaultStorage {
     IVault[] _strategies;
     uint256 _rebalanceMaxSlippagePercent;
   }
 
-  // keccak256(abi.encode(uint256(keccak256("size.storage.SizeMetaVault")) - 1)) & ~bytes32(uint256(0xff));
-  bytes32 private constant SizeMetaVaultStorageLocation = 0x147748455d2ea6ff81c5c3f61eeea0b95acd3c4525df2bf45d2d538784d4f400;
+  // keccak256(abi.encode(uint256(keccak256("vlv.storage.VeryLiquidVault")) - 1)) & ~bytes32(uint256(0xff));
+  bytes32 private constant VeryLiquidVaultStorageLocation = 0x851713d8b7886cdb5682ccb4d2dba1bf8cae30c699ce588016da31dab5d7f100;
 
-  function _getSizeMetaVaultStorage() private pure returns (SizeMetaVaultStorage storage $) {
+  function _getVeryLiquidVaultStorage() private pure returns (VeryLiquidVaultStorage storage $) {
     assembly ("memory-safe") {
-      $.slot := SizeMetaVaultStorageLocation
+      $.slot := VeryLiquidVaultStorageLocation
     }
   }
 
@@ -65,7 +65,7 @@ contract SizeMetaVault is PerformanceVault {
     _disableInitializers();
   }
 
-  /// @notice Initializes the SizeMetaVault with strategies
+  /// @notice Initializes the VeryLiquidVault with strategies
   /// @param auth_ The address of the Auth contract
   /// @param asset_ The address of the asset
   /// @param name_ The name of the vault
@@ -123,7 +123,7 @@ contract SizeMetaVault is PerformanceVault {
   /// @dev The total assets is the sum of the assets in all strategies
   // slither-disable-next-line calls-loop
   function totalAssets() public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256 total) {
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
       IVault strategy = $._strategies[i];
@@ -144,7 +144,7 @@ contract SizeMetaVault is PerformanceVault {
 
     uint256 assetsToDeposit = assets;
 
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
       // slither-disable-next-line incorrect-equality
@@ -173,7 +173,7 @@ contract SizeMetaVault is PerformanceVault {
   function _withdraw(address caller, address receiver, address owner, uint256 assets, uint256 shares) internal override {
     uint256 assetsToWithdraw = assets;
 
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
       // slither-disable-next-line incorrect-equality
@@ -262,7 +262,7 @@ contract SizeMetaVault is PerformanceVault {
   /// @dev Verifies that the new strategies order is valid and that there are no duplicates
   /// @dev Clears current strategies and adds them in the new order
   function reorderStrategies(IVault[] calldata newStrategiesOrder) external nonReentrant notPaused onlyAuth(STRATEGIST_ROLE) {
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 length = $._strategies.length;
     if (length != newStrategiesOrder.length) revert ArrayLengthMismatch(length, newStrategiesOrder.length);
 
@@ -311,7 +311,7 @@ contract SizeMetaVault is PerformanceVault {
     if (_isStrategy(strategy_)) revert InvalidStrategy(address(strategy_));
     if (strategy_.asset() != asset_ || address(strategy_.auth()) != auth_) revert InvalidStrategy(address(strategy_));
 
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     $._strategies.push(strategy_);
     emit StrategyAdded(address(strategy_));
     if ($._strategies.length > MAX_STRATEGIES) revert MaxStrategiesExceeded($._strategies.length, MAX_STRATEGIES);
@@ -322,7 +322,7 @@ contract SizeMetaVault is PerformanceVault {
   /// @dev No NullAddress check is needed because only whitelisted strategies can be removed, and it is checked in _addStrategy
   /// @dev Removes the strategy in-place to keep the order
   function _removeStrategy(IVault strategy) private {
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     for (uint256 i = 0; i < $._strategies.length; ++i) {
       if ($._strategies[i] == strategy) {
         for (uint256 j = i; j < $._strategies.length - 1; ++j) {
@@ -340,7 +340,7 @@ contract SizeMetaVault is PerformanceVault {
   function _setRebalanceMaxSlippagePercent(uint256 rebalanceMaxSlippagePercent_) private {
     if (rebalanceMaxSlippagePercent_ > PERCENT) revert InvalidMaxSlippagePercent(rebalanceMaxSlippagePercent_);
 
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 oldRebalanceMaxSlippagePercent = $._rebalanceMaxSlippagePercent;
     $._rebalanceMaxSlippagePercent = rebalanceMaxSlippagePercent_;
     emit RebalanceMaxSlippagePercentSet(oldRebalanceMaxSlippagePercent, rebalanceMaxSlippagePercent_);
@@ -348,10 +348,10 @@ contract SizeMetaVault is PerformanceVault {
 
   /// @notice Internal function to calculate maximum depositable amount in all strategies
   /// @dev The maximum amount that can be deposited to all strategies is the sum of the maximum amount that can be deposited to each strategy
-  /// @dev This value might be overstated if nested strategies are used. For example, if a meta vault has two strategies, one of which is an ERC4626StrategyVault and the other is a SizeMetaVault that has the same ERC4626StrategyVault instance. In this scenario, if the ERC-4626 strategy has 100 maxDeposit remaining, the top-level meta vault would double count this value and return 200. However, in practice, trying to deposit 200 would cause a revert, because only 100 can be deposited.
+  /// @dev This value might be overstated if nested strategies are used. For example, if a very liquid has two strategies, one of which is an ERC4626StrategyVault and the other is a VeryLiquidVault that has the same ERC4626StrategyVault instance. In this scenario, if the ERC-4626 strategy has 100 maxDeposit remaining, the top-level very liquid would double count this value and return 200. However, in practice, trying to deposit 200 would cause a revert, because only 100 can be deposited.
   // slither-disable-next-line calls-loop
   function _maxDepositToStrategies() private view returns (uint256 maxAssets) {
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
       maxAssets = Math.saturatingAdd(maxAssets, $._strategies[i].maxDeposit(address(this)));
@@ -360,10 +360,10 @@ contract SizeMetaVault is PerformanceVault {
 
   /// @notice Internal function to calculate maximum withdrawable amount from all strategies
   /// @dev The maximum amount that can be withdrawn from all strategies is the sum of the maximum amount that can be withdrawn from each strategy
-  /// @dev This value might be overstated if nested strategies are used. For example, if a meta vault has two strategies, one of which is an ERC4626StrategyVault and the other is a SizeMetaVault that has the same ERC4626StrategyVault instance. In this scenario, if the ERC-4626 strategy has 100 maxWithdraw remaining, the top-level meta vault would double count this value and return 200. However, in practice, trying to withdraw 200 would cause a revert, because only 100 can be withdrawn.
+  /// @dev This value might be overstated if nested strategies are used. For example, if a very liquid has two strategies, one of which is an ERC4626StrategyVault and the other is a VeryLiquidVault that has the same ERC4626StrategyVault instance. In this scenario, if the ERC-4626 strategy has 100 maxWithdraw remaining, the top-level very liquid would double count this value and return 200. However, in practice, trying to withdraw 200 would cause a revert, because only 100 can be withdrawn.
   // slither-disable-next-line calls-loop
   function _maxWithdrawFromStrategies() private view returns (uint256 maxAssets) {
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
       maxAssets = Math.saturatingAdd(maxAssets, $._strategies[i].maxWithdraw(address(this)));
@@ -411,14 +411,14 @@ contract SizeMetaVault is PerformanceVault {
 
   /// @notice Returns the strategies in the vault
   function _strategies() private view returns (IVault[] memory) {
-    return _getSizeMetaVaultStorage()._strategies;
+    return _getVeryLiquidVaultStorage()._strategies;
   }
 
   /// @notice Returns the strategy at the given index
   /// @param index The index of the strategy
   /// @return The strategy at the given index
   function strategies(uint256 index) public view nonReentrantView returns (IVault) {
-    return _getSizeMetaVaultStorage()._strategies[index];
+    return _getVeryLiquidVaultStorage()._strategies[index];
   }
 
   /// @notice Returns the number of strategies in the vault
@@ -435,7 +435,7 @@ contract SizeMetaVault is PerformanceVault {
 
   /// @notice Returns the rebalance max slippage percent
   function _rebalanceMaxSlippagePercent() private view returns (uint256) {
-    return _getSizeMetaVaultStorage()._rebalanceMaxSlippagePercent;
+    return _getVeryLiquidVaultStorage()._rebalanceMaxSlippagePercent;
   }
 
   /// @notice Returns true if the strategy is in the vault
@@ -447,7 +447,7 @@ contract SizeMetaVault is PerformanceVault {
 
   /// @notice Returns true if the strategy is in the vault
   function _isStrategy(IVault strategy) private view returns (bool) {
-    SizeMetaVaultStorage storage $ = _getSizeMetaVaultStorage();
+    VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
     uint256 length = $._strategies.length;
     for (uint256 i = 0; i < length; ++i) {
       if ($._strategies[i] == strategy) return true;

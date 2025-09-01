@@ -22,7 +22,7 @@ import {NonReentrantVault} from "@src/utils/NonReentrantVault.sol";
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
 /// @notice A strategy that invests assets in Aave v3 lending pools
-/// @dev Extends NonReentrantVault for Aave v3 integration within the Size Meta Vault system
+/// @dev Extends NonReentrantVault for Aave v3 integration within the Very Liquid Vault system
 /// @dev Reference https://github.com/superform-xyz/super-vaults/blob/8bc1d1bd1579f6fb9a047802256ed3a2bf15f602/src/aave-v3/AaveV3ERC4626Reinvest.sol
 contract AaveStrategyVault is NonReentrantVault {
   using SafeERC20 for IERC20;
@@ -33,14 +33,14 @@ contract AaveStrategyVault is NonReentrantVault {
                               STORAGE
     //////////////////////////////////////////////////////////////*/
 
-  /// @custom:storage-location erc7201:size.storage.AaveStrategyVault
+  /// @custom:storage-location erc7201:vlv.storage.AaveStrategyVault
   struct AaveStrategyVaultStorage {
     IPool _pool;
     IAToken _aToken;
   }
 
-  // keccak256(abi.encode(uint256(keccak256("size.storage.AaveStrategyVault")) - 1)) & ~bytes32(uint256(0xff));
-  bytes32 private constant AaveStrategyVaultStorageLocation = 0x6b03c294048d7633f1826f4a825d1f9c054949a92b1cf388dba41a6d4d2b4500;
+  // keccak256(abi.encode(uint256(keccak256("vlv.storage.AaveStrategyVault")) - 1)) & ~bytes32(uint256(0xff));
+  bytes32 private constant AaveStrategyVaultStorageLocation = 0x45b1d4e37b305e5e54f1e5f5bf73580d91a37bacfc32009c29dd875ef148c600;
 
   function _getAaveStrategyVaultStorage() private pure returns (AaveStrategyVaultStorage storage $) {
     assembly ("memory-safe") {

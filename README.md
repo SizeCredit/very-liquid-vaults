@@ -1,10 +1,10 @@
-# size-meta-vault [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/size-meta-vault/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/size-meta-vault?branch=main) [![CI](https://github.com/SizeCredit/size-meta-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/size-meta-vault/actions/workflows/ci.yml)
+# very-liquid-vault [![Coverage Status](https://coveralls.io/repos/github/SizeCredit/very-liquid-vault/badge.svg?branch=main)](https://coveralls.io/github/SizeCredit/very-liquid-vault?branch=main) [![CI](https://github.com/SizeCredit/very-liquid-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/SizeCredit/very-liquid-vault/actions/workflows/ci.yml)
 
 A modular, upgradeable ERC4626 vault system that enables flexible asset management through multiple investment strategies.
 
 ## Overview
 
-Size Meta Vault is a "meta vault" implementation that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management. The design is influenced by [yearn's yVaults v3](https://docs.yearn.fi/developers/v3/overview).
+Very Liquid Vault is a "meta" vault that allows users to deposit assets and have them automatically allocated across multiple investment strategies. The system is built with upgradeability and modularity in mind, featuring role-based access control and comprehensive strategy management. The design is influenced by [yearn's yVaults v3](https://docs.yearn.fi/developers/v3/overview).
 
 ## Security
 
@@ -45,7 +45,7 @@ Target integrations:
 * **Deposit/Withdrawal Priority Logic**: Configurable priority list for liquidity deposit/withdrawals
 * **Flexible Strategy Integration**: Easily add or remove ERC4626-compatible strategies
 * **Pause Functionality**: Emergency stop mechanisms for enhanced security
-* **Total Asset Caps**: Maximum asset limits for each strategy and meta vault
+* **Total Asset Caps**: Maximum asset limits for each strategy and very liquid
 * **Performance Fees**: Performance fee is minted as shares if the overall vault tokens have an appreciated price beyond the previous high water mark
 
 ## Specifications
@@ -70,7 +70,7 @@ Target integrations:
 
 ### Core Components
 
-* **`SizeMetaVault`**: Main vault contract that manages user deposits and strategy allocation
+* **`VeryLiquidVault`**: Main vault contract that manages user deposits and strategy allocation
 * **`Auth`**: Centralized role-based access control system with global pause functionality
 
 ### Available Strategies
@@ -92,7 +92,7 @@ Target integrations:
 
 ## Known Limitations
 
-1. When `removeStrategy` is performed, the `SizeMetaVault` attempts to withdraw all assets from the exiting strategy and re-deposit them into another strategy. If the withdrawal or deposit fails, the whole operation reverts.
+1. When `removeStrategy` is performed, the `VeryLiquidVault` attempts to withdraw all assets from the exiting strategy and re-deposit them into another strategy. If the withdrawal or deposit fails, the whole operation reverts.
 2. The performance fee can stop being applied during a significant downturn event, which would cause the price per share to never surpass the high-water mark.
 3. Assets directly sent to the vaults may be lost, with the exception of the `CashStrategyVault`, which accepts them as donations.
 4. The vaults are not compatible with fee-on-transfer assets.
@@ -107,6 +107,7 @@ export AUTH=XXX
 forge script script/CashStrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
 forge script script/AaveStrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
 forge script script/ERC4626StrategyVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
+export IDENTIFIER=XXX
 export STRATEGIES=XXX
-forge script script/SizeMetaVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
+forge script script/VeryLiquidVault.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
 ```

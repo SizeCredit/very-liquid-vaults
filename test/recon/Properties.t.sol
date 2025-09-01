@@ -13,12 +13,12 @@ abstract contract Properties is Ghosts, Asserts, PropertiesSpecifications {
     for (uint256 i = 0; i < _actors.length; i++) {
       address _actor = _actors[i];
       uint256 balanceOf = erc20Asset.balanceOf(_actor);
-      assets += sizeMetaVault.convertToAssets(balanceOf);
+      assets += veryLiquidVault.convertToAssets(balanceOf);
     }
-    lte(assets, sizeMetaVault.totalAssets(), SOLVENCY_01);
+    lte(assets, veryLiquidVault.totalAssets(), SOLVENCY_01);
   }
 
   function property_STRATEGY_02() public {
-    gt(sizeMetaVault.strategiesCount(), 0, STRATEGY_02);
+    gt(veryLiquidVault.strategiesCount(), 0, STRATEGY_02);
   }
 }

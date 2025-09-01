@@ -17,7 +17,7 @@ import {Utils} from "@recon/Utils.sol";
 
 import {PropertiesConstants} from "@crytic/properties/contracts/util/PropertiesConstants.sol";
 import "src/Auth.sol";
-import "src/SizeMetaVault.sol";
+import "src/VeryLiquidVault.sol";
 import "src/strategies/AaveStrategyVault.sol";
 import "src/strategies/CashStrategyVault.sol";
 import "src/strategies/ERC4626StrategyVault.sol";
@@ -41,7 +41,7 @@ abstract contract Setup is BaseSetup, ActorManager, AssetManager, Utils, __Setup
     vaults.push(IERC4626(aaveStrategyVault));
     vaults.push(IERC4626(cashStrategyVault));
     vaults.push(IERC4626(erc4626StrategyVault));
-    vaults.push(IERC4626(sizeMetaVault));
+    vaults.push(IERC4626(veryLiquidVault));
   }
 
   /// === MODIFIERS === ///

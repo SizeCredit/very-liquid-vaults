@@ -7,16 +7,16 @@ import {hevm} from "@crytic/properties/contracts/util/Hevm.sol";
 import {IVault} from "@src/IVault.sol";
 import {Setup} from "@test/Setup.t.sol";
 
-contract SizeMetaVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
+contract VeryLiquidVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
   constructor() {
     deploy(address(this));
-    initialize(address(sizeMetaVault), address(asset), true);
-    _setupRandomSizeMetaVaultConfiguration(address(this), _getRandomUint2);
+    initialize(address(veryLiquidVault), address(asset), true);
+    _setupRandomVeryLiquidVaultConfiguration(address(this), _getRandomUint2);
   }
 
   function rebalance(address strategyFrom, address strategyTo, uint256 amount, uint256 maxSlippagePercent) public {
     hevm.prank(address(this));
-    sizeMetaVault.rebalance(IVault(strategyFrom), IVault(strategyTo), amount, maxSlippagePercent);
+    veryLiquidVault.rebalance(IVault(strategyFrom), IVault(strategyTo), amount, maxSlippagePercent);
   }
 
   function _getRandomUint2(uint256 min, uint256 max) internal view returns (uint256) {

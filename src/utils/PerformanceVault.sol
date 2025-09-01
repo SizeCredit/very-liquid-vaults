@@ -16,15 +16,15 @@ abstract contract PerformanceVault is BaseVault {
   uint256 public constant MAXIMUM_PERFORMANCE_FEE_PERCENT = 0.5e18;
 
   // STORAGE
-  /// @custom:storage-location erc7201:size.storage.PerformanceVault
+  /// @custom:storage-location erc7201:vlv.storage.PerformanceVault
   struct PerformanceVaultStorage {
     uint256 _highWaterMark;
     uint256 _performanceFeePercent;
     address _feeRecipient;
   }
 
-  // keccak256(abi.encode(uint256(keccak256("size.storage.PerformanceVault")) - 1)) & ~bytes32(uint256(0xff));
-  bytes32 private constant PerformanceVaultStorageLocation = 0x804999a460baf311df4304e76bf097cd616ad3bef609b825c3e42a145296b200;
+  // keccak256(abi.encode(uint256(keccak256("vlv.storage.PerformanceVault")) - 1)) & ~bytes32(uint256(0xff));
+  bytes32 private constant PerformanceVaultStorageLocation = 0x8133214f360747da779e5436efd7332b025d67830fc92a23fa9b9e5e4b87fd00;
 
   function _getPerformanceVaultStorage() private pure returns (PerformanceVaultStorage storage $) {
     assembly ("memory-safe") {

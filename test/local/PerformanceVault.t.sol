@@ -9,75 +9,75 @@ import {BaseTest} from "@test/BaseTest.t.sol";
 
 contract PerformanceVaultTest is BaseTest {
   function test_PerformanceVault_initialize() public view {
-    assertEq(sizeMetaVault.feeRecipient(), admin);
-    assertEq(sizeMetaVault.performanceFeePercent(), 0);
-    assertEq(sizeMetaVault.highWaterMark(), 0);
+    assertEq(veryLiquidVault.feeRecipient(), admin);
+    assertEq(veryLiquidVault.performanceFeePercent(), 0);
+    assertEq(veryLiquidVault.highWaterMark(), 0);
   }
 
   function test_PerformanceVault_setPerformanceFeePercent() public {
-    assertEq(sizeMetaVault.performanceFeePercent(), 0);
+    assertEq(veryLiquidVault.performanceFeePercent(), 0);
 
     vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(this), DEFAULT_ADMIN_ROLE));
-    sizeMetaVault.setPerformanceFeePercent(0.2e18);
+    veryLiquidVault.setPerformanceFeePercent(0.2e18);
 
-    uint256 maxPerformanceFeePercent = sizeMetaVault.MAXIMUM_PERFORMANCE_FEE_PERCENT();
+    uint256 maxPerformanceFeePercent = veryLiquidVault.MAXIMUM_PERFORMANCE_FEE_PERCENT();
 
     vm.prank(admin);
     vm.expectRevert(abi.encodeWithSelector(PerformanceVault.PerformanceFeePercentTooHigh.selector, 0.7e19, maxPerformanceFeePercent));
-    sizeMetaVault.setPerformanceFeePercent(0.7e19);
+    veryLiquidVault.setPerformanceFeePercent(0.7e19);
 
     vm.prank(admin);
-    sizeMetaVault.setPerformanceFeePercent(0.2e18);
+    veryLiquidVault.setPerformanceFeePercent(0.2e18);
 
-    assertEq(sizeMetaVault.performanceFeePercent(), 0.2e18);
+    assertEq(veryLiquidVault.performanceFeePercent(), 0.2e18);
   }
 
   function test_PerformanceVault_setFeeRecipient() public {
     vm.prank(admin);
     vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector));
-    sizeMetaVault.setFeeRecipient(address(0));
+    veryLiquidVault.setFeeRecipient(address(0));
 
-    assertEq(sizeMetaVault.feeRecipient(), admin);
+    assertEq(veryLiquidVault.feeRecipient(), admin);
 
     vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(this), DEFAULT_ADMIN_ROLE));
-    sizeMetaVault.setFeeRecipient(alice);
+    veryLiquidVault.setFeeRecipient(alice);
 
     vm.prank(admin);
-    sizeMetaVault.setFeeRecipient(alice);
+    veryLiquidVault.setFeeRecipient(alice);
 
-    assertEq(sizeMetaVault.feeRecipient(), alice);
+    assertEq(veryLiquidVault.feeRecipient(), alice);
   }
 
   function test_PerformanceVault_performace_fee_is_minted_as_shares_to_the_feeRecipient() public {
     _setupSimpleConfiguration();
 
     vm.prank(admin);
-    sizeMetaVault.setPerformanceFeePercent(0.2e18);
+    veryLiquidVault.setPerformanceFeePercent(0.2e18);
 
-    _deposit(alice, sizeMetaVault, 100e6);
+    _deposit(alice, veryLiquidVault, 100e6);
 
-    uint256 sharesBefore = sizeMetaVault.balanceOf(admin);
+    uint256 sharesBefore = veryLiquidVault.balanceOf(admin);
 
     _mint(erc20Asset, address(cashStrategyVault), 300e6);
-    _deposit(alice, sizeMetaVault, 70e6);
+    _deposit(alice, veryLiquidVault, 70e6);
 
-    uint256 sharesAfter = sizeMetaVault.balanceOf(admin);
+    uint256 sharesAfter = veryLiquidVault.balanceOf(admin);
 
     assertGt(sharesAfter, sharesBefore);
 
-    _deposit(alice, sizeMetaVault, 40e6);
+    _deposit(alice, veryLiquidVault, 40e6);
 
-    uint256 sharesFinal = sizeMetaVault.balanceOf(admin);
+    uint256 sharesFinal = veryLiquidVault.balanceOf(admin);
     assertEq(sharesFinal, sharesAfter);
   }
 
   function test_PerformanceVault_highWaterMark_check() public {
     vm.prank(admin);
-    sizeMetaVault.setPerformanceFeePercent(0.2e18);
-    _deposit(alice, sizeMetaVault, 100e6);
+    veryLiquidVault.setPerformanceFeePercent(0.2e18);
+    _deposit(alice, veryLiquidVault, 100e6);
     _mint(erc20Asset, address(cashStrategyVault), 300e6);
-    assertEq(sizeMetaVault.highWaterMark(), 1e18);
-    _deposit(alice, sizeMetaVault, 0);
-    assertEq(sizeMetaVault.highWaterMark(), sizeMetaVault.pps());
+    assertEq(veryLiquidVault.highWaterMark(), 1e18);
+    _deposit(alice, veryLiquidVault, 0);
+    assertEq(veryLiquidVault.highWaterMark(), veryLiquidVault.pps());
   }
 }

@@ -11,7 +11,7 @@ import {vm} from "@chimera/Hevm.sol";
 // Helpers
 import {Panic} from "@recon/Panic.sol";
 
-import "src/SizeMetaVault.sol";
+import "src/VeryLiquidVault.sol";
 
 abstract contract ERC4626MustNotRevertTargets is BaseTargetFunctions, Properties {
   function erc4626_mustNotRevert_asset() public {

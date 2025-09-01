@@ -8,11 +8,11 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
 import {CashStrategyVaultScript} from "@script/CashStrategyVault.s.sol";
-import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
+import {VeryLiquidVaultScript} from "@script/VeryLiquidVault.s.sol";
 
 import {Auth, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {IVault} from "@src/IVault.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
@@ -52,12 +52,12 @@ contract BaseTest is Test, Setup, BaseScript {
     vm.prank(admin);
     auth.grantRole(GUARDIAN_ROLE, guardian);
 
-    _setupRandomSizeMetaVaultConfiguration(admin, _getRandomUint);
+    _setupRandomVeryLiquidVaultConfiguration(admin, _getRandomUint);
   }
 
   function _labels() internal {
     vm.label(address(auth), "Auth");
-    vm.label(address(sizeMetaVault), "SizeMetaVault");
+    vm.label(address(veryLiquidVault), "VeryLiquidVault");
 
     vm.label(address(cashStrategyVault), "CashStrategyVault");
     vm.label(address(aaveStrategyVault), "AaveStrategyVault");
@@ -129,17 +129,17 @@ contract BaseTest is Test, Setup, BaseScript {
     return vm.randomUint(min, max);
   }
 
-  function _log(SizeMetaVault _sizeMetaVault) internal view {
-    string memory log = "SizeMetaVault\n";
-    log = string.concat(log, "  totalAssets             ", vm.toString(_sizeMetaVault.totalAssets()), "\n");
-    log = string.concat(log, "  totalSupply             ", vm.toString(_sizeMetaVault.totalSupply()), "\n");
-    log = string.concat(log, "  strategies              ", vm.toString(_sizeMetaVault.strategiesCount()), "\n");
-    for (uint256 i = 0; i < _sizeMetaVault.strategiesCount(); i++) {
-      IVault strategy = _sizeMetaVault.strategies(i);
+  function _log(VeryLiquidVault _veryLiquidVault) internal view {
+    string memory log = "VeryLiquidVault\n";
+    log = string.concat(log, "  totalAssets             ", vm.toString(_veryLiquidVault.totalAssets()), "\n");
+    log = string.concat(log, "  totalSupply             ", vm.toString(_veryLiquidVault.totalSupply()), "\n");
+    log = string.concat(log, "  strategies              ", vm.toString(_veryLiquidVault.strategiesCount()), "\n");
+    for (uint256 i = 0; i < _veryLiquidVault.strategiesCount(); i++) {
+      IVault strategy = _veryLiquidVault.strategies(i);
       string memory label = strategy == cashStrategyVault
         ? "CashStrategyVault     "
         : strategy == aaveStrategyVault ? "AaveStrategyVault     " : strategy == erc4626StrategyVault ? "ERC4626StrategyVault  " : "IVault                ";
-      uint256 balance = strategy.balanceOf(address(_sizeMetaVault));
+      uint256 balance = strategy.balanceOf(address(_veryLiquidVault));
       uint256 assets = strategy.convertToAssets(balance);
       log = string.concat(log, "    ", label, vm.toString(address(strategy)), " ", vm.toString(balance), " ", vm.toString(assets), "\n");
     }
@@ -152,18 +152,18 @@ contract BaseTest is Test, Setup, BaseScript {
     strategies[1] = aaveStrategyVault;
     strategies[2] = erc4626StrategyVault;
     vm.prank(admin);
-    sizeMetaVault.reorderStrategies(strategies);
+    veryLiquidVault.reorderStrategies(strategies);
 
-    uint256 assetsAave = aaveStrategyVault.maxWithdraw(address(sizeMetaVault));
-    uint256 assetsErc4626 = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+    uint256 assetsAave = aaveStrategyVault.maxWithdraw(address(veryLiquidVault));
+    uint256 assetsErc4626 = erc4626StrategyVault.maxWithdraw(address(veryLiquidVault));
 
     if (assetsAave > 0) {
       vm.prank(admin);
-      sizeMetaVault.rebalance(aaveStrategyVault, cashStrategyVault, assetsAave, type(uint256).max);
+      veryLiquidVault.rebalance(aaveStrategyVault, cashStrategyVault, assetsAave, type(uint256).max);
     }
     if (assetsErc4626 > 0) {
       vm.prank(admin);
-      sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, assetsErc4626, type(uint256).max);
+      veryLiquidVault.rebalance(erc4626StrategyVault, cashStrategyVault, assetsErc4626, type(uint256).max);
     }
   }
 }

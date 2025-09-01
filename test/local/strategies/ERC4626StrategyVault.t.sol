@@ -68,9 +68,9 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     strategies[1] = cashStrategyVault;
     strategies[2] = aaveStrategyVault;
     vm.prank(strategist);
-    sizeMetaVault.reorderStrategies(strategies);
+    veryLiquidVault.reorderStrategies(strategies);
 
-    _deposit(charlie, sizeMetaVault, 100e6);
+    _deposit(charlie, veryLiquidVault, 100e6);
 
     uint256 balanceBeforeERC4626StrategyVault = erc20Asset.balanceOf(address(erc4626Vault));
 
@@ -86,7 +86,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
     uint256 pullAmount = 30e6;
     vm.prank(strategist);
-    sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0.01e18);
+    veryLiquidVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0.01e18);
     assertEq(erc4626StrategyVault.balanceOf(alice), shares);
     assertEq(erc20Asset.balanceOf(address(erc4626Vault)), balanceBeforeERC4626StrategyVault + depositAmount - pullAmount);
     assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), balanceBeforeRebalance + pullAmount);
@@ -98,9 +98,9 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     strategies[1] = cashStrategyVault;
     strategies[2] = aaveStrategyVault;
     vm.prank(strategist);
-    sizeMetaVault.reorderStrategies(strategies);
+    veryLiquidVault.reorderStrategies(strategies);
 
-    _deposit(charlie, sizeMetaVault, 100e6);
+    _deposit(charlie, veryLiquidVault, 100e6);
 
     uint256 balanceBeforeERC4626StrategyVault = erc20Asset.balanceOf(address(erc4626Vault));
 
@@ -116,7 +116,7 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
     uint256 pullAmount = 30e6;
     vm.prank(strategist);
-    sizeMetaVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0.01e18);
+    veryLiquidVault.rebalance(erc4626StrategyVault, cashStrategyVault, pullAmount, 0.01e18);
     assertEq(erc4626StrategyVault.balanceOf(alice), shares);
     assertEq(erc20Asset.balanceOf(address(erc4626Vault)), balanceBeforeERC4626StrategyVault + depositAmount - pullAmount);
     assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), balanceBeforeRebalance + pullAmount);
@@ -293,10 +293,10 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 maxWithdrawAlice = erc4626StrategyVault.maxWithdraw(alice);
     uint256 maxWithdrawBob = erc4626StrategyVault.maxWithdraw(bob);
     uint256 maxWithdrawSelf = erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault));
-    uint256 maxWithdrawSizeMetaVault = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+    uint256 maxWithdrawVeryLiquidVault = erc4626StrategyVault.maxWithdraw(address(veryLiquidVault));
     uint256 maxWithdrawVault = erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault));
 
-    assertEq(maxWithdrawAlice + maxWithdrawBob + maxWithdrawSizeMetaVault + maxWithdrawSelf, maxWithdrawVault);
+    assertEq(maxWithdrawAlice + maxWithdrawBob + maxWithdrawVeryLiquidVault + maxWithdrawSelf, maxWithdrawVault);
 
     uint256 burnAmount = (depositAmount + depositAmount2) / 2;
     _burn(erc20Asset, address(erc4626StrategyVault.vault()), burnAmount);
@@ -312,11 +312,11 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 maxWithdrawAliceAfter = erc4626StrategyVault.maxWithdraw(alice);
     uint256 maxWithdrawBobAfter = erc4626StrategyVault.maxWithdraw(bob);
     uint256 maxWithdrawSelfAfter = erc4626StrategyVault.maxWithdraw(address(erc4626StrategyVault));
-    uint256 maxWithdrawSizeMetaVaultAfter = erc4626StrategyVault.maxWithdraw(address(sizeMetaVault));
+    uint256 maxWithdrawVeryLiquidVaultAfter = erc4626StrategyVault.maxWithdraw(address(veryLiquidVault));
     uint256 maxWithdrawVaultAfter = erc4626StrategyVault.vault().maxWithdraw(address(erc4626StrategyVault));
 
-    assertLe(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawSizeMetaVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter);
-    assertApproxEqAbs(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawSizeMetaVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter, 10);
+    assertLe(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawVeryLiquidVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter);
+    assertApproxEqAbs(maxWithdrawAliceAfter + maxWithdrawBobAfter + maxWithdrawVeryLiquidVaultAfter + maxWithdrawSelfAfter, maxWithdrawVaultAfter, 10);
   }
 
   function test_ERC4626StrategyVault_maxRedeem() public {
@@ -368,21 +368,21 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
   }
 
   function test_ERC4626StrategyVault_maxWithdraw_maxRedeem() public {
-    uint256 assetsBefore = erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(address(sizeMetaVault)));
+    uint256 assetsBefore = erc4626StrategyVault.convertToAssets(erc4626StrategyVault.balanceOf(address(veryLiquidVault)));
     IVault[] memory strategies = new IVault[](3);
     strategies[0] = erc4626StrategyVault;
     strategies[1] = cashStrategyVault;
     strategies[2] = aaveStrategyVault;
     vm.prank(strategist);
-    sizeMetaVault.reorderStrategies(strategies);
+    veryLiquidVault.reorderStrategies(strategies);
 
     _deposit(alice, erc4626StrategyVault, 100e6);
-    _deposit(bob, sizeMetaVault, 30e6);
+    _deposit(bob, veryLiquidVault, 30e6);
 
     uint256 depositedToVault = strategies[0] == erc4626StrategyVault ? 30e6 : 0;
 
-    assertEq(erc4626StrategyVault.maxWithdraw(address(sizeMetaVault)), assetsBefore + depositedToVault);
-    assertEq(erc4626StrategyVault.maxRedeem(address(sizeMetaVault)), erc4626StrategyVault.previewRedeem(assetsBefore + depositedToVault));
+    assertEq(erc4626StrategyVault.maxWithdraw(address(veryLiquidVault)), assetsBefore + depositedToVault);
+    assertEq(erc4626StrategyVault.maxRedeem(address(veryLiquidVault)), erc4626StrategyVault.previewRedeem(assetsBefore + depositedToVault));
   }
 
   function test_ERC4626StrategyVault_max_same_units() public {

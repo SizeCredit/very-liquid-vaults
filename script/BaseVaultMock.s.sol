@@ -37,8 +37,8 @@ contract BaseVaultMockScript is BaseScript {
   }
 
   function deploy(Auth auth_, IERC20Metadata asset_, uint256 firstDepositAmount_) public returns (BaseVaultMock baseVaultMock) {
-    string memory name = string.concat("Size Base ", asset_.name(), " Mock Vault");
-    string memory symbol = string.concat("sz", "Base", asset_.symbol(), "Mock");
+    string memory name = string.concat("Very Liquid Base ", asset_.name(), " Mock Vault");
+    string memory symbol = string.concat("vlv", "Base", asset_.symbol(), "Mock");
     address implementation = address(new BaseVaultMock());
     bytes memory initializationData = abi.encodeCall(BaseVault.initialize, (auth_, asset_, name, symbol, fundingAccount, firstDepositAmount_));
     bytes memory creationCode = abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initializationData));

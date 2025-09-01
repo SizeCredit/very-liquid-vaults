@@ -15,7 +15,7 @@ bytes32 constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
 /// @title Auth
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice Authority acccess control contract with global pause functionality for the Size Meta Vault system
+/// @notice Authority acccess control contract with global pause functionality for the Very Liquid Vault system
 contract Auth is UUPSUpgradeable, AccessControlEnumerableUpgradeable, PausableUpgradeable, MulticallUpgradeable {
   error NullAddress();
 

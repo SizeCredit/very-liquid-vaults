@@ -26,8 +26,8 @@ contract BaseVaultTest is BaseTest {
 
   function test_BaseVault_initialize() public view {
     assertEq(baseVault.asset(), address(erc20Asset));
-    assertEq(baseVault.name(), "Size Base USD Coin Mock Vault");
-    assertEq(baseVault.symbol(), "szBaseUSDCMock");
+    assertEq(baseVault.name(), "Very Liquid Base USD Coin Mock Vault");
+    assertEq(baseVault.symbol(), "vlvBaseUSDCMock");
     assertEq(baseVault.decimals(), erc20Asset.decimals(), 6);
   }
 
@@ -190,8 +190,8 @@ contract BaseVaultTest is BaseTest {
   }
 
   function test_BaseVault_firstDeposit_reverts_when_maxDeposit_is_0() public {
-    string memory name = string.concat("Size Base ", erc20Asset.name(), " Mock Vault");
-    string memory symbol = string.concat("sz", "Base", erc20Asset.symbol(), "Mock");
+    string memory name = string.concat("Very Liquid Base ", erc20Asset.name(), " Mock Vault");
+    string memory symbol = string.concat("vlv", "Base", erc20Asset.symbol(), "Mock");
     address implementation = address(new BaseVaultMockMaxDeposit0());
     uint256 firstDepositAmount = 42e6;
     bytes memory initializationData = abi.encodeCall(BaseVault.initialize, (auth, erc20Asset, name, symbol, address(this), firstDepositAmount));

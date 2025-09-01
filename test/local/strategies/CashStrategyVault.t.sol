@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 
 import {IVault} from "@src/IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
@@ -66,7 +66,7 @@ contract CashStrategyVaultTest is BaseTest {
 
     uint256 pullAmount = 30e6;
     vm.prank(strategist);
-    sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
+    veryLiquidVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
     assertEq(cashStrategyVault.balanceOf(alice), shares);
     assertEq(cashStrategyVault.totalAssets(), totalAssetsBefore + depositAmount - pullAmount);
     assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalanceBefore + depositAmount - pullAmount);
@@ -91,7 +91,7 @@ contract CashStrategyVaultTest is BaseTest {
 
     uint256 pullAmount = 30e6;
     vm.prank(strategist);
-    sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0.01e18);
+    veryLiquidVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0.01e18);
     assertEq(cashStrategyVault.balanceOf(alice), shares);
     assertEq(cashStrategyVault.totalAssets(), totalAssetsBefore + depositAmount - pullAmount);
     assertEq(erc20Asset.balanceOf(address(cashStrategyVault)), initialBalanceBefore + depositAmount - pullAmount);
@@ -176,19 +176,19 @@ contract CashStrategyVaultTest is BaseTest {
 
     vm.prank(strategist);
     vm.expectRevert();
-    sizeMetaVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
+    veryLiquidVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
   }
 
   function test_CashStrategyVault_maxWithdraw_maxRedeem() public {
-    IVault[] memory strategies = sizeMetaVault.strategies();
+    IVault[] memory strategies = veryLiquidVault.strategies();
 
-    uint256 assetsBefore = cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(sizeMetaVault)));
+    uint256 assetsBefore = cashStrategyVault.convertToAssets(cashStrategyVault.balanceOf(address(veryLiquidVault)));
     _deposit(alice, cashStrategyVault, 100e6);
-    _deposit(bob, sizeMetaVault, 30e6);
+    _deposit(bob, veryLiquidVault, 30e6);
 
     uint256 depositedToCash = strategies[0] == cashStrategyVault ? 30e6 : 0;
 
-    assertEq(cashStrategyVault.maxWithdraw(address(sizeMetaVault)), assetsBefore + depositedToCash);
-    assertEq(cashStrategyVault.maxRedeem(address(sizeMetaVault)), cashStrategyVault.previewRedeem(assetsBefore + depositedToCash));
+    assertEq(cashStrategyVault.maxWithdraw(address(veryLiquidVault)), assetsBefore + depositedToCash);
+    assertEq(cashStrategyVault.maxRedeem(address(veryLiquidVault)), cashStrategyVault.previewRedeem(assetsBefore + depositedToCash));
   }
 }

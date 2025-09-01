@@ -182,7 +182,7 @@
     {
       "hash": "0xcb82db09da197edc288a2c88c88cc57c63c2608d3a03d14d8ff97229877b02c6",
       "transactionType": "CALL",
-      "contractName": "SizeMetaVaultScript",
+      "contractName": "VeryLiquidVaultScript",
       "contractAddress": "0xdae97900d4b184c5d2012dcdb658c008966466dd",
       "function": "deploy(address,address,uint256,address[])",
       "arguments": [

@@ -16,14 +16,14 @@ import {CryticCashStrategyVaultMockScript} from "@script/CryticCashStrategyVault
 
 import {CryticERC4626StrategyVaultMockScript} from "@script/CryticERC4626StrategyVaultMock.s.sol";
 
-import {CryticSizeMetaVaultMockScript} from "@script/CryticSizeMetaVaultMock.s.sol";
+import {CryticVeryLiquidVaultMockScript} from "@script/CryticVeryLiquidVaultMock.s.sol";
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
 import {PoolMockScript} from "@script/PoolMock.s.sol";
-import {SizeMetaVaultScript} from "@script/SizeMetaVault.s.sol";
+import {VeryLiquidVaultScript} from "@script/VeryLiquidVault.s.sol";
 
 import {VaultMockScript} from "@script/VaultMock.s.sol";
 import {Auth} from "@src/Auth.sol";
-import {SizeMetaVault} from "@src/SizeMetaVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {AaveStrategyVault} from "@src/strategies/AaveStrategyVault.sol";
 import {CashStrategyVault} from "@src/strategies/CashStrategyVault.sol";
 
@@ -36,7 +36,7 @@ import {CryticCashStrategyVaultMock} from "@test/mocks/CryticCashStrategyVaultMo
 
 import {CryticERC4626StrategyVaultMock} from "@test/mocks/CryticERC4626StrategyVaultMock.t.sol";
 
-import {CryticSizeMetaVaultMock} from "@test/mocks/CryticSizeMetaVaultMock.t.sol";
+import {CryticVeryLiquidVaultMock} from "@test/mocks/CryticVeryLiquidVaultMock.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 import {USDC} from "@test/mocks/USDC.t.sol";
 
@@ -47,7 +47,7 @@ abstract contract Setup {
   uint256 internal WETH_DEPOSIT_AMOUNT;
 
   AuthScript private authScript;
-  SizeMetaVaultScript private sizeMetaVaultScript;
+  VeryLiquidVaultScript private veryLiquidVaultScript;
   CashStrategyVaultScript private cashStrategyVaultScript;
   CashStrategyVaultScript private cashStrategyVaultScriptWETH;
   AaveStrategyVaultScript private aaveStrategyVaultScript;
@@ -55,12 +55,12 @@ abstract contract Setup {
   CryticCashStrategyVaultMockScript private cryticCashStrategyVaultScript;
   CryticAaveStrategyVaultMockScript private cryticAaveStrategyVaultScript;
   CryticERC4626StrategyVaultMockScript private cryticERC4626StrategyVaultScript;
-  CryticSizeMetaVaultMockScript private cryticSizeMetaVaultMockScript;
+  CryticVeryLiquidVaultMockScript private cryticVeryLiquidVaultMockScript;
   BaseVaultMockScript private baseVaultMockScript;
   PoolMockScript private poolMockScript;
   VaultMockScript private vaultMockScript;
 
-  SizeMetaVault internal sizeMetaVault;
+  VeryLiquidVault internal veryLiquidVault;
   CashStrategyVault internal cashStrategyVault;
   CashStrategyVault internal cashStrategyVaultWETH;
   CryticCashStrategyVaultMock internal cryticCashStrategyVault;
@@ -69,7 +69,7 @@ abstract contract Setup {
   ERC4626StrategyVault internal erc4626StrategyVault;
   CryticERC4626StrategyVaultMock internal cryticERC4626StrategyVault;
   BaseVaultMock internal baseVault;
-  CryticSizeMetaVaultMock internal cryticSizeMetaVault;
+  CryticVeryLiquidVaultMock internal cryticVeryLiquidVault;
   IERC20Metadata internal erc20Asset;
   WETH9 internal weth;
   PoolMock internal pool;
@@ -84,7 +84,7 @@ abstract contract Setup {
     WETH_DEPOSIT_AMOUNT = 0.1e18;
 
     authScript = new AuthScript();
-    sizeMetaVaultScript = new SizeMetaVaultScript();
+    veryLiquidVaultScript = new VeryLiquidVaultScript();
     cashStrategyVaultScript = new CashStrategyVaultScript();
     cashStrategyVaultScriptWETH = new CashStrategyVaultScript();
     aaveStrategyVaultScript = new AaveStrategyVaultScript();
@@ -92,7 +92,7 @@ abstract contract Setup {
     cryticCashStrategyVaultScript = new CryticCashStrategyVaultMockScript();
     cryticAaveStrategyVaultScript = new CryticAaveStrategyVaultMockScript();
     cryticERC4626StrategyVaultScript = new CryticERC4626StrategyVaultMockScript();
-    cryticSizeMetaVaultMockScript = new CryticSizeMetaVaultMockScript();
+    cryticVeryLiquidVaultMockScript = new CryticVeryLiquidVaultMockScript();
     baseVaultMockScript = new BaseVaultMockScript();
     poolMockScript = new PoolMockScript();
     vaultMockScript = new VaultMockScript();
@@ -133,8 +133,8 @@ abstract contract Setup {
     strategies[0] = cryticCashStrategyVault;
     strategies[1] = cryticAaveStrategyVault;
     strategies[2] = cryticERC4626StrategyVault;
-    _mint(admin, address(cryticSizeMetaVaultMockScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
-    cryticSizeMetaVault = cryticSizeMetaVaultMockScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
+    _mint(admin, address(cryticVeryLiquidVaultMockScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
+    cryticVeryLiquidVault = cryticVeryLiquidVaultMockScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
 
     _mint(admin, address(baseVaultMockScript), FIRST_DEPOSIT_AMOUNT);
     baseVault = baseVaultMockScript.deploy(auth, erc20Asset, FIRST_DEPOSIT_AMOUNT);
@@ -143,8 +143,8 @@ abstract contract Setup {
     strategies[0] = cashStrategyVault;
     strategies[1] = aaveStrategyVault;
     strategies[2] = erc4626StrategyVault;
-    _mint(admin, address(sizeMetaVaultScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
-    sizeMetaVault = sizeMetaVaultScript.deploy(auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
+    _mint(admin, address(veryLiquidVaultScript), strategies.length * FIRST_DEPOSIT_AMOUNT + 1);
+    veryLiquidVault = veryLiquidVaultScript.deploy("Test", auth, erc20Asset, strategies.length * FIRST_DEPOSIT_AMOUNT + 1, strategies);
   }
 
   function _mint(address admin, address to, uint256 amount) private {
@@ -161,9 +161,9 @@ abstract contract Setup {
   }
 
   // NOTE: this makes symbolic execution tools have multiple paths to explore
-  function _setupRandomSizeMetaVaultConfiguration(address admin, function(uint256, uint256) returns (uint256) getRandomUint) internal {
-    IVault[] memory strategies = sizeMetaVault.strategies();
-    uint256 totalAssets = sizeMetaVault.totalAssets();
+  function _setupRandomVeryLiquidVaultConfiguration(address admin, function(uint256, uint256) returns (uint256) getRandomUint) internal {
+    IVault[] memory strategies = veryLiquidVault.strategies();
+    uint256 totalAssets = veryLiquidVault.totalAssets();
 
     // Generate target allocations (percentages that sum to totalAssets)
     uint256[] memory targetAllocations = new uint256[](strategies.length);
@@ -173,13 +173,13 @@ abstract contract Setup {
     // Since we start at [totalAssets, 0, 0], we just need to move assets from strategy 0 to others
     for (uint256 i = 1; i < strategies.length; i++) {
       hevm.prank(admin);
-      try sizeMetaVault.rebalance(strategies[0], strategies[i], targetAllocations[i], type(uint256).max) {} catch {}
+      try veryLiquidVault.rebalance(strategies[0], strategies[i], targetAllocations[i], type(uint256).max) {} catch {}
     }
 
     _shuffle(strategies, getRandomUint);
 
     hevm.prank(admin);
-    sizeMetaVault.reorderStrategies(strategies);
+    veryLiquidVault.reorderStrategies(strategies);
   }
 
   function _shuffle(IVault[] memory strategies, function(uint256, uint256) returns (uint256) getRandomUint) private {

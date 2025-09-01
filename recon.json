@@ -234,7 +234,7 @@
     ],
     "separated": true
   },
-  "out/SizeMetaVault.sol/SizeMetaVault.json": {
+  "out/VeryLiquidVault.sol/VeryLiquidVault.json": {
     "functions": [
       {
         "signature": "addStrategy(address)",

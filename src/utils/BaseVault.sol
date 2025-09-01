@@ -25,21 +25,21 @@ import {IVault} from "@src/IVault.sol";
 /// @title BaseVault
 /// @custom:security-contact security@size.credit
 /// @author Size (https://size.credit/)
-/// @notice Abstract base contract for all vaults in the Size Meta Vault system
+/// @notice Abstract base contract for all vaults in the Very Liquid Vault system
 /// @dev Provides common functionality including ERC4626 compliance, access control, and upgradeability
 abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeable, ReentrancyGuardUpgradeableWithViewModifier, PausableUpgradeable, MulticallUpgradeable, UUPSUpgradeable {
   /// @dev Constant representing 100%
   uint256 public constant PERCENT = 1e18;
 
   // STORAGE
-  /// @custom:storage-location erc7201:size.storage.BaseVault
+  /// @custom:storage-location erc7201:vlv.storage.BaseVault
   struct BaseVaultStorage {
     Auth _auth;
     uint256 _totalAssetsCap;
   }
 
-  // keccak256(abi.encode(uint256(keccak256("size.storage.BaseVault")) - 1)) & ~bytes32(uint256(0xff));
-  bytes32 private constant BaseVaultStorageLocation = 0x404a41806115f4e0ed08eb395c0045722d1875ff8794e55da96cf8391291c100;
+  // keccak256(abi.encode(uint256(keccak256("vlv.storage.BaseVault")) - 1)) & ~bytes32(uint256(0xff));
+  bytes32 private constant BaseVaultStorageLocation = 0x83cbba01667a5ddf3820f0a2c4220dbc355a1a788c7094daad71b73a418b0d00;
 
   function _getBaseVaultStorage() private pure returns (BaseVaultStorage storage $) {
     assembly ("memory-safe") {

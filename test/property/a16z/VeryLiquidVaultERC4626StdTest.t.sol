@@ -6,7 +6,7 @@ import {ERC4626Test, IMockERC20} from "@a16z/erc4626-tests/ERC4626.test.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 
-contract SizeMetaVaultERC4626StdTest is ERC4626Test, BaseTest {
+contract VeryLiquidVaultERC4626StdTest is ERC4626Test, BaseTest {
   function setUp() public override(ERC4626Test, BaseTest) {
     super.setUp();
 
@@ -14,12 +14,12 @@ contract SizeMetaVaultERC4626StdTest is ERC4626Test, BaseTest {
     Ownable(address(erc20Asset)).transferOwnership(address(this));
 
     _underlying_ = address(erc20Asset);
-    _vault_ = address(sizeMetaVault);
+    _vault_ = address(veryLiquidVault);
     _delta_ = 0;
     _vaultMayBeEmpty = true;
     _unlimitedAmount = true;
 
-    _setupRandomSizeMetaVaultConfiguration(admin, _getRandomUint);
+    _setupRandomVeryLiquidVaultConfiguration(admin, _getRandomUint);
   }
 
   function setUpYield(ERC4626Test.Init memory init) public override {
