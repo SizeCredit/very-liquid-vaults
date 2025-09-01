@@ -14,7 +14,6 @@ import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 
 import {IVault} from "@src/IVault.sol";
-import {IVault} from "@src/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMockAssetFeeOnDeposit} from "@test/mocks/VaultMockAssetFeeOnDeposit.t.sol";
