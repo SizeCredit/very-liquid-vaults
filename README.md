@@ -97,6 +97,8 @@ Target integrations:
 3. Assets directly sent to the vaults may be lost, with the exception of the `CashStrategyVault`, which accepts them as donations.
 4. The vaults are not compatible with fee-on-transfer assets.
 5. The `ERC4626StrategyVault` cannot be used by vaults that take fees in assets on deposits or withdrawals. All integrated vaults must be strictly ERC-4626 compliant.
+6. `SizeMetaVault`'s `max{Deposit,Withdraw,Mint,Redeem}` functions may experience precision loss when aggregating the maximum values from underlying strategies.
+7. `ERC4626StrategyVault`'s `max{Redeem,Mint}` functions may experience precision loss when converting between the integrated `vault`'s shares, assets, and strategy shares. In particular, this means a user's `balanceOf` may not always be fully `redeem`able, so users should always consult the `max` limits, as specified by ERC-4626.
 
 ### Deployment
 
