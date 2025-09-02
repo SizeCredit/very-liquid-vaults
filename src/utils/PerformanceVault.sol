@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 
@@ -122,27 +120,27 @@ abstract contract PerformanceVault is BaseVault {
   }
 
   // ERC4626 OVERRIDES
-  /// @inheritdoc ERC4626Upgradeable
-  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
-  function deposit(uint256 assets, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  /// @inheritdoc BaseVault
+  /// @dev Prevents reentrancy, mints performance fees
+  function deposit(uint256 assets, address receiver) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.deposit(assets, receiver);
   }
 
-  /// @inheritdoc ERC4626Upgradeable
-  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
-  function mint(uint256 shares, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  /// @inheritdoc BaseVault
+  /// @dev Prevents reentrancy, mints performance fees
+  function mint(uint256 shares, address receiver) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.mint(shares, receiver);
   }
 
-  /// @inheritdoc ERC4626Upgradeable
-  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
-  function withdraw(uint256 assets, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  /// @inheritdoc BaseVault
+  /// @dev Prevents reentrancy, mints performance fees
+  function withdraw(uint256 assets, address receiver, address owner) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.withdraw(assets, receiver, owner);
   }
 
-  /// @inheritdoc ERC4626Upgradeable
-  /// @dev Prevents reentrancy, mints performance fees and emits the vault status
-  function redeem(uint256 shares, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  /// @inheritdoc BaseVault
+  /// @dev Prevents reentrancy, mints performance fees
+  function redeem(uint256 shares, address receiver, address owner) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.redeem(shares, receiver, owner);
   }
 

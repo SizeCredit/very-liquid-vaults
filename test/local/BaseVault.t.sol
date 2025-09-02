@@ -103,7 +103,7 @@ contract BaseVaultTest is BaseTest {
     baseVault.pause();
 
     vm.prank(alice);
-    vm.expectRevert(abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector, alice, amount, 0));
+    vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
     baseVault.deposit(amount, alice);
   }
 
@@ -116,7 +116,7 @@ contract BaseVaultTest is BaseTest {
     auth.pause();
 
     vm.prank(alice);
-    vm.expectRevert(abi.encodeWithSelector(ERC4626Upgradeable.ERC4626ExceededMaxDeposit.selector, alice, amount, 0));
+    vm.expectRevert(abi.encodeWithSelector(PausableUpgradeable.EnforcedPause.selector));
     baseVault.deposit(amount, alice);
 
     vm.prank(admin);
