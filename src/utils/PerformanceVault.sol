@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 
@@ -124,19 +122,19 @@ abstract contract PerformanceVault is BaseVault {
   }
 
   // ERC4626 OVERRIDES
-  function deposit(uint256 assets, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  function deposit(uint256 assets, address receiver) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.deposit(assets, receiver);
   }
 
-  function mint(uint256 shares, address receiver) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  function mint(uint256 shares, address receiver) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.mint(shares, receiver);
   }
 
-  function withdraw(uint256 assets, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  function withdraw(uint256 assets, address receiver, address owner) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.withdraw(assets, receiver, owner);
   }
 
-  function redeem(uint256 shares, address receiver, address owner) public override(ERC4626Upgradeable, IERC4626) nonReentrant notPaused mintPerformanceFee emitVaultStatus returns (uint256) {
+  function redeem(uint256 shares, address receiver, address owner) public override(BaseVault) nonReentrant mintPerformanceFee returns (uint256) {
     return super.redeem(shares, receiver, owner);
   }
 

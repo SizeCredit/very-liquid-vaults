@@ -159,6 +159,22 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   }
 
   // ERC4626 OVERRIDES
+  function deposit(uint256 assets, address receiver) public virtual override(ERC4626Upgradeable, IERC4626) notPaused emitVaultStatus returns (uint256) {
+    return super.deposit(assets, receiver);
+  }
+
+  function mint(uint256 shares, address receiver) public virtual override(ERC4626Upgradeable, IERC4626) notPaused emitVaultStatus returns (uint256) {
+    return super.mint(shares, receiver);
+  }
+
+  function withdraw(uint256 assets, address receiver, address owner) public virtual override(ERC4626Upgradeable, IERC4626) notPaused emitVaultStatus returns (uint256) {
+    return super.withdraw(assets, receiver, owner);
+  }
+
+  function redeem(uint256 shares, address receiver, address owner) public virtual override(ERC4626Upgradeable, IERC4626) notPaused emitVaultStatus returns (uint256) {
+    return super.redeem(shares, receiver, owner);
+  }
+
   /// @notice Deposits assets into the vault
   /// @dev Prevents deposits that would result in 0 shares received
   function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual override {
