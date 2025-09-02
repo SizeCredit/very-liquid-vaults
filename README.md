@@ -98,6 +98,8 @@ Target integrations:
 4. The vaults are not compatible with fee-on-transfer assets.
 5. The `ERC4626StrategyVault` cannot be used by vaults that take fees in assets on deposits or withdrawals. All integrated vaults must be strictly ERC-4626 compliant.
 6. Read-only reentrancy is not fully mitigated because of how contracts are inherited from OpenZeppelin's `openzeppelin-contracts-upgradeable` library. Practically all ERC20 and ERC4626 view functions cannot be guarded with a `nonReentrantView` modifier, since they are used internally in state-changing functions, which themselves are `nonReentrant`. If we applied `nonReentrantView` to public view functions that are used by nonpayable functions, these would revert.
+7. `SizeMetaVault`'s `max{Deposit,Withdraw,Mint,Redeem}` functions may experience precision loss when aggregating the maximum values from underlying strategies.
+8. `ERC4626StrategyVault`'s `max{Redeem,Mint}` functions may experience precision loss when converting between the integrated `vault`'s shares, assets, and strategy shares. In particular, this means a user's `balanceOf` may not always be fully `redeem`able, so users should always consult the `max` limits, as specified by ERC-4626.
 
 ### Deployment
 
