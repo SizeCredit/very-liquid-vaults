@@ -29,7 +29,7 @@ contract ERC4626StrategyVault is NonReentrantVault {
   bytes32 private constant ERC4626StrategyVaultStorageLocation = 0x3b8a0d4803eb57c7c0aa976b144658fb15964621bd947089c2a92f64ff202000;
 
   function _getERC4626StrategyVaultStorage() private pure returns (ERC4626StrategyVaultStorage storage $) {
-    assembly ("memory-safe") {
+    assembly {
       $.slot := ERC4626StrategyVaultStorageLocation
     }
   }

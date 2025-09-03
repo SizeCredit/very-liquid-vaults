@@ -36,7 +36,7 @@ contract VeryLiquidVault is PerformanceVault {
   bytes32 private constant VeryLiquidVaultStorageLocation = 0x851713d8b7886cdb5682ccb4d2dba1bf8cae30c699ce588016da31dab5d7f100;
 
   function _getVeryLiquidVaultStorage() private pure returns (VeryLiquidVaultStorage storage $) {
-    assembly ("memory-safe") {
+    assembly {
       $.slot := VeryLiquidVaultStorageLocation
     }
   }

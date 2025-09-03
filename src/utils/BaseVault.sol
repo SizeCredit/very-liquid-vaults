@@ -42,7 +42,7 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   bytes32 private constant BaseVaultStorageLocation = 0x83cbba01667a5ddf3820f0a2c4220dbc355a1a788c7094daad71b73a418b0d00;
 
   function _getBaseVaultStorage() private pure returns (BaseVaultStorage storage $) {
-    assembly ("memory-safe") {
+    assembly {
       $.slot := BaseVaultStorageLocation
     }
   }
