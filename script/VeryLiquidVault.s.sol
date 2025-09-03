@@ -31,7 +31,7 @@ contract VeryLiquidVaultScript is BaseScript {
     auth = Auth(vm.envAddress("AUTH"));
     asset = IERC20Metadata(vm.envAddress("ASSET"));
     fundingAccount = msg.sender;
-    veryLiquidVaultFirstDepositAmount = vm.envUint("SIZE_META_VAULT_FIRST_DEPOSIT_AMOUNT");
+    veryLiquidVaultFirstDepositAmount = vm.envUint("VERY_LIQUID_VAULT_FIRST_DEPOSIT_AMOUNT");
     address[] memory strategies_ = vm.envAddress("STRATEGIES", ",");
     strategies = new IVault[](strategies_.length);
     for (uint256 i = 0; i < strategies_.length; i++) {
