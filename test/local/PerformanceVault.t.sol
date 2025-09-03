@@ -20,7 +20,7 @@ contract PerformanceVaultTest is BaseTest {
     vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, address(this), DEFAULT_ADMIN_ROLE));
     veryLiquidVault.setPerformanceFeePercent(0.2e18);
 
-    uint256 maxPerformanceFeePercent = veryLiquidVault.MAXIMUM_PERFORMANCE_FEE_PERCENT();
+    uint256 maxPerformanceFeePercent = 0.5e18;
 
     vm.prank(admin);
     vm.expectRevert(abi.encodeWithSelector(PerformanceVault.PerformanceFeePercentTooHigh.selector, 0.7e19, maxPerformanceFeePercent));
@@ -78,6 +78,7 @@ contract PerformanceVaultTest is BaseTest {
     _mint(erc20Asset, address(cashStrategyVault), 300e6);
     assertEq(veryLiquidVault.highWaterMark(), 1e18);
     _deposit(alice, veryLiquidVault, 0);
-    assertEq(veryLiquidVault.highWaterMark(), veryLiquidVault.pps());
+    uint256 pps = veryLiquidVault.totalAssets() * 1e18 / veryLiquidVault.totalSupply();
+    assertEq(veryLiquidVault.highWaterMark(), pps);
   }
 }

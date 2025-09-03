@@ -29,7 +29,7 @@ import {IVault} from "@src/IVault.sol";
 /// @dev Provides common functionality including ERC4626 compliance, access control, and upgradeability
 abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeable, ReentrancyGuardUpgradeableWithViewModifier, PausableUpgradeable, MulticallUpgradeable, UUPSUpgradeable {
   /// @dev Constant representing 100%
-  uint256 public constant PERCENT = 1e18;
+  uint256 internal constant PERCENT = 1e18;
 
   // STORAGE
   /// @custom:storage-location erc7201:vlv.storage.BaseVault
@@ -95,14 +95,14 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   /// @notice Modifier to restrict function access to addresses with specific roles
   /// @dev Reverts if the caller doesn't have the required role
   modifier onlyAuth(bytes32 role) {
-    if (!auth().hasRole(role, msg.sender)) revert IAccessControl.AccessControlUnauthorizedAccount(msg.sender, role);
+    _checkAuthRole(role);
     _;
   }
 
   /// @notice Modifier to ensure the contract is not paused
   /// @dev Checks both local pause state and global pause state from Auth
   modifier notPaused() {
-    if (pausedOrAuthPaused()) revert EnforcedPause();
+    _requireNotPausedAuthNotPaused();
     _;
   }
 
@@ -110,13 +110,29 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   /// @dev Emits the vault status after the function is executed
   modifier emitVaultStatus() {
     _;
-    emit VaultStatus(totalSupply(), totalAssets());
+    _emitVaultStatus();
   }
 
   // FUNCTIONS
   /// @notice Authorizes contract upgrades
   /// @dev Only addresses with DEFAULT_ADMIN_ROLE can authorize upgrades
   function _authorizeUpgrade(address newImplementation) internal override onlyAuth(DEFAULT_ADMIN_ROLE) {}
+
+  /// @notice Checks that the caller has the required role
+  /// @dev Reverts if the caller doesn't have the required role
+  function _checkAuthRole(bytes32 role) internal view {
+    if (!auth().hasRole(role, _msgSender())) revert IAccessControl.AccessControlUnauthorizedAccount(_msgSender(), role);
+  }
+
+  /// @notice Emits the vault status
+  /// @dev Emits the vault status after the function is executed
+  function _emitVaultStatus() internal {
+    emit VaultStatus(totalSupply(), totalAssets());
+  }
+
+  function _requireNotPausedAuthNotPaused() internal view {
+    if (_pausedOrAuthPaused()) revert EnforcedPause();
+  }
 
   /// @notice Pauses the vault
   /// @dev Only addresses with GUARDIAN_ROLE can pause the vault
@@ -159,7 +175,7 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
 
   /// @notice Returns true if the vault is paused
   /// @dev Checks both local pause state and global pause state from Auth
-  function pausedOrAuthPaused() public view returns (bool) {
+  function _pausedOrAuthPaused() private view returns (bool) {
     return paused() || auth().paused();
   }
 
@@ -225,22 +241,22 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
 
   /// @inheritdoc ERC4626Upgradeable
   function maxDeposit(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-    return pausedOrAuthPaused() ? 0 : _totalAssetsCap() == type(uint256).max ? super.maxDeposit(receiver) : _maxDeposit();
+    return _pausedOrAuthPaused() ? 0 : _totalAssetsCap() == type(uint256).max ? super.maxDeposit(receiver) : _maxDeposit();
   }
 
   /// @inheritdoc ERC4626Upgradeable
   function maxMint(address receiver) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-    return pausedOrAuthPaused() ? 0 : _totalAssetsCap() == type(uint256).max ? super.maxMint(receiver) : _convertToShares(_maxDeposit(), Math.Rounding.Floor);
+    return _pausedOrAuthPaused() ? 0 : _totalAssetsCap() == type(uint256).max ? super.maxMint(receiver) : _convertToShares(_maxDeposit(), Math.Rounding.Floor);
   }
 
   /// @inheritdoc ERC4626Upgradeable
   function maxWithdraw(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-    return pausedOrAuthPaused() ? 0 : super.maxWithdraw(owner);
+    return _pausedOrAuthPaused() ? 0 : super.maxWithdraw(owner);
   }
 
   /// @inheritdoc ERC4626Upgradeable
   function maxRedeem(address owner) public view virtual override(ERC4626Upgradeable, IERC4626) returns (uint256) {
-    return pausedOrAuthPaused() ? 0 : super.maxRedeem(owner);
+    return _pausedOrAuthPaused() ? 0 : super.maxRedeem(owner);
   }
 
   /// @inheritdoc ERC4626Upgradeable
@@ -273,12 +289,5 @@ abstract contract BaseVault is IVault, ERC4626Upgradeable, ERC20PermitUpgradeabl
   /// @notice Internal function to return the total assets cap
   function _totalAssetsCap() private view returns (uint256) {
     return _getBaseVaultStorage()._totalAssetsCap;
-  }
-
-  /// @notice Returns the price per share
-  function pps() public view returns (uint256) {
-    uint256 totalAssets_ = totalAssets();
-    uint256 totalSupply_ = totalSupply();
-    return totalSupply_ > 0 ? Math.mulDiv(totalAssets_, PERCENT, totalSupply_) : PERCENT;
   }
 }

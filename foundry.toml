@@ -44,4 +44,8 @@
   hex_underscore = "remove"
   wrap_comments = false
 
+[lint]
+ignore = ["test/**/*", "script/**/*"]
+exclude_lints = ["mixed-case-variable", "mixed-case-function", "pascal-case-struct", "screaming-snake-case-immutable", "screaming-snake-case-const", "asm-keccak256"]
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

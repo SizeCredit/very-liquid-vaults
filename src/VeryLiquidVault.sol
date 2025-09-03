@@ -21,9 +21,9 @@ contract VeryLiquidVault is PerformanceVault {
   using SafeERC20 for IERC20;
 
   /// @dev The maximum number of strategies that can be added to the vault
-  uint256 public constant MAX_STRATEGIES = 10;
+  uint256 private constant MAX_STRATEGIES = 10;
   /// @dev The default maximum slippage percent for rebalancing in PERCENT
-  uint256 public constant DEFAULT_MAX_SLIPPAGE_PERCENT = 0.01e18;
+  uint256 private constant DEFAULT_MAX_SLIPPAGE_PERCENT = 0.01e18;
 
   // STORAGE
   /// @custom:storage-location erc7201:vlv.storage.VeryLiquidVault

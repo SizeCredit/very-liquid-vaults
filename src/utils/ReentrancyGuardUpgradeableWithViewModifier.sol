@@ -6,7 +6,11 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin-upgradeable/contracts/ut
 abstract contract ReentrancyGuardUpgradeableWithViewModifier is ReentrancyGuardUpgradeable {
   /// @dev See https://github.com/OpenZeppelin/openzeppelin-contracts/pull/5800
   modifier nonReentrantView() {
-    if (_reentrancyGuardEntered()) revert ReentrancyGuardReentrantCall();
+    _nonReentrantBeforeView();
     _;
+  }
+
+  function _nonReentrantBeforeView() private view {
+    if (_reentrancyGuardEntered()) revert ReentrancyGuardReentrantCall();
   }
 }

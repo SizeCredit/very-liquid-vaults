@@ -19,7 +19,4 @@ interface IVault is IERC4626 {
   /// @dev The vault's totalAssets can get higher than the cap in case of donations, accrued yield, etc.
   /// @return The maximum totalAssets allowed in the vault
   function totalAssetsCap() external view returns (uint256);
-
-  /// @notice Returns the price per share
-  function pps() external view returns (uint256);
 }

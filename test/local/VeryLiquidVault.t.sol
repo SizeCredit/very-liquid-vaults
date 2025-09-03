@@ -599,7 +599,7 @@ contract VeryLiquidVaultTest is BaseTest {
 
   function test_VeryLiquidVault_addStrategy_max_strategies_exceeded() public {
     ERC4626StrategyVaultScript deployer = new ERC4626StrategyVaultScript();
-    uint256 maxStrategies = veryLiquidVault.MAX_STRATEGIES();
+    uint256 maxStrategies = 10;
     uint256 currentStrategiesCount = veryLiquidVault.strategiesCount();
     uint256 length = maxStrategies * 2;
     for (uint256 i = currentStrategiesCount; i <= length; i++) {

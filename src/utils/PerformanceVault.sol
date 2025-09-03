@@ -11,7 +11,7 @@ import {BaseVault} from "@src/utils/BaseVault.sol";
 /// @dev Reference https://docs.dhedge.org/dhedge-protocol/vault-fees/performance-fees
 abstract contract PerformanceVault is BaseVault {
   /// @dev Constant representing the maximum performance fee in PERCENT
-  uint256 public constant MAXIMUM_PERFORMANCE_FEE_PERCENT = 0.5e18;
+  uint256 private constant MAXIMUM_PERFORMANCE_FEE_PERCENT = 0.5e18;
 
   // STORAGE
   /// @custom:storage-location erc7201:vlv.storage.PerformanceVault
@@ -66,7 +66,7 @@ abstract contract PerformanceVault is BaseVault {
     PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
     uint256 performanceFeePercentBefore = $._performanceFeePercent;
     uint256 highWaterMarkBefore = $._highWaterMark;
-    uint256 currentPPS = pps();
+    uint256 currentPPS = _pps();
     // slither-disable-next-line incorrect-equality
     if (performanceFeePercentBefore == 0 && performanceFeePercent_ > 0 && highWaterMarkBefore < currentPPS) _setHighWaterMark(currentPPS);
 
@@ -85,6 +85,13 @@ abstract contract PerformanceVault is BaseVault {
     emit FeeRecipientSet(feeRecipientBefore, feeRecipient_);
   }
 
+  /// @notice Returns the price per share
+  function _pps() private view returns (uint256) {
+    uint256 totalAssets_ = totalAssets();
+    uint256 totalSupply_ = totalSupply();
+    return totalSupply_ > 0 ? Math.mulDiv(totalAssets_, PERCENT, totalSupply_) : PERCENT;
+  }
+
   /// @notice Mints performance fees if applicable
   /// @dev Using `convertToShares(feeShares)` would not be correct because once those shares are minted, the PPS changes,
   ///        and the asset value of the minted shares is different to feeAssets.
@@ -94,7 +101,7 @@ abstract contract PerformanceVault is BaseVault {
     PerformanceVaultStorage storage $ = _getPerformanceVaultStorage();
     if ($._performanceFeePercent == 0) return;
 
-    uint256 currentPPS = pps();
+    uint256 currentPPS = _pps();
     uint256 highWaterMarkBefore = $._highWaterMark;
     if (currentPPS > highWaterMarkBefore) {
       uint256 profitPerSharePercent = currentPPS - highWaterMarkBefore;
@@ -104,7 +111,7 @@ abstract contract PerformanceVault is BaseVault {
 
       if (feeShares > 0) {
         _mint($._feeRecipient, feeShares);
-        _setHighWaterMark(pps());
+        _setHighWaterMark(_pps());
         emit PerformanceFeeMinted($._feeRecipient, feeShares, feeAssets);
       }
     }
