@@ -25,14 +25,14 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 
 Target deployments:
 
-| Network | Contract | Role | Address |
-|---------|----------|------|---------|
-| Ethereum mainnet | TimelockController | DEFAULT_ADMIN_ROLE | [0x0861E983a887B4C99bE71a1135216F3dB6594D64](https://etherscan.io/address/0x0861E983a887B4C99bE71a1135216F3dB6594D64) |
-| Ethereum mainnet | TimelockController | VAULT_MANAGER_ROLE | [0xEE1b0A8bF2483C466301b82ccb202683FcaC3517](https://etherscan.io/address/0xEE1b0A8bF2483C466301b82ccb202683FcaC3517) |
-| Ethereum mainnet | Auth | - | - |
-| Ethereum mainnet | CashStrategyVault | - | - |
-| Base mainnet | TimelockController | DEFAULT_ADMIN_ROLE | [0x0861E983a887B4C99bE71a1135216F3dB6594D64](https://basescan.org/address/0x0861E983a887B4C99bE71a1135216F3dB6594D64) |
-| Base mainnet | TimelockController | VAULT_MANAGER_ROLE | [0xEE1b0A8bF2483C466301b82ccb202683FcaC3517](https://basescan.org/address/0xEE1b0A8bF2483C466301b82ccb202683FcaC3517) |
+| Network | Contract | Address |
+|---------|----------|---------|
+| Ethereum | TimelockController (DEFAULT_ADMIN_ROLE) | |
+| Ethereum | TimelockController (VAULT_MANAGER_ROLE) | |
+| Base | TimelockController (DEFAULT_ADMIN_ROLE) | [0x220d1165798AC86BD70D987aDfc9E5FF8A317363](https://basescan.org/address/0x220d1165798AC86BD70D987aDfc9E5FF8A317363) |
+| Base | TimelockController (VAULT_MANAGER_ROLE) | [0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e](https://basescan.org/address/0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e) |
+| Base | Auth | - |
+| Base | CashStrategyVault | - |
 
 ## Key Features
 

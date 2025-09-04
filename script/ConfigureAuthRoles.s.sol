@@ -14,8 +14,8 @@ contract ConfigureAuthRolesScript is Script {
 
     function setUp() public {
         auth = Auth(vm.envAddress("AUTH"));
-        timelockController_DEFAULT_ADMIN_ROLE = TimelockControllerEnumerable(payable(vm.envAddress("TIMELOCK_DEFAULT_ADMIN_ROLE")));
-        timelockController_VAULT_MANAGER_ROLE = TimelockControllerEnumerable(payable(vm.envAddress("TIMELOCK_VAULT_MANAGER_ROLE")));
+        timelockController_DEFAULT_ADMIN_ROLE = TimelockControllerEnumerable(payable(vm.envAddress("TIMELOCK_CONTROLLER_DEFAULT_ADMIN_ROLE")));
+        timelockController_VAULT_MANAGER_ROLE = TimelockControllerEnumerable(payable(vm.envAddress("TIMELOCK_CONTROLLER_VAULT_MANAGER_ROLE")));
         guardians = vm.envAddress("GUARDIANS", ",");
         strategists = vm.envAddress("STRATEGISTS", ",");
     }
