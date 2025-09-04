@@ -26,8 +26,8 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 Target deployments:
 
 - Ethereum mainnet
-  - TimelockController (DEFAULT_ADMIN_ROLE): 
-  - TimelockController (VAULT_MANAGER_ROLE): 
+  - TimelockController (DEFAULT_ADMIN_ROLE): [0x0861E983a887B4C99bE71a1135216F3dB6594D64](https://etherscan.io/address/0x0861E983a887B4C99bE71a1135216F3dB6594D64)
+  - TimelockController (VAULT_MANAGER_ROLE): [0xEE1b0A8bF2483C466301b82ccb202683FcaC3517](https://etherscan.io/address/0xEE1b0A8bF2483C466301b82ccb202683FcaC3517)
 - Base mainnet
   - TimelockController (DEFAULT_ADMIN_ROLE): [0x0861E983a887B4C99bE71a1135216F3dB6594D64](https://basescan.org/address/0x0861E983a887B4C99bE71a1135216F3dB6594D64)
   - TimelockController (VAULT_MANAGER_ROLE): [0xEE1b0A8bF2483C466301b82ccb202683FcaC3517](https://basescan.org/address/0xEE1b0A8bF2483C466301b82ccb202683FcaC3517)
