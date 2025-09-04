@@ -23,16 +23,28 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 
 ## Deployments
 
-Target deployments:
+#### Ethereum
 
-| Network | Contract | Address |
-|---------|----------|---------|
-| Ethereum | TimelockController (DEFAULT_ADMIN_ROLE) | |
-| Ethereum | TimelockController (VAULT_MANAGER_ROLE) | |
-| Base | TimelockController (DEFAULT_ADMIN_ROLE) | [0x220d1165798AC86BD70D987aDfc9E5FF8A317363](https://basescan.org/address/0x220d1165798AC86BD70D987aDfc9E5FF8A317363) |
-| Base | TimelockController (VAULT_MANAGER_ROLE) | [0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e](https://basescan.org/address/0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e) |
-| Base | Auth | - |
-| Base | CashStrategyVault | - |
+| Contract | Address |
+|----------|---------|
+| TimelockController (DEFAULT_ADMIN_ROLE) | |
+| TimelockController (VAULT_MANAGER_ROLE) | |
+
+
+#### Base
+
+| Contract | Address |
+|----------|---------|
+| TimelockController (DEFAULT_ADMIN_ROLE) | [0x220d1165798AC86BD70D987aDfc9E5FF8A317363](https://basescan.org/address/0x220d1165798AC86BD70D987aDfc9E5FF8A317363) |
+| TimelockController (VAULT_MANAGER_ROLE) | [0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e](https://basescan.org/address/0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e) |
+| Auth | [0xB5294A791c37DFdc2228FACEd7dCE8EFCEb14B84](https://basescan.org/address/0xB5294A791c37DFdc2228FACEd7dCE8EFCEb14B84) |
+| CashStrategyVault | [0xe822Cb00dd72a2278F623b82D0234b15241bcFD9](https://basescan.org/address/0xe822Cb00dd72a2278F623b82D0234b15241bcFD9) |
+| AaveStrategyVault | [0x63954A96A4e77A96cf78C3A4959c45123cdA5de1](https://basescan.org/address/0x63954A96A4e77A96cf78C3A4959c45123cdA5de1) |
+| ERC4626StrategyVault (Morpho/Spark) | [0x930D8350ff644114d9fc29D820228ACd0cC719ed](https://basescan.org/address/0x930D8350ff644114d9fc29D820228ACd0cC719ed) |
+| ERC4626StrategyVault (Morpho/Gauntlet Prime) | [0x40AEb7c4c392f90b37E0ff0caC005FA7804653Ec](https://basescan.org/address/0x40AEb7c4c392f90b37E0ff0caC005FA7804653Ec) |
+| ERC4626StrategyVault (Morpho/Moonwell Flagship) | [0xddED8eaB321803a3c2e836cAADD54339f4CDD5d1](https://basescan.org/address/0xddED8eaB321803a3c2e836cAADD54339f4CDD5d1) |
+| ERC4626StrategyVault (Morpho/Steakhouse) | [0x5a33c8517f4DDD3939a87fEAaaAaF570a542D2aD](https://basescan.org/address/0x5a33c8517f4DDD3939a87fEAaaAaF570a542D2aD) |
+| VeryLiquidVault (Core) | [0xf4D43A8570Dad86595fc079c633927aa936264F4](https://basescan.org/address/0xf4D43A8570Dad86595fc079c633927aa936264F4) |
 
 ## Key Features
 
