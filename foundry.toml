@@ -29,8 +29,12 @@
   base = "https://base-mainnet.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
   base_sepolia = "https://base-sepolia.g.alchemy.com/v2/${API_KEY_ALCHEMY}"
 
+[fmt]
+  sort_imports = true
+  line_length = 120
+
 [lint]
-ignore = ["test/**/*", "script/**/*"]
-exclude_lints = ["mixed-case-variable", "mixed-case-function", "pascal-case-struct", "screaming-snake-case-immutable", "screaming-snake-case-const", "asm-keccak256"]
+  ignore = ["test/**/*", "script/**/*"]
+  exclude_lints = ["mixed-case-variable", "mixed-case-function", "pascal-case-struct", "screaming-snake-case-immutable", "screaming-snake-case-const", "asm-keccak256"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

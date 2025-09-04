@@ -2,7 +2,7 @@
 pragma solidity 0.8.26;
 
 import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
-import {DEFAULT_ADMIN_ROLE, Auth} from "@src/Auth.sol";
+import {Auth, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract ConfigureAuthRolesScript is Script {
@@ -43,7 +43,8 @@ contract ConfigureAuthRolesScript is Script {
 
         // Check if deployer does not have DEFAULT_ADMIN_ROLE after configuration
         require(
-            !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Deployer DOES NOT have DEFAULT_ADMIN_ROLE after configuration"
+            !auth.hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Deployer DOES NOT have DEFAULT_ADMIN_ROLE after configuration"
         );
 
         vm.stopBroadcast();

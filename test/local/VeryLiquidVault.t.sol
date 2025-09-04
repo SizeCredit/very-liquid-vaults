@@ -10,7 +10,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
 import {Auth} from "@src/Auth.sol";
-import {VeryLiquidVault, VERSION} from "@src/VeryLiquidVault.sol";
+import {VERSION, VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 
 import {IVault} from "@src/IVault.sol";
