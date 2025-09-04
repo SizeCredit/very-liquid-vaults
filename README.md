@@ -110,7 +110,7 @@ export ADMIN_MULTISIG=XXX
 export VAULT_MANAGER_MULTISIG=XXX
 export GUARDIANS=XXX
 export STRATEGISTS=XXX
-forge script script/TimelockControllers.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
+forge script script/TimelockControllerEnumerables.s.sol --rpc-url $RPC_URL --gas-limit 30000000 --sender $DEPLOYER_ADDRESS --account $DEPLOYER_ACCOUNT --verify -vvvvv [--slow]
 export TIMELOCK_DEFAULT_ADMIN_ROLE=XXX
 export TIMELOCK_VAULT_MANAGER_ROLE=XXX
 export ADMIN=$DEPLOYER_ADDRESS
