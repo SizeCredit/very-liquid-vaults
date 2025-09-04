@@ -6,21 +6,21 @@ import {Auth} from "@src/Auth.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract AuthScript is Script {
-  address admin;
+    address admin;
 
-  function setUp() public {
-    admin = vm.envAddress("ADMIN");
-  }
+    function setUp() public {
+        admin = vm.envAddress("ADMIN");
+    }
 
-  function run() public {
-    vm.startBroadcast();
+    function run() public {
+        vm.startBroadcast();
 
-    console.log("Auth", address(deploy(admin)));
+        console.log("Auth", address(deploy(admin)));
 
-    vm.stopBroadcast();
-  }
+        vm.stopBroadcast();
+    }
 
-  function deploy(address admin_) public returns (Auth auth) {
-    return Auth(address(new ERC1967Proxy(address(new Auth()), abi.encodeCall(Auth.initialize, (admin_)))));
-  }
+    function deploy(address admin_) public returns (Auth auth) {
+        return Auth(address(new ERC1967Proxy(address(new Auth()), abi.encodeCall(Auth.initialize, (admin_)))));
+    }
 }

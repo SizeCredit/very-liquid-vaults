@@ -11,28 +11,28 @@ import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ForkTest} from "@test/fork/ForkTest.t.sol";
 
 contract VeryLiquidVaultForkTest is ForkTest {
-  using SafeERC20 for IERC20Metadata;
+    using SafeERC20 for IERC20Metadata;
 
-  function testFork_VeryLiquidVault_deposit_withdraw_with_interest() public {
-    uint256 amount = 10 * 10 ** erc20Asset.decimals();
+    function testFork_VeryLiquidVault_deposit_withdraw_with_interest() public {
+        uint256 amount = 10 * 10 ** erc20Asset.decimals();
 
-    _mint(erc20Asset, alice, amount);
-    _approve(alice, erc20Asset, address(veryLiquidVault), amount);
+        _mint(erc20Asset, alice, amount);
+        _approve(alice, erc20Asset, address(veryLiquidVault), amount);
 
-    vm.prank(alice);
-    veryLiquidVault.deposit(amount, alice);
+        vm.prank(alice);
+        veryLiquidVault.deposit(amount, alice);
 
-    vm.prank(admin);
-    veryLiquidVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount / 3, 1e18);
-    vm.prank(admin);
-    veryLiquidVault.rebalance(cashStrategyVault, aaveStrategyVault, amount / 3, 1e18);
+        vm.prank(admin);
+        veryLiquidVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount / 3, 1e18);
+        vm.prank(admin);
+        veryLiquidVault.rebalance(cashStrategyVault, aaveStrategyVault, amount / 3, 1e18);
 
-    vm.warp(block.timestamp + 1 weeks);
+        vm.warp(block.timestamp + 1 weeks);
 
-    uint256 maxRedeem = veryLiquidVault.maxRedeem(alice);
-    vm.prank(alice);
-    uint256 redeemedAssets = veryLiquidVault.redeem(maxRedeem, alice, alice);
+        uint256 maxRedeem = veryLiquidVault.maxRedeem(alice);
+        vm.prank(alice);
+        uint256 redeemedAssets = veryLiquidVault.redeem(maxRedeem, alice, alice);
 
-    assertGt(redeemedAssets, amount);
-  }
+        assertGt(redeemedAssets, amount);
+    }
 }

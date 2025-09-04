@@ -7,18 +7,18 @@ import {PropertiesSpecifications} from "@test/property/PropertiesSpecifications.
 import {Ghosts} from "@test/recon/Ghosts.t.sol";
 
 abstract contract Properties is Ghosts, Asserts, PropertiesSpecifications {
-  function property_SOLVENCY_01() public {
-    address[] memory _actors = _getActors();
-    uint256 assets = 0;
-    for (uint256 i = 0; i < _actors.length; i++) {
-      address _actor = _actors[i];
-      uint256 balanceOf = erc20Asset.balanceOf(_actor);
-      assets += veryLiquidVault.convertToAssets(balanceOf);
+    function property_SOLVENCY_01() public {
+        address[] memory _actors = _getActors();
+        uint256 assets = 0;
+        for (uint256 i = 0; i < _actors.length; i++) {
+            address _actor = _actors[i];
+            uint256 balanceOf = erc20Asset.balanceOf(_actor);
+            assets += veryLiquidVault.convertToAssets(balanceOf);
+        }
+        lte(assets, veryLiquidVault.totalAssets(), SOLVENCY_01);
     }
-    lte(assets, veryLiquidVault.totalAssets(), SOLVENCY_01);
-  }
 
-  function property_STRATEGY_02() public {
-    gt(veryLiquidVault.strategiesCount(), 0, STRATEGY_02);
-  }
+    function property_STRATEGY_02() public {
+        gt(veryLiquidVault.strategiesCount(), 0, STRATEGY_02);
+    }
 }

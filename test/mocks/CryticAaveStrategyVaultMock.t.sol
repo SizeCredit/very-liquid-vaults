@@ -11,18 +11,18 @@ import {IERC20MintBurn} from "@test/mocks/IERC20MintBurn.t.sol";
 import {PoolMock} from "@test/mocks/PoolMock.t.sol";
 
 contract CryticAaveStrategyVaultMock is AaveStrategyVault, CryticIERC4626Internal {
-  function recognizeProfit(uint256 profit) external override {
-    address owner = Ownable(asset()).owner();
-    vm.prank(owner);
-    IERC20MintBurn(asset()).mint(address(aToken()), profit);
-    uint256 balance = aToken().balanceOf(asset());
-    vm.prank(owner);
-    PoolMock(address(pool())).setLiquidityIndex(asset(), (balance + profit) * 1e27 / balance);
-  }
+    function recognizeProfit(uint256 profit) external override {
+        address owner = Ownable(asset()).owner();
+        vm.prank(owner);
+        IERC20MintBurn(asset()).mint(address(aToken()), profit);
+        uint256 balance = aToken().balanceOf(asset());
+        vm.prank(owner);
+        PoolMock(address(pool())).setLiquidityIndex(asset(), (balance + profit) * 1e27 / balance);
+    }
 
-  function recognizeLoss(uint256 loss) external override {
-    address owner = Ownable(asset()).owner();
-    vm.prank(owner);
-    IERC20MintBurn(asset()).burn(address(aToken()), loss);
-  }
+    function recognizeLoss(uint256 loss) external override {
+        address owner = Ownable(asset()).owner();
+        vm.prank(owner);
+        IERC20MintBurn(asset()).burn(address(aToken()), loss);
+    }
 }

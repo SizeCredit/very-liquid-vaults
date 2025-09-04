@@ -9,28 +9,38 @@ import {BaseVault} from "@src/utils/BaseVault.sol";
 /// @notice A vault that is non-reentrant
 /// @dev Extends BaseVault to make it non-reentrant
 abstract contract NonReentrantVault is BaseVault {
-  // ERC4626 OVERRIDES
-  /// @inheritdoc BaseVault
-  /// @dev Prevents reentrancy
-  function deposit(uint256 assets, address receiver) public override(BaseVault) nonReentrant returns (uint256) {
-    return super.deposit(assets, receiver);
-  }
+    // ERC4626 OVERRIDES
+    /// @inheritdoc BaseVault
+    /// @dev Prevents reentrancy
+    function deposit(uint256 assets, address receiver) public override(BaseVault) nonReentrant returns (uint256) {
+        return super.deposit(assets, receiver);
+    }
 
-  /// @inheritdoc BaseVault
-  /// @dev Prevents reentrancy
-  function mint(uint256 shares, address receiver) public override(BaseVault) nonReentrant returns (uint256) {
-    return super.mint(shares, receiver);
-  }
+    /// @inheritdoc BaseVault
+    /// @dev Prevents reentrancy
+    function mint(uint256 shares, address receiver) public override(BaseVault) nonReentrant returns (uint256) {
+        return super.mint(shares, receiver);
+    }
 
-  /// @inheritdoc BaseVault
-  /// @dev Prevents reentrancy
-  function withdraw(uint256 assets, address receiver, address owner) public override(BaseVault) nonReentrant returns (uint256) {
-    return super.withdraw(assets, receiver, owner);
-  }
+    /// @inheritdoc BaseVault
+    /// @dev Prevents reentrancy
+    function withdraw(uint256 assets, address receiver, address owner)
+        public
+        override(BaseVault)
+        nonReentrant
+        returns (uint256)
+    {
+        return super.withdraw(assets, receiver, owner);
+    }
 
-  /// @inheritdoc BaseVault
-  /// @dev Prevents reentrancy
-  function redeem(uint256 shares, address receiver, address owner) public override(BaseVault) nonReentrant returns (uint256) {
-    return super.redeem(shares, receiver, owner);
-  }
+    /// @inheritdoc BaseVault
+    /// @dev Prevents reentrancy
+    function redeem(uint256 shares, address receiver, address owner)
+        public
+        override(BaseVault)
+        nonReentrant
+        returns (uint256)
+    {
+        return super.redeem(shares, receiver, owner);
+    }
 }

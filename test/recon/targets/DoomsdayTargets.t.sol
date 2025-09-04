@@ -11,11 +11,11 @@ import {vm} from "@chimera/Hevm.sol";
 import {Panic} from "@recon/Panic.sol";
 
 abstract contract DoomsdayTargets is BaseTargetFunctions, Properties {
-  /// Makes a handler have no side effects
-  /// The fuzzer will call this anyway, and because it reverts it will be removed from shrinking
-  /// Replace the "withGhosts" with "stateless" to make the code clean
-  modifier stateless() {
-    _;
-    revert("stateless");
-  }
+    /// Makes a handler have no side effects
+    /// The fuzzer will call this anyway, and because it reverts it will be removed from shrinking
+    /// Replace the "withGhosts" with "stateless" to make the code clean
+    modifier stateless() {
+        _;
+        revert("stateless");
+    }
 }

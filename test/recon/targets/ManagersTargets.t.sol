@@ -13,41 +13,41 @@ import {MockERC20} from "@recon/MockERC20.sol";
 // Once properly standardized, managers will expose these by default
 // Keeping them out makes your project more custom
 abstract contract ManagersTargets is BaseTargetFunctions, Properties {
-  // == ACTOR HANDLERS == //
+    // == ACTOR HANDLERS == //
 
-  /// @dev Start acting as another actor
-  function switchActor(uint256 entropy) public {
-    _switchActor(entropy);
-  }
+    /// @dev Start acting as another actor
+    function switchActor(uint256 entropy) public {
+        _switchActor(entropy);
+    }
 
-  // /// @dev Starts using a new asset
-  // function switch_asset(uint256 entropy) public {
-  //     _switchAsset(entropy);
-  // }
+    // /// @dev Starts using a new asset
+    // function switch_asset(uint256 entropy) public {
+    //     _switchAsset(entropy);
+    // }
 
-  // /// @dev Deploy a new token and add it to the list of assets, then set it as the current asset
-  // function add_new_asset(uint8 decimals) public returns (address) {
-  //     address newAsset = _newAsset(decimals);
-  //     return newAsset;
-  // }
+    // /// @dev Deploy a new token and add it to the list of assets, then set it as the current asset
+    // function add_new_asset(uint8 decimals) public returns (address) {
+    //     address newAsset = _newAsset(decimals);
+    //     return newAsset;
+    // }
 
-  /// === GHOST UPDATING HANDLERS ===///
-  /// We `updateGhosts` cause you never know (e.g. donations)
-  /// If you don't want to track donations, remove the `updateGhosts`
+    /// === GHOST UPDATING HANDLERS ===///
+    /// We `updateGhosts` cause you never know (e.g. donations)
+    /// If you don't want to track donations, remove the `updateGhosts`
 
-  /// @dev Approve to arbitrary address, uses Actor by default
-  /// NOTE: You're almost always better off setting approvals in `Setup`
-  function asset_approve(address to, uint128 amt) public updateGhosts asActor {
-    MockERC20(_getAsset()).approve(to, amt);
-  }
+    /// @dev Approve to arbitrary address, uses Actor by default
+    /// NOTE: You're almost always better off setting approvals in `Setup`
+    function asset_approve(address to, uint128 amt) public updateGhosts asActor {
+        MockERC20(_getAsset()).approve(to, amt);
+    }
 
-  /// @dev Mint to arbitrary address
-  function asset_mint(address to, uint128 amt) public updateGhosts asActor {
-    MockERC20(_getAsset()).mint(to, amt);
-  }
+    /// @dev Mint to arbitrary address
+    function asset_mint(address to, uint128 amt) public updateGhosts asActor {
+        MockERC20(_getAsset()).mint(to, amt);
+    }
 
-  /// @dev Burn from arbitrary address
-  function asset_burn(address from, uint128 amt) public updateGhosts asActor {
-    MockERC20(_getAsset()).burn(from, amt);
-  }
+    /// @dev Burn from arbitrary address
+    function asset_burn(address from, uint128 amt) public updateGhosts asActor {
+        MockERC20(_getAsset()).burn(from, amt);
+    }
 }
