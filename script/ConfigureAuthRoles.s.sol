@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {TimelockController} from "@openzeppelin/contracts/governance/TimelockController.sol";
-import {Auth, DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
+import {TimelockControllerEnumerable} from "@openzeppelin-community-contracts/contracts/governance/TimelockControllerEnumerable.sol";
+import {Auth, DEFAULT_ADMIN_ROLE, VAULT_MANAGER_ROLE, STRATEGIST_ROLE, GUARDIAN_ROLE} from "@src/Auth.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract ConfigureAuthRolesScript is Script {
     Auth auth;
-    TimelockController timelockController_DEFAULT_ADMIN_ROLE;
-    TimelockController timelockController_VAULT_MANAGER_ROLE;
+    TimelockControllerEnumerable timelockController_DEFAULT_ADMIN_ROLE;
+    TimelockControllerEnumerable timelockController_VAULT_MANAGER_ROLE;
     address[] guardians;
     address[] strategists;
 
     function setUp() public {
-        auth = vm.envAddress("AUTH");
-        timelockController_DEFAULT_ADMIN_ROLE = vm.envAddress("TIMELOCK_DEFAULT_ADMIN_ROLE");
-        timelockController_VAULT_MANAGER_ROLE = vm.envAddress("TIMELOCK_VAULT_MANAGER_ROLE");
+        auth = Auth(vm.envAddress("AUTH"));
+        timelockController_DEFAULT_ADMIN_ROLE = TimelockControllerEnumerable(payable(vm.envAddress("TIMELOCK_DEFAULT_ADMIN_ROLE")));
+        timelockController_VAULT_MANAGER_ROLE = TimelockControllerEnumerable(payable(vm.envAddress("TIMELOCK_VAULT_MANAGER_ROLE")));
         guardians = vm.envAddress("GUARDIANS", ",");
         strategists = vm.envAddress("STRATEGISTS", ",");
     }

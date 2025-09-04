@@ -31,3 +31,6 @@
 [submodule "lib/chimera"]
 	path = lib/chimera
 	url = https://github.com/Recon-Fuzz/chimera
+[submodule "lib/openzeppelin-community-contracts"]
+	path = lib/openzeppelin-community-contracts
+	url = https://github.com/aviggiano/openzeppelin-community-contracts
