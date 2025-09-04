@@ -5,6 +5,7 @@ import {TimelockController} from "@openzeppelin/contracts/governance/TimelockCon
 import {DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
 import {Script, console} from "forge-std/Script.sol";
 
+/// @dev deployer must renounce DEFAULT_ADMIN_ROLE later
 contract TimelockControllerScript is Script {
     address adminMultisig;
     address vaultManagerMultisig;
@@ -31,7 +32,7 @@ contract TimelockControllerScript is Script {
                 timelockController_DEFAULT_ADMIN_ROLE.CANCELLER_ROLE(), guardians[i]
             );
         }
-        timelockController_DEFAULT_ADMIN_ROLE.renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // timelockController_DEFAULT_ADMIN_ROLE.renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         address[] memory vaultManagerAddresses = new address[](1);
         vaultManagerAddresses[0] = vaultManagerMultisig;
@@ -43,7 +44,7 @@ contract TimelockControllerScript is Script {
                 timelockController_VAULT_MANAGER_ROLE.CANCELLER_ROLE(), guardians[i]
             );
         }
-        timelockController_VAULT_MANAGER_ROLE.renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // timelockController_VAULT_MANAGER_ROLE.renounceRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         vm.stopBroadcast();
     }
