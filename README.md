@@ -94,12 +94,12 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 ## Roles and Permissions
 
 ```md
-| Role                | Timelock | Actions                                                     |
-|---------------------|----------|-------------------------------------------------------------|
-| DEFAULT_ADMIN_ROLE  | 7d       | upgrade, grantRole, revokeRole, setPerformanceFeePercent    |
-| VAULT_MANAGER_ROLE  | 1d       | unpause, addStrategy, setTotalAssetsCap                     |
-| STRATEGIST_ROLE     | 0        | rebalance, reorderStrategies                                |
-| GUARDIAN_ROLE       | 0        | cancel any pending proposals, pause, removeStrategy         |
+| Role                | Timelock | Actions                                                                   |
+|---------------------|----------|---------------------------------------------------------------------------|
+| DEFAULT_ADMIN_ROLE  | 7d       | upgrade, grantRole, revokeRole, setPerformanceFeePercent, setFeeRecipient |
+| VAULT_MANAGER_ROLE  | 1d       | unpause, addStrategy, setTotalAssetsCap, setRebalanceMaxSlippagePercent   |
+| STRATEGIST_ROLE     | 0        | rebalance, reorderStrategies                                              |
+| GUARDIAN_ROLE       | 0        | cancel any pending proposals, pause, removeStrategy                       |
 ```
 
 ## Known Limitations
