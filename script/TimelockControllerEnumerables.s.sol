@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.26;
 
-import {TimelockControllerEnumerable} from "@openzeppelin-community-contracts/contracts/governance/TimelockControllerEnumerable.sol";
+import {TimelockControllerEnumerable} from
+    "@openzeppelin-community-contracts/contracts/governance/TimelockControllerEnumerable.sol";
 import {DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
 import {Script, console} from "forge-std/Script.sol";
 
