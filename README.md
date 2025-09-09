@@ -27,9 +27,17 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 
 | Contract | Address |
 |----------|---------|
-| TimelockController (DEFAULT_ADMIN_ROLE) | |
-| TimelockController (VAULT_MANAGER_ROLE) | |
-
+| TimelockController (DEFAULT_ADMIN_ROLE) | [0x220d1165798AC86BD70D987aDfc9E5FF8A317363](https://etherscan.io/address/0x220d1165798AC86BD70D987aDfc9E5FF8A317363) |
+| TimelockController (VAULT_MANAGER_ROLE) | [0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e](https://etherscan.io/address/0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e) |
+| CashStrategyVault | [0x096A1e4176ca516Bced19B15903EaB4654f7ee7A](https://etherscan.io/address/0x096A1e4176ca516Bced19B15903EaB4654f7ee7A) |
+| AaveStrategyVault | [0x30c37256cD4DbaC733D815ae520F94A9aDAff579](https://etherscan.io/address/0x30c37256cD4DbaC733D815ae520F94A9aDAff579) |
+| ERC4626StrategyVault (Morpho/Steakhouse) | [0x0860b5C685a7985789251f54524c49d71D56d10D](https://etherscan.io/address/0x0860b5C685a7985789251f54524c49d71D56d10D) |
+| ERC4626StrategyVault (Euler/Prime Gauntlet) | [0x2ae61A7463667503Ab530b17B387A448B0471bcC](https://etherscan.io/address/0x2ae61A7463667503Ab530b17B387A448B0471bcC) |
+| ERC4626StrategyVault (Euler/Yield Gauntlet) | [0xd72d29287503ccDa5bd9131baA8D96df436dcdf0](https://etherscan.io/address/0xd72d29287503ccDa5bd9131baA8D96df436dcdf0) |
+| ERC4626StrategyVault (Morpho/Smokehouse) | [0x23de7fC5C9dc55B076558E6Be0cfA7755Bb5F38b](https://etherscan.io/address/0x23de7fC5C9dc55B076558E6Be0cfA7755Bb5F38b) |
+| ERC4626StrategyVault (Morpho/MEV Capital) | [0xc266c2544B768D94b627d66060E2662533a1Dee3](https://etherscan.io/address/0xc266c2544B768D94b627d66060E2662533a1Dee3) |
+| VeryLiquidVault (Core) | [0x3AdF08AFe804691cA6d76742367cc50A24a1F4A1](https://etherscan.io/address/0x3AdF08AFe804691cA6d76742367cc50A24a1F4A1) |
+| VeryLiquidVault (Frontier) | [0x13dDa6fD149a4Da0f2012F16e70925586ee603b8](https://etherscan.io/address/0x13dDa6fD149a4Da0f2012F16e70925586ee603b8) |
 
 #### Base
 
