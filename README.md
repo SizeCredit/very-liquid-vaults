@@ -121,6 +121,9 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 6. Read-only reentrancy is not fully mitigated because of how contracts are inherited from OpenZeppelin's `openzeppelin-contracts-upgradeable` library. Practically all ERC20 and ERC4626 view functions cannot be guarded with a `nonReentrantView` modifier, since they are used internally in state-changing functions, which themselves are `nonReentrant`. If we applied `nonReentrantView` to public view functions that are used by nonpayable functions, these would revert.
 7. `SizeMetaVault`'s `max{Deposit,Withdraw,Mint,Redeem}` functions may experience precision loss when aggregating the maximum values from underlying strategies.
 8. `ERC4626StrategyVault`'s `max{Redeem,Mint}` functions may experience precision loss when converting between the integrated `vault`'s shares, assets, and strategy shares. In particular, this means a user's `balanceOf` may not always be fully `redeem`able, so users should always consult the `max` limits, as specified by ERC-4626.
+9. The `reorderStrategies` function has quadtratic complexity due to duplicate detection logic, which is acceptable for the current `MAX_STRATEGIES` cap.  
+10. The system assumes that integrated strategies are honest and non-malicious. A malicious or gas-griefing strategy could revert or consume excessive gas in `totalAssets` or other operations.  
+11. Onchain price-per-share calculations of integrated vaults (e.g., `ERC4626StrategyVault.vault()` used in many markets) may increase gas costs linearly with the number of underlying markets. This can make `rebalance`, `totalAssets`, and other operations expensive.
 
 ### Deployment
 
