@@ -3,6 +3,7 @@
 @script/=script/
 @openzeppelin/=lib/openzeppelin-contracts/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/
+@openzeppelin-community-contracts/=lib/openzeppelin-community-contracts/
 @a16z/erc4626-tests/=lib/erc4626-tests/
 @crytic/properties/=lib/properties/
 @rv/ercx/=lib/ercx-tests/

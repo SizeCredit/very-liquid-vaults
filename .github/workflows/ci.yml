@@ -253,7 +253,7 @@ jobs:
         with:
           name: abi
           path: |
-            out/SizeMetaVault.sol/SizeMetaVault.json
+            out/VeryLiquidVault.sol/VeryLiquidVault.json
 
   upload-selectors:
     if: github.ref == 'refs/heads/main'

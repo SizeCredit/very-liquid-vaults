@@ -1,0 +1,35 @@
+{
+  "lib/aave-v3-origin": {
+    "rev": "5431379f8beb4d7128c84a81ced3917d856efa84"
+  },
+  "lib/chimera": {
+    "rev": "d5cf52bc5bbf75f988f8aada23fd12d0bcf7798a"
+  },
+  "lib/console3": {
+    "rev": "401bd220c343e885c336c406c4e959088e519acf"
+  },
+  "lib/create2deployer": {
+    "rev": "0d7b44803cd4dc84ca1202cfe40df49a2308ce64"
+  },
+  "lib/erc4626-tests": {
+    "rev": "4eea6b01b6a33916ee19783b2cd1ef914e779003"
+  },
+  "lib/ercx-tests": {
+    "rev": "c3261e37b55ca2a802a2d56d998fc5536c438f70"
+  },
+  "lib/forge-std": {
+    "rev": "77041d2ce690e692d6e03cc812b57d1ddaa4d505"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "e4f70216d759d8e6a64144a9e1f7bbeed78e7079"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "60b305a8f3ff0c7688f02ac470417b6bbf1c4d27"
+  },
+  "lib/properties": {
+    "rev": "9b91ad9569cb3064b7e4b252a266c2ee1d8e9c7f"
+  },
+  "lib/setup-helpers": {
+    "rev": "0f7abac8f096768817cc7a1d2dcdb01ee8fb278e"
+  }
+}

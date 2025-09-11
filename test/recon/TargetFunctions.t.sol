@@ -21,18 +21,18 @@ import {AuthTargets} from "@test/recon/targets/project/AuthTargets.t.sol";
 import {CashStrategyVaultTargets} from "@test/recon/targets/project/CashStrategyVaultTargets.t.sol";
 import {ERC4626MustNotRevertTargets} from "@test/recon/targets/project/ERC4626MustNotRevertTargets.t.sol";
 import {ERC4626StrategyVaultTargets} from "@test/recon/targets/project/ERC4626StrategyVaultTargets.t.sol";
-import {SizeMetaVaultTargets} from "@test/recon/targets/project/SizeMetaVaultTargets.t.sol";
+import {VeryLiquidVaultTargets} from "@test/recon/targets/project/VeryLiquidVaultTargets.t.sol";
 
 abstract contract TargetFunctions is
-  AaveStrategyVaultTargets,
-  AdminTargets,
-  CashStrategyVaultTargets,
-  DoomsdayTargets,
-  AuthTargets,
-  ERC4626MustNotRevertTargets,
-  ERC4626StrategyVaultTargets,
-  ManagersTargets,
-  SizeMetaVaultTargets
+    AaveStrategyVaultTargets,
+    AdminTargets,
+    CashStrategyVaultTargets,
+    DoomsdayTargets,
+    AuthTargets,
+    ERC4626MustNotRevertTargets,
+    ERC4626StrategyVaultTargets,
+    ManagersTargets,
+    VeryLiquidVaultTargets
 {
 /// CUSTOM TARGET FUNCTIONS - Add your own target functions here ///
 

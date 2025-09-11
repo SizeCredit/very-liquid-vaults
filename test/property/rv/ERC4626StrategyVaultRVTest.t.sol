@@ -5,8 +5,8 @@ import {ERC4626Test} from "@rv/ercx/src/ERC4626/Light/ERC4626Test.sol";
 import {Setup} from "@test/Setup.t.sol";
 
 contract ERC4626StrategyVaultRVTest is ERC4626Test, Setup {
-  function setUp() public {
-    deploy(address(this));
-    ERC4626Test.init(address(erc4626StrategyVault));
-  }
+    function setUp() public {
+        deploy(address(this));
+        ERC4626Test.init(address(erc4626StrategyVault));
+    }
 }

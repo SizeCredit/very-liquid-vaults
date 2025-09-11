@@ -13,15 +13,15 @@ import {Panic} from "@recon/Panic.sol";
 import "src/Auth.sol";
 
 abstract contract AuthTargets is BaseTargetFunctions, Properties {
-  /// CUSTOM TARGET FUNCTIONS - Add your own target functions here ///
+    /// CUSTOM TARGET FUNCTIONS - Add your own target functions here ///
 
-  /// AUTO GENERATED TARGET FUNCTIONS - WARNING: DO NOT DELETE OR MODIFY THIS LINE ///
+    /// AUTO GENERATED TARGET FUNCTIONS - WARNING: DO NOT DELETE OR MODIFY THIS LINE ///
 
-  function auth_pause() public asActor {
-    auth.pause();
-  }
+    function auth_pause() public asActor {
+        auth.pause();
+    }
 
-  function auth_unpause() public asActor {
-    auth.unpause();
-  }
+    function auth_unpause() public asActor {
+        auth.unpause();
+    }
 }
