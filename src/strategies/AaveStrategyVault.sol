@@ -46,9 +46,6 @@ contract AaveStrategyVault is NonReentrantVault {
         }
     }
 
-    // ERRORS
-    error InvalidAsset(address asset);
-
     // EVENTS
     event PoolSet(address indexed pool);
     event ATokenSet(address indexed aToken);

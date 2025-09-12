@@ -2,26 +2,26 @@
 pragma solidity 0.8.26;
 
 import {UUPSUpgradeable} from "@openzeppelin-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
-
 import {ERC20Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
 import {ERC20PermitUpgradeable} from
     "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
-
 import {MulticallUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/MulticallUpgradeable.sol";
 import {PausableUpgradeable} from "@openzeppelin-upgradeable/contracts/utils/PausableUpgradeable.sol";
-import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/utils/ReentrancyGuardUpgradeableWithViewModifier.sol";
 
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Auth} from "@src/Auth.sol";
 import {DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {IVault} from "@src/IVault.sol";
+import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/utils/ReentrancyGuardUpgradeableWithViewModifier.sol";
+
+string constant VERSION = "0.1.1";
 
 /// @title BaseVault
 /// @custom:security-contact security@size.credit
@@ -37,6 +37,8 @@ abstract contract BaseVault is
     MulticallUpgradeable,
     UUPSUpgradeable
 {
+    using SafeERC20 for IERC20;
+
     /// @dev Constant representing 100%
     uint256 internal constant PERCENT = 1e18;
 
@@ -60,6 +62,7 @@ abstract contract BaseVault is
     // ERRORS
     error NullAddress();
     error NullAmount();
+    error InvalidAsset(address asset);
 
     // EVENTS
     event AuthSet(address indexed auth);
@@ -198,6 +201,19 @@ abstract contract BaseVault is
     /// @dev Checks both local pause state and global pause state from Auth
     function _pausedOrAuthPaused() private view returns (bool) {
         return paused() || auth().paused();
+    }
+
+    /// @notice Rescues tokens from the vault
+    /// @param token The address of the token to rescue
+    /// @param to The address to send the rescued tokens to
+    /// @dev Only addresses with GUARDIAN_ROLE can rescue tokens
+    /// @dev Reverts if the token is the address(0) or the asset of the vault
+    function rescueTokens(address token, address to) external onlyAuth(GUARDIAN_ROLE) {
+        if (token == address(0)) revert NullAddress();
+        if (token == address(asset())) revert InvalidAsset(token);
+
+        uint256 amount = IERC20(token).balanceOf(address(this));
+        IERC20(token).safeTransfer(to, amount);
     }
 
     // ERC20 OVERRIDES
@@ -389,5 +405,11 @@ abstract contract BaseVault is
     /// @notice Internal function to return the total assets cap
     function _totalAssetsCap() private view returns (uint256) {
         return _getBaseVaultStorage()._totalAssetsCap;
+    }
+
+    /// @notice Returns the version of the vault
+    /// @return The version of the vault
+    function version() external pure returns (string memory) {
+        return VERSION;
     }
 }
