@@ -18,7 +18,7 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 
 | Date | Version | Auditor | Report |
 |------|---------|----------|---------|
-| TBD | v0.1.0 | TBD | TBD |
+| TBD | v0.0.2 | Open Zeppelin | TBD |
 | 2025-07-26 | v0.0.1 | Obsidian Audits | [Report](./audits/2025-07-26-Obsidian-Audits.pdf) |
 
 ## Deployments
@@ -29,6 +29,7 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 |----------|---------|
 | TimelockController (DEFAULT_ADMIN_ROLE) | [0x220d1165798AC86BD70D987aDfc9E5FF8A317363](https://etherscan.io/address/0x220d1165798AC86BD70D987aDfc9E5FF8A317363) |
 | TimelockController (VAULT_MANAGER_ROLE) | [0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e](https://etherscan.io/address/0xcDB5eC52Cc326711461f93909d767E31fCfF7A1e) |
+| Auth | [0xB5294A791c37DFdc2228FACEd7dCE8EFCEb14B84](https://etherscan.io/address/0xB5294A791c37DFdc2228FACEd7dCE8EFCEb14B84) |
 | CashStrategyVault | [0x096A1e4176ca516Bced19B15903EaB4654f7ee7A](https://etherscan.io/address/0x096A1e4176ca516Bced19B15903EaB4654f7ee7A) |
 | AaveStrategyVault | [0x30c37256cD4DbaC733D815ae520F94A9aDAff579](https://etherscan.io/address/0x30c37256cD4DbaC733D815ae520F94A9aDAff579) |
 | ERC4626StrategyVault (Morpho/Steakhouse) | [0x0860b5C685a7985789251f54524c49d71D56d10D](https://etherscan.io/address/0x0860b5C685a7985789251f54524c49d71D56d10D) |
@@ -120,6 +121,9 @@ Very Liquid Vault is a "meta" vault that allows users to deposit assets and have
 6. Read-only reentrancy is not fully mitigated because of how contracts are inherited from OpenZeppelin's `openzeppelin-contracts-upgradeable` library. Practically all ERC20 and ERC4626 view functions cannot be guarded with a `nonReentrantView` modifier, since they are used internally in state-changing functions, which themselves are `nonReentrant`. If we applied `nonReentrantView` to public view functions that are used by nonpayable functions, these would revert.
 7. `SizeMetaVault`'s `max{Deposit,Withdraw,Mint,Redeem}` functions may experience precision loss when aggregating the maximum values from underlying strategies.
 8. `ERC4626StrategyVault`'s `max{Redeem,Mint}` functions may experience precision loss when converting between the integrated `vault`'s shares, assets, and strategy shares. In particular, this means a user's `balanceOf` may not always be fully `redeem`able, so users should always consult the `max` limits, as specified by ERC-4626.
+9. The `reorderStrategies` function has quadtratic complexity due to duplicate detection logic, which is acceptable for the current `MAX_STRATEGIES` cap.  
+10. The system assumes that integrated strategies are honest and non-malicious. A malicious or gas-griefing strategy could revert or consume excessive gas in `totalAssets` or other operations.  
+11. Onchain price-per-share calculations of integrated vaults (e.g., `ERC4626StrategyVault.vault()` used in many markets) may increase gas costs linearly with the number of underlying markets. This can make `rebalance`, `totalAssets`, and other operations expensive.
 
 ### Deployment
 
