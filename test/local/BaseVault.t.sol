@@ -15,7 +15,7 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
-import {BaseVault} from "@src/utils/BaseVault.sol";
+import {BaseVault, VERSION} from "@src/utils/BaseVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {BaseVaultMock} from "@test/mocks/BaseVaultMock.t.sol";
 
@@ -29,6 +29,7 @@ contract BaseVaultTest is BaseTest {
         assertEq(baseVault.name(), "Very Liquid Base USD Coin Mock Vault");
         assertEq(baseVault.symbol(), "vlvBaseUSDCMock");
         assertEq(baseVault.decimals(), erc20Asset.decimals(), 6);
+        assertEq(baseVault.version(), VERSION);
     }
 
     function test_BaseVault_upgrade() public {
@@ -290,5 +291,17 @@ contract BaseVaultTest is BaseTest {
         assertEq(baseVault.maxMint(alice), 0);
         assertEq(baseVault.maxWithdraw(alice), 0);
         assertEq(baseVault.maxRedeem(alice), 0);
+    }
+
+    function test_BaseVault_rescueTokens() public {
+        uint256 amount = 1 ether;
+        _mint(IERC20Metadata(address(weth)), address(baseVault), amount);
+
+        uint256 balanceBefore = weth.balanceOf(address(admin));
+
+        vm.prank(admin);
+        baseVault.rescueTokens(address(weth), address(admin));
+
+        assertEq(weth.balanceOf(address(admin)), balanceBefore + amount);
     }
 }

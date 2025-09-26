@@ -15,3 +15,4 @@ console3=lib/console3/src
 @crytic/properties/=lib/crytic/properties/
 @chimera/=lib/chimera/src/
 @recon/=lib/setup-helpers/src/
+@safe-utils/=lib/safe-utils/

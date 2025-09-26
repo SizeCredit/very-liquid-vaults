@@ -6,13 +6,10 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-
 import {Auth, DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, STRATEGIST_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.sol";
 import {IVault} from "@src/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {PerformanceVault} from "@src/utils/PerformanceVault.sol";
-
-string constant VERSION = "0.1.0";
 
 /// @title VeryLiquidVault
 /// @custom:security-contact security@size.credit
@@ -507,11 +504,5 @@ contract VeryLiquidVault is PerformanceVault {
             if ($._strategies[i] == strategy) return true;
         }
         return false;
-    }
-
-    /// @notice Returns the version of the vault
-    /// @return The version of the vault
-    function version() external pure returns (string memory) {
-        return VERSION;
     }
 }

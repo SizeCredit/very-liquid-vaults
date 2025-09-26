@@ -10,7 +10,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {ERC4626StrategyVaultScript} from "@script/ERC4626StrategyVault.s.sol";
 import {Auth} from "@src/Auth.sol";
-import {VERSION, VeryLiquidVault} from "@src/VeryLiquidVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
 
 import {IVault} from "@src/IVault.sol";
@@ -50,7 +50,6 @@ contract VeryLiquidVaultTest is BaseTest {
         assertEq(veryLiquidVault.decimals(), erc20Asset.decimals());
         assertEq(veryLiquidVault.strategies().length, 3);
         assertEq(veryLiquidVault.rebalanceMaxSlippagePercent(), 0.01e18);
-        assertEq(veryLiquidVault.version(), VERSION);
     }
 
     function test_VeryLiquidVault_rebalance_cashStrategy_to_erc4626() public {
