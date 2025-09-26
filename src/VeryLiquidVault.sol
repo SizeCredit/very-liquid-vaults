@@ -141,7 +141,9 @@ contract VeryLiquidVault is PerformanceVault {
         uint256 length = $._strategies.length;
         for (uint256 i = 0; i < length; ++i) {
             IVault strategy = $._strategies[i];
-            total += strategy.convertToAssets(strategy.balanceOf(address(this)));
+            uint256 strategyBalance = strategy.balanceOf(address(this));
+            if (strategyBalance == 0) continue;
+            total += strategy.convertToAssets(strategyBalance);
         }
     }
 
