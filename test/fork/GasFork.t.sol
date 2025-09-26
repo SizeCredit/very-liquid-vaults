@@ -25,17 +25,18 @@ contract GasForkTest is ForkTest, Addresses {
     function setUp() public virtual override {
         vm.createSelectFork("base");
         vlv = VeryLiquidVault(addresses[block.chainid][Contract.VeryLiquidVault_Core]);
-        usdc = IERC20Metadata(USDC_BASE_MAINNET);
+        usdc = IERC20Metadata(address(vlv.asset()));
 
         _mint(usdc, alice, amount);
         _approve(alice, usdc, address(vlv), amount);
 
-        // address owner = vlv.auth().getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+        address owner = vlv.auth().getRoleMember(DEFAULT_ADMIN_ROLE, 0);
+        address newImplementation = address(new VeryLiquidVault());
 
-        // vm.prank(owner);
-        // UUPSUpgradeable(address(vlv)).upgradeToAndCall(
-        //     addresses[block.chainid][Contract.VeryLiquidVault_Frontier], new bytes(0)
-        // );
+        vm.prank(owner);
+        UUPSUpgradeable(address(vlv)).upgradeToAndCall(
+            address(newImplementation), new bytes(0)
+        );
     }
 
     function testFork_Gas_deposit_withdraw() public {
