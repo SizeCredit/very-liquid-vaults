@@ -337,6 +337,7 @@ contract VeryLiquidVault is PerformanceVault {
         onlyAuth(STRATEGIST_ROLE)
     {
         maxSlippagePercent = Math.min(maxSlippagePercent, _rebalanceMaxSlippagePercent());
+        amount = Math.min(amount, strategyFrom.maxWithdraw(address(this)));
 
         if (!_isStrategy(strategyFrom)) revert InvalidStrategy(address(strategyFrom));
         if (!_isStrategy(strategyTo)) revert InvalidStrategy(address(strategyTo));

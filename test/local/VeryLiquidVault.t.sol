@@ -227,27 +227,33 @@ contract VeryLiquidVaultTest is BaseTest {
         assertLt(cashAssetsBefore, amount);
 
         vm.prank(strategist);
-        vm.expectRevert();
         veryLiquidVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0);
     }
 
-    function test_VeryLiquidVault_rebalance() public {
+    function test_VeryLiquidVault_rebalance_exact() public {
         _setupSimpleConfiguration();
 
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
         uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
 
-        uint256 amount = 50e6;
-        assertLt(cashAssetsBefore, amount);
-
-        vm.expectRevert();
-        vm.prank(strategist);
-        veryLiquidVault.rebalance(cashStrategyVault, erc4626StrategyVault, amount, 0);
-
         vm.prank(strategist);
         veryLiquidVault.rebalance(cashStrategyVault, erc4626StrategyVault, 5e6, 0);
         assertEq(cashStrategyVault.totalAssets(), cashAssetsBefore - 5e6);
         assertEq(erc4626StrategyVault.totalAssets(), erc4626AssetsBefore + 5e6);
+    }
+
+    function test_VeryLiquidVault_rebalance_all() public {
+        _setupSimpleConfiguration();
+
+        uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
+        uint256 erc4626AssetsBefore = erc4626StrategyVault.totalAssets();
+
+        uint256 maxWithdraw = cashStrategyVault.maxWithdraw(address(veryLiquidVault));
+
+        vm.prank(strategist);
+        veryLiquidVault.rebalance(cashStrategyVault, erc4626StrategyVault, type(uint256).max, 0);
+        assertEq(cashStrategyVault.totalAssets(), cashAssetsBefore - maxWithdraw);
+        assertEq(erc4626StrategyVault.totalAssets(), erc4626AssetsBefore + maxWithdraw);
     }
 
     function test_VeryLiquidVault_rebalance_strategyFrom_not_added_must_revert() public {

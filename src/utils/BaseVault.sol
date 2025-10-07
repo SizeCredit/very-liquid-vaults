@@ -21,7 +21,7 @@ import {DEFAULT_ADMIN_ROLE, GUARDIAN_ROLE, VAULT_MANAGER_ROLE} from "@src/Auth.s
 import {IVault} from "@src/IVault.sol";
 import {ReentrancyGuardUpgradeableWithViewModifier} from "@src/utils/ReentrancyGuardUpgradeableWithViewModifier.sol";
 
-string constant VERSION = "0.1.1";
+string constant VERSION = "0.1.2";
 
 /// @title BaseVault
 /// @custom:security-contact security@size.credit

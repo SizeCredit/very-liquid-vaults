@@ -159,7 +159,8 @@ contract CashStrategyVaultTest is BaseTest {
         assertGe(erc20Asset.balanceOf(alice), depositAmount);
     }
 
-    function test_CashStrategyVault_deposit_rebalance_all_reverts() public {
+    function test_CashStrategyVault_deposit_rebalance_all_works() public {
+        _setupSimpleConfiguration();
         // if user redeems shares when the vault has no assets
         // the user will be allowed to to this
         // user will burn 100% of shares for zero assets
@@ -175,7 +176,6 @@ contract CashStrategyVaultTest is BaseTest {
         uint256 pullAmount = erc20Asset.balanceOf(address(cashStrategyVault));
 
         vm.prank(strategist);
-        vm.expectRevert();
         veryLiquidVault.rebalance(cashStrategyVault, aaveStrategyVault, pullAmount, 0);
     }
 

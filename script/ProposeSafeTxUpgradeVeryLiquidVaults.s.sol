@@ -7,10 +7,10 @@ import {TimelockController} from "@openzeppelin/contracts/governance/TimelockCon
 import {Safe} from "@safe-utils/src/Safe.sol";
 import {Addresses} from "@script/Addresses.s.sol";
 import {BaseScript} from "@script/BaseScript.s.sol";
-import {ERC4626StrategyVault} from "@src/strategies/ERC4626StrategyVault.sol";
+import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {console} from "forge-std/console.sol";
 
-contract ProposeSafeTxUpgradeERC4626StrategyVaultScript is BaseScript, Addresses {
+contract ProposeSafeTxUpgradeVeryLiquidVaultsScript is BaseScript, Addresses {
     using Safe for *;
 
     Safe.Client internal safe;
@@ -28,19 +28,20 @@ contract ProposeSafeTxUpgradeERC4626StrategyVaultScript is BaseScript, Addresses
     function run() public {
         vm.startBroadcast();
 
-        address newImplementation = address(new ERC4626StrategyVault());
+        address newImplementation = address(new VeryLiquidVault());
         console.log("New implementation", address(newImplementation));
-        address[] memory strategies =
-            block.chainid == 1 ? getMainnetStrategies() : block.chainid == 8453 ? getBaseStrategies() : new address[](0);
+        address[] memory veryLiquidVaults = block.chainid == 1
+            ? getMainnetVeryLiquidVaults()
+            : block.chainid == 8453 ? getBaseVeryLiquidVaults() : new address[](0);
 
         TimelockController timelockController =
             TimelockController(payable(addresses[block.chainid][Contract.TimelockController_DEFAULT_ADMIN_ROLE]));
 
-        address[] memory multisigTargets = new address[](strategies.length);
-        bytes[] memory multisigDatas = new bytes[](strategies.length);
+        address[] memory multisigTargets = new address[](veryLiquidVaults.length);
+        bytes[] memory multisigDatas = new bytes[](veryLiquidVaults.length);
 
-        for (uint256 i = 0; i < strategies.length; i++) {
-            address target = strategies[i];
+        for (uint256 i = 0; i < veryLiquidVaults.length; i++) {
+            address target = veryLiquidVaults[i];
             uint256 value = 0;
             bytes memory data = abi.encodeCall(UUPSUpgradeable.upgradeToAndCall, (newImplementation, ""));
             bytes32 predecessor = bytes32(0);
@@ -56,19 +57,16 @@ contract ProposeSafeTxUpgradeERC4626StrategyVaultScript is BaseScript, Addresses
         vm.stopBroadcast();
     }
 
-    function getMainnetStrategies() public view returns (address[] memory ans) {
-        ans = new address[](3);
-        ans[0] = addresses[1][Contract.ERC4626StrategyVault_Morpho_Steakhouse];
-        ans[1] = addresses[1][Contract.ERC4626StrategyVault_Morpho_Smokehouse];
-        ans[2] = addresses[1][Contract.ERC4626StrategyVault_Morpho_MEV_Capital];
+    function getMainnetVeryLiquidVaults() public view returns (address[] memory ans) {
+        ans = new address[](2);
+        ans[0] = addresses[1][Contract.VeryLiquidVault_Core];
+        ans[1] = addresses[1][Contract.VeryLiquidVault_Frontier];
         return ans;
     }
 
-    function getBaseStrategies() public view returns (address[] memory ans) {
-        ans = new address[](3);
-        ans[0] = addresses[8453][Contract.ERC4626StrategyVault_Morpho_Gauntlet_Prime];
-        ans[1] = addresses[8453][Contract.ERC4626StrategyVault_Morpho_Spark];
-        ans[2] = addresses[8453][Contract.ERC4626StrategyVault_Morpho_Moonwell_Flagship];
+    function getBaseVeryLiquidVaults() public view returns (address[] memory ans) {
+        ans = new address[](1);
+        ans[0] = addresses[8453][Contract.VeryLiquidVault_Core];
         return ans;
     }
 }
