@@ -142,6 +142,7 @@ contract VeryLiquidVault is PerformanceVault {
         for (uint256 i = 0; i < length; ++i) {
             IVault strategy = $._strategies[i];
             uint256 strategyBalance = strategy.balanceOf(address(this));
+            // slither-disable-next-line incorrect-equality
             if (strategyBalance == 0) continue;
             total += strategy.convertToAssets(strategyBalance);
         }
