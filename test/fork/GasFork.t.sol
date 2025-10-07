@@ -9,7 +9,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {BaseScript} from "@script/BaseScript.s.sol";
 
 import {Addresses} from "@script/Addresses.s.sol";
-import {DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
+import {DEFAULT_ADMIN_ROLE, STRATEGIST_ROLE} from "@src/Auth.sol";
 import {IVault} from "@src/IVault.sol";
 import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ForkTest} from "@test/fork/ForkTest.t.sol";
@@ -50,6 +50,15 @@ contract GasForkTest is ForkTest, Addresses {
 
         vm.prank(owner);
         UUPSUpgradeable(address(vlv)).upgradeToAndCall(address(newImplementation), new bytes(0));
+
+        strategist = vlv.auth().getRoleMember(STRATEGIST_ROLE, 0);
+        for (uint256 i = 1; i < strategies.length; i++) {
+            uint256 maxWithdraw = strategies[i].maxWithdraw(address(vlv));
+            if (maxWithdraw == 0) continue;
+
+            vm.prank(strategist);
+            vlv.rebalance(strategies[i], strategies[0], maxWithdraw, 0.01e18);
+        }
     }
 
     function testFork_Gas_deposit() public {
