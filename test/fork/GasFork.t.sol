@@ -35,6 +35,16 @@ contract GasForkTest is ForkTest, Addresses {
         _deposit(bob, vlv, amount);
         bobMaxWithdraw = vlv.maxWithdraw(bob);
 
+        IVault[] memory strategies = vlv.strategies();
+        for (uint256 i = 0; i < strategies.length; i++) {
+            vm.label(address(strategies[i]), strategies[i].symbol());
+        }
+        vm.label(address(vlv), vlv.symbol());
+        vm.label(address(vlv.auth()), "Auth");
+        vm.label(address(usdc), usdc.symbol());
+        vm.label(address(alice), "Alice");
+        vm.label(address(bob), "Bob");
+
         address owner = vlv.auth().getRoleMember(DEFAULT_ADMIN_ROLE, 0);
         address newImplementation = address(new VeryLiquidVault());
 
