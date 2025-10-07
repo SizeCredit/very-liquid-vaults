@@ -1,1 +1,6 @@
-GasForkTest:testFork_Gas_deposit_withdraw() (gas: 4251611)
+GasForkTest:testFork_Gas_convertToAssets() (gas: 592652)
+GasForkTest:testFork_Gas_convertToShares() (gas: 592586)
+GasForkTest:testFork_Gas_deposit() (gas: 1452984)
+GasForkTest:testFork_Gas_totalAssets() (gas: 585125)
+GasForkTest:testFork_Gas_totalSupply() (gas: 12517)
+GasForkTest:testFork_Gas_withdraw() (gas: 2465567)

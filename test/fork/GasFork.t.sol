@@ -13,6 +13,7 @@ import {DEFAULT_ADMIN_ROLE} from "@src/Auth.sol";
 import {IVault} from "@src/IVault.sol";
 import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
 import {ForkTest} from "@test/fork/ForkTest.t.sol";
+import {console} from "forge-std/console.sol";
 
 contract GasForkTest is ForkTest, Addresses {
     using SafeERC20 for IERC20Metadata;
@@ -21,6 +22,7 @@ contract GasForkTest is ForkTest, Addresses {
     IERC20Metadata public usdc;
 
     uint256 public amount = 10e6;
+    uint256 public bobMaxWithdraw;
 
     function setUp() public virtual override {
         vm.createSelectFork("base");
@@ -30,22 +32,39 @@ contract GasForkTest is ForkTest, Addresses {
         _mint(usdc, alice, amount);
         _approve(alice, usdc, address(vlv), amount);
 
+        _deposit(bob, vlv, amount);
+        bobMaxWithdraw = vlv.maxWithdraw(bob);
+
         address owner = vlv.auth().getRoleMember(DEFAULT_ADMIN_ROLE, 0);
         address newImplementation = address(new VeryLiquidVault());
 
         vm.prank(owner);
-        UUPSUpgradeable(address(vlv)).upgradeToAndCall(
-            address(newImplementation), new bytes(0)
-        );
+        UUPSUpgradeable(address(vlv)).upgradeToAndCall(address(newImplementation), new bytes(0));
     }
 
-    function testFork_Gas_deposit_withdraw() public {
+    function testFork_Gas_deposit() public {
         vm.prank(alice);
         vlv.deposit(amount, alice);
+    }
 
-        uint256 maxWithdraw = vlv.maxWithdraw(alice);
+    function testFork_Gas_withdraw() public {
+        vm.prank(bob);
+        vlv.withdraw(bobMaxWithdraw, bob, bob);
+    }
 
-        vm.prank(alice);
-        vlv.withdraw(maxWithdraw, alice, alice);
+    function testFork_Gas_convertToAssets() public view {
+        vlv.convertToAssets(amount);
+    }
+
+    function testFork_Gas_convertToShares() public view {
+        vlv.convertToShares(amount);
+    }
+
+    function testFork_Gas_totalAssets() public view {
+        vlv.totalAssets();
+    }
+
+    function testFork_Gas_totalSupply() public view {
+        vlv.totalSupply();
     }
 }
