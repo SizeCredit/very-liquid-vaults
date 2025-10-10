@@ -299,7 +299,6 @@ contract VeryLiquidVault is PerformanceVault {
     function reorderStrategies(IVault[] calldata newStrategiesOrder)
         external
         nonReentrant
-        notPaused
         onlyAuth(STRATEGIST_ROLE)
     {
         VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
