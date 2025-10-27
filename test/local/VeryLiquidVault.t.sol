@@ -202,6 +202,17 @@ contract VeryLiquidVaultTest is BaseTest {
         veryLiquidVault.reorderStrategies(duplicates);
     }
 
+    function test_VeryLiquidVault_reorderStrategies_paused() public {
+        vm.prank(admin);
+        veryLiquidVault.pause();
+
+        IVault[] memory strategies = veryLiquidVault.strategies();
+        (strategies[0], strategies[1]) = (strategies[1], strategies[0]);
+
+        vm.prank(strategist);
+        veryLiquidVault.reorderStrategies(strategies);
+    }
+
     function test_VeryLiquidVault_rebalance_validation() public {
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
 

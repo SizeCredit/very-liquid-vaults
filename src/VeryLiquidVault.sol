@@ -296,11 +296,7 @@ contract VeryLiquidVault is PerformanceVault {
     /// @dev Only callable by addresses with STRATEGIST_ROLE
     /// @dev Verifies that the new strategies order is valid and that there are no duplicates
     /// @dev Clears current strategies and adds them in the new order
-    function reorderStrategies(IVault[] calldata newStrategiesOrder)
-        external
-        nonReentrant
-        onlyAuth(STRATEGIST_ROLE)
-    {
+    function reorderStrategies(IVault[] calldata newStrategiesOrder) external nonReentrant onlyAuth(STRATEGIST_ROLE) {
         VeryLiquidVaultStorage storage $ = _getVeryLiquidVaultStorage();
         uint256 length = $._strategies.length;
         if (length != newStrategiesOrder.length) revert ArrayLengthMismatch(length, newStrategiesOrder.length);
