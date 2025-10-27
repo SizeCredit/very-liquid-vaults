@@ -293,8 +293,22 @@ contract BaseVaultTest is BaseTest {
         assertEq(baseVault.maxRedeem(alice), 0);
     }
 
-    function test_BaseVault_rescueTokens() public {
-        uint256 amount = 1 ether;
+    function test_BaseVault_rescueTokens_validation() public {
+        vm.prank(admin);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector, address(0)));
+        baseVault.rescueTokens(address(weth), address(0));
+
+        vm.prank(admin);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.NullAddress.selector, address(0)));
+        baseVault.rescueTokens(address(0), address(admin));
+
+        vm.prank(admin);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(erc20Asset)));
+        baseVault.rescueTokens(address(erc20Asset), address(admin));
+    }
+
+    function test_BaseVault_rescueTokens_success() public {
+        uint256 amount = 100e6;
         _mint(IERC20Metadata(address(weth)), address(baseVault), amount);
 
         uint256 balanceBefore = weth.balanceOf(address(admin));
@@ -303,5 +317,13 @@ contract BaseVaultTest is BaseTest {
         baseVault.rescueTokens(address(weth), address(admin));
 
         assertEq(weth.balanceOf(address(admin)), balanceBefore + amount);
+    }
+
+    function test_BaseVault_rescueTokens_unauthorized_reverts() public {
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, GUARDIAN_ROLE)
+        );
+        baseVault.rescueTokens(address(weth), address(admin));
     }
 }

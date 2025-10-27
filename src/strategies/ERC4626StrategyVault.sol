@@ -8,6 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 import {Auth} from "@src/Auth.sol";
+import {IVault} from "@src/IVault.sol";
 import {BaseVault} from "@src/utils/BaseVault.sol";
 import {NonReentrantVault} from "@src/utils/NonReentrantVault.sol";
 
@@ -120,5 +121,11 @@ contract ERC4626StrategyVault is NonReentrantVault {
     /// @notice Returns the external vault
     function vault() public view returns (IERC4626) {
         return _getERC4626StrategyVaultStorage()._vault;
+    }
+
+    /// @inheritdoc IVault
+    function totalAssetsTokens() public view override returns (address[] memory tokens) {
+        tokens = new address[](1);
+        tokens[0] = address(vault());
     }
 }

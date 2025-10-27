@@ -207,13 +207,22 @@ abstract contract BaseVault is
     /// @param token The address of the token to rescue
     /// @param to The address to send the rescued tokens to
     /// @dev Only addresses with GUARDIAN_ROLE can rescue tokens
-    /// @dev Reverts if the token is the address(0) or the asset of the vault
+    /// @dev Reverts if the `token` is the address(0), or the asset of the vault, or tokens that contribute to `totalAssets`, or the `to` address is the address(0)
     function rescueTokens(address token, address to) external onlyAuth(GUARDIAN_ROLE) {
-        if (token == address(0)) revert NullAddress();
-        if (token == address(asset())) revert InvalidAsset(token);
+        if (token == address(0) || to == address(0)) revert NullAddress();
+        address[] memory tokens = totalAssetsTokens();
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            if (token == tokens[i]) revert InvalidAsset(token);
+        }
 
         uint256 amount = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(to, amount);
+    }
+
+    /// @inheritdoc IVault
+    function totalAssetsTokens() public view virtual override returns (address[] memory tokens) {
+        tokens = new address[](1);
+        tokens[0] = address(asset());
     }
 
     // ERC20 OVERRIDES

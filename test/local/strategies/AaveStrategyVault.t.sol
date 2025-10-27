@@ -4,6 +4,8 @@ pragma solidity 0.8.26;
 import {IAToken} from "@aave/contracts/interfaces/IAToken.sol";
 
 import {IPool} from "@aave/contracts/interfaces/IPool.sol";
+
+import {WadRayMath} from "@aave/contracts/protocol/libraries/math/WadRayMath.sol";
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
 
 import {DataTypes} from "@aave/contracts/protocol/libraries/types/DataTypes.sol";
@@ -385,5 +387,29 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
 
     function test_AaveStrategyVault_deposit_assets_shares_0_reverts_concrete() public {
         testFuzz_AaveStrategyVault_deposit_assets_shares_0_reverts(1, 1_198_633_698_108_951_810_697_775_384);
+    }
+
+    function test_AaveStrategyVault_rescueTokens_cannot_drain_vault() public {
+        uint256 totalAssetsStart = erc4626StrategyVault.totalAssets();
+
+        uint256 amount = 100e6;
+        IAToken aToken = aaveStrategyVault.aToken();
+        uint256 oldLiquidity = erc20Asset.balanceOf(address(aToken));
+
+        deal(address(erc20Asset), address(alice), amount);
+        vm.prank(alice);
+        erc20Asset.transfer(address(aToken), amount);
+        vm.prank(admin);
+        pool.setLiquidityIndex(address(erc20Asset), (oldLiquidity + amount) * WadRayMath.RAY / oldLiquidity);
+
+        uint256 totalAssetsBefore = aaveStrategyVault.totalAssets();
+        assertGt(totalAssetsBefore, 0);
+        assertGt(totalAssetsBefore, totalAssetsStart);
+
+        vm.prank(guardian);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(aToken)));
+        aaveStrategyVault.rescueTokens(address(aToken), address(guardian));
+
+        assertEq(aaveStrategyVault.totalAssets(), totalAssetsBefore);
     }
 }

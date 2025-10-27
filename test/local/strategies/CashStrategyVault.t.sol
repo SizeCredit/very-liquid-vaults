@@ -3,6 +3,7 @@ pragma solidity 0.8.26;
 
 import {ERC4626Upgradeable} from "@openzeppelin-upgradeable/contracts/token/ERC20/extensions/ERC4626Upgradeable.sol";
 import {VeryLiquidVault} from "@src/VeryLiquidVault.sol";
+import {BaseVault} from "@src/utils/BaseVault.sol";
 
 import {IVault} from "@src/IVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
@@ -193,5 +194,22 @@ contract CashStrategyVaultTest is BaseTest {
             cashStrategyVault.maxRedeem(address(veryLiquidVault)),
             cashStrategyVault.previewRedeem(assetsBefore + depositedToCash)
         );
+    }
+
+    function test_CashStrategyVault_rescueTokens_cannot_drain_vault() public {
+        uint256 totalAssetsStart = erc4626StrategyVault.totalAssets();
+
+        uint256 amount = 100e6;
+        deal(address(erc20Asset), address(cashStrategyVault), amount);
+
+        uint256 totalAssetsBefore = cashStrategyVault.totalAssets();
+        assertGt(totalAssetsBefore, 0);
+        assertGt(totalAssetsBefore, totalAssetsStart);
+
+        vm.prank(guardian);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(erc20Asset)));
+        cashStrategyVault.rescueTokens(address(erc20Asset), address(guardian));
+
+        assertEq(cashStrategyVault.totalAssets(), totalAssetsBefore);
     }
 }

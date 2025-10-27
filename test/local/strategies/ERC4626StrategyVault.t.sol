@@ -483,4 +483,22 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
             1_108_790_381_926_929_861_836_164_074_425_007_624_709_311_183_104_891_332_381_950_016_717_928_201
         );
     }
+
+    function test_ERC4626StrategyVault_rescueTokens_cannot_drain_vault() public {
+        uint256 totalAssetsStart = erc4626StrategyVault.totalAssets();
+
+        uint256 amount = 100e6;
+        IERC4626 vault = erc4626StrategyVault.vault();
+        deal(address(erc20Asset), address(vault), amount);
+
+        uint256 totalAssetsBefore = erc4626StrategyVault.totalAssets();
+        assertGt(totalAssetsBefore, 0);
+        assertGt(totalAssetsBefore, totalAssetsStart);
+
+        vm.prank(guardian);
+        vm.expectRevert(abi.encodeWithSelector(BaseVault.InvalidAsset.selector, address(vault)));
+        erc4626StrategyVault.rescueTokens(address(vault), address(guardian));
+
+        assertEq(erc4626StrategyVault.totalAssets(), totalAssetsBefore);
+    }
 }
