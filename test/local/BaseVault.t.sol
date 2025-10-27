@@ -326,4 +326,10 @@ contract BaseVaultTest is BaseTest {
         );
         baseVault.rescueTokens(address(weth), address(admin));
     }
+
+    function test_BaseVault_totalAssetsTokens() public {
+        address[] memory tokens = baseVault.totalAssetsTokens();
+        assertEq(tokens.length, 1);
+        assertEq(tokens[0], address(baseVault.asset()));
+    }
 }

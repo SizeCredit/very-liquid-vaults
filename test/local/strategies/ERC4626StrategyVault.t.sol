@@ -501,4 +501,10 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
 
         assertEq(erc4626StrategyVault.totalAssets(), totalAssetsBefore);
     }
+
+    function test_ERC4626StrategyVault_totalAssetsTokens() public {
+        address[] memory tokens = erc4626StrategyVault.totalAssetsTokens();
+        assertEq(tokens.length, 1);
+        assertEq(tokens[0], address(erc4626StrategyVault.vault()));
+    }
 }

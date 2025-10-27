@@ -212,4 +212,10 @@ contract CashStrategyVaultTest is BaseTest {
 
         assertEq(cashStrategyVault.totalAssets(), totalAssetsBefore);
     }
+
+    function test_CashStrategyVault_totalAssetsTokens() public {
+        address[] memory tokens = cashStrategyVault.totalAssetsTokens();
+        assertEq(tokens.length, 1);
+        assertEq(tokens[0], address(cashStrategyVault.asset()));
+    }
 }
