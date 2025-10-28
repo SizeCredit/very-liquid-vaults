@@ -25,6 +25,11 @@ abstract contract Addresses {
 
     mapping(uint256 chainId => mapping(Contract c => address a)) public addresses;
 
+    mapping(uint256 chainId => address[] cashStrategyVaults) public cashStrategyVaults;
+    mapping(uint256 chainId => address[] aaveStrategyVaults) public aaveStrategyVaults;
+    mapping(uint256 chainId => address[] erc4626StrategyVaults) public erc4626StrategyVaults;
+    mapping(uint256 chainId => address[] vlvs) public veryLiquidVaults;
+
     constructor() {
         // Ethereum
         addresses[1][Contract.GovernanceMultisig] = 0xa9c62d9E0F2208456E50B208aE2547F36Bc3452d;
@@ -41,6 +46,16 @@ abstract contract Addresses {
         addresses[1][Contract.VeryLiquidVault_Core] = 0x3AdF08AFe804691cA6d76742367cc50A24a1F4A1;
         addresses[1][Contract.VeryLiquidVault_Frontier] = 0x13dDa6fD149a4Da0f2012F16e70925586ee603b8;
 
+        cashStrategyVaults[1].push(addresses[1][Contract.CashStrategyVault]);
+        aaveStrategyVaults[1].push(addresses[1][Contract.AaveStrategyVault]);
+        erc4626StrategyVaults[1].push(addresses[1][Contract.ERC4626StrategyVault_Morpho_Steakhouse]);
+        erc4626StrategyVaults[1].push(addresses[1][Contract.ERC4626StrategyVault_Euler_Prime_Gauntlet]);
+        erc4626StrategyVaults[1].push(addresses[1][Contract.ERC4626StrategyVault_Euler_Yield_Gauntlet]);
+        erc4626StrategyVaults[1].push(addresses[1][Contract.ERC4626StrategyVault_Morpho_Smokehouse]);
+        erc4626StrategyVaults[1].push(addresses[1][Contract.ERC4626StrategyVault_Morpho_MEV_Capital]);
+        veryLiquidVaults[1].push(addresses[1][Contract.VeryLiquidVault_Core]);
+        veryLiquidVaults[1].push(addresses[1][Contract.VeryLiquidVault_Frontier]);
+
         // Base
         addresses[8453][Contract.GovernanceMultisig] = 0xa9c62d9E0F2208456E50B208aE2547F36Bc3452d;
         addresses[8453][Contract.TimelockController_DEFAULT_ADMIN_ROLE] = 0x220d1165798AC86BD70D987aDfc9E5FF8A317363;
@@ -55,5 +70,13 @@ abstract contract Addresses {
             0xddED8eaB321803a3c2e836cAADD54339f4CDD5d1;
         addresses[8453][Contract.ERC4626StrategyVault_Morpho_Steakhouse] = 0x5a33c8517f4DDD3939a87fEAaaAaF570a542D2aD;
         addresses[8453][Contract.VeryLiquidVault_Core] = 0xf4D43A8570Dad86595fc079c633927aa936264F4;
+
+        cashStrategyVaults[8453].push(addresses[8453][Contract.CashStrategyVault]);
+        aaveStrategyVaults[8453].push(addresses[8453][Contract.AaveStrategyVault]);
+        erc4626StrategyVaults[8453].push(addresses[8453][Contract.ERC4626StrategyVault_Morpho_Spark]);
+        erc4626StrategyVaults[8453].push(addresses[8453][Contract.ERC4626StrategyVault_Morpho_Gauntlet_Prime]);
+        erc4626StrategyVaults[8453].push(addresses[8453][Contract.ERC4626StrategyVault_Morpho_Moonwell_Flagship]);
+        erc4626StrategyVaults[8453].push(addresses[8453][Contract.ERC4626StrategyVault_Morpho_Steakhouse]);
+        veryLiquidVaults[8453].push(addresses[8453][Contract.VeryLiquidVault_Core]);
     }
 }
