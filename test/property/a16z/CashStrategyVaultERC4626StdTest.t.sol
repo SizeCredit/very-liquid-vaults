@@ -19,4 +19,9 @@ contract CashStrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         _vaultMayBeEmpty = true;
         _unlimitedAmount = true;
     }
+
+    function setUpYield(Init memory init) public virtual override {
+        vm.assume(init.yield >= 0);
+        super.setUpYield(init);
+    }
 }

@@ -214,6 +214,8 @@ contract VeryLiquidVaultTest is BaseTest {
     }
 
     function test_VeryLiquidVault_rebalance_validation() public {
+        _setupSimpleConfiguration();
+
         uint256 cashAssetsBefore = cashStrategyVault.totalAssets();
 
         uint256 amount = 5e6;

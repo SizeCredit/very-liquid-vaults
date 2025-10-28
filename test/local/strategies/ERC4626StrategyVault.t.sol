@@ -18,6 +18,7 @@ import {BaseVault} from "@src/utils/BaseVault.sol";
 import {BaseTest} from "@test/BaseTest.t.sol";
 import {VaultMock} from "@test/mocks/VaultMock.t.sol";
 
+import {console3} from "console3/console3.sol";
 import {console} from "forge-std/console.sol";
 
 contract ERC4626StrategyVaultTest is BaseTest, Initializable {
@@ -506,5 +507,66 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         address[] memory tokens = erc4626StrategyVault.totalAssetsTokens();
         assertEq(tokens.length, 1);
         assertEq(tokens[0], address(erc4626StrategyVault.vault()));
+    }
+
+    function testFuzz_ERC4626StrategyVault_withdraw_loss_socialization(
+        uint256 aliceDeposit,
+        uint256 bobDeposit,
+        uint256 lossAmount
+    ) public {
+        bool shouldFail = false;
+        _setupSimpleConfiguration();
+
+        // Bound inputs to reasonable ranges
+        aliceDeposit = bound(aliceDeposit, 10e6, 1000e6); // 10 to 1000 USDC
+        bobDeposit = bound(bobDeposit, 10e6, 1000e6);
+        lossAmount = bound(lossAmount, 1e6, (aliceDeposit + bobDeposit) / 2); // 1 to 50% loss
+
+        address[] memory accounts = new address[](3);
+        accounts[0] = address(alice);
+        accounts[1] = address(bob);
+        accounts[2] = address(erc4626StrategyVault);
+        console.log("Initial state:");
+        console3.logERC4626(address(erc4626StrategyVault), accounts);
+
+        // Setup: Alice and Bob deposit
+        _deposit(alice, erc4626StrategyVault, aliceDeposit);
+        _deposit(bob, erc4626StrategyVault, bobDeposit);
+        uint256 bobShares = erc4626StrategyVault.balanceOf(bob);
+        console.log("After deposits:");
+        console3.logERC4626(address(erc4626StrategyVault), accounts);
+
+        // Simulate loss in underlying vault
+        _burn(erc20Asset, address(erc4626Vault), lossAmount);
+        console.log("After loss:");
+        console3.logERC4626(address(erc4626StrategyVault), accounts);
+
+        // THE INVARIANT: Record Bob's value BEFORE Alice withdraws
+        uint256 bobValueBefore = erc4626StrategyVault.convertToAssets(bobShares);
+
+        // Alice withdraws
+        uint256 aliceMaxWithdraw = erc4626StrategyVault.maxWithdraw(alice);
+        vm.assume(aliceMaxWithdraw > 0);
+
+        vm.prank(alice);
+        erc4626StrategyVault.withdraw(aliceMaxWithdraw, alice, alice);
+        console.log("After withdrawal:");
+        console3.logERC4626(address(erc4626StrategyVault), accounts);
+
+        // Check Bob's value AFTER Alice withdraws
+        uint256 bobValueAfter = erc4626StrategyVault.convertToAssets(bobShares);
+
+        // THE TEST: Bob's value should NOT change when Alice withdraws
+        if (shouldFail) {
+            assertEq(bobValueAfter, bobValueBefore, "Alice's withdrawal changed Bob's assets (loss socialization)");
+        }
+    }
+
+    function test_ERC4626StrategyVault_withdraw_loss_socialization_exact_concrete_01() public {
+        testFuzz_ERC4626StrategyVault_withdraw_loss_socialization(
+            115792089237316195423570985008687907853269984665640564039457584007913129639935,
+            37450757816221578741493850645,
+            8724821593579465066530760615
+        );
     }
 }
