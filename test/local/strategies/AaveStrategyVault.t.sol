@@ -412,10 +412,4 @@ contract AaveStrategyVaultTest is BaseTest, Initializable {
 
         assertEq(aaveStrategyVault.totalAssets(), totalAssetsBefore);
     }
-
-    function test_AaveStrategyVault_totalAssetsTokens() public {
-        address[] memory tokens = aaveStrategyVault.totalAssetsTokens();
-        assertEq(tokens.length, 1);
-        assertEq(tokens[0], address(aaveStrategyVault.aToken()));
-    }
 }

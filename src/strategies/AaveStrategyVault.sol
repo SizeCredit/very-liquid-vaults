@@ -178,10 +178,4 @@ contract AaveStrategyVault is NonReentrantVault {
     function aToken() public view returns (IAToken) {
         return _getAaveStrategyVaultStorage()._aToken;
     }
-
-    /// @inheritdoc IVault
-    function totalAssetsTokens() public view override returns (address[] memory tokens) {
-        tokens = new address[](1);
-        tokens[0] = address(aToken());
-    }
 }

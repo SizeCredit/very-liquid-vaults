@@ -19,9 +19,4 @@ interface IVault is IERC4626 {
     /// @dev The vault's totalAssets can get higher than the cap in case of donations, accrued yield, etc.
     /// @return The maximum totalAssets allowed in the vault
     function totalAssetsCap() external view returns (uint256);
-
-    /// @notice Returns the tokens that contribute to the vault's total assets
-    /// @dev The tokens that contribute to the vault's total assets are the tokens that are used to calculate the vault's total assets
-    /// @return The tokens that contribute to the vault's total assets
-    function totalAssetsTokens() external view returns (address[] memory);
 }

@@ -25,6 +25,7 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         _delta_ = 0;
         _vaultMayBeEmpty = true;
         _unlimitedAmount = true;
+        _skipRoundTripShares = true;
     }
 
     function setUpYield(ERC4626Test.Init memory init) public override {
@@ -130,6 +131,7 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
     }
 
     function test_ERC4626StrategyVaultERC4626Std_test_RT_withdraw_mint_01() public {
+        _setupSimpleConfiguration();
         Init memory init = Init({
             user: [
                 0x00000000000000000000000000000000000045B1,

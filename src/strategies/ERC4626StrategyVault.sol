@@ -122,10 +122,4 @@ contract ERC4626StrategyVault is NonReentrantVault {
     function vault() public view returns (IERC4626) {
         return _getERC4626StrategyVaultStorage()._vault;
     }
-
-    /// @inheritdoc IVault
-    function totalAssetsTokens() public view override returns (address[] memory tokens) {
-        tokens = new address[](1);
-        tokens[0] = address(vault());
-    }
 }

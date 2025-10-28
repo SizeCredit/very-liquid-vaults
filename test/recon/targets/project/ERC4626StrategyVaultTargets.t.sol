@@ -65,4 +65,8 @@ abstract contract ERC4626StrategyVaultTargets is BaseTargetFunctions, Properties
     function erc4626StrategyVault_withdraw(uint256 assets, address receiver, address owner) public asActor {
         erc4626StrategyVault.withdraw(assets, receiver, owner);
     }
+
+    function erc4626StrategyVault_rescueTokens(address token, address to) public asActor {
+        erc4626StrategyVault.rescueTokens(token, to);
+    }
 }

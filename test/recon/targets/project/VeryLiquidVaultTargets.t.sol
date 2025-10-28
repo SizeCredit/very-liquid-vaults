@@ -129,4 +129,8 @@ abstract contract VeryLiquidVaultTargets is BaseTargetFunctions, Properties {
     function veryLiquidVault_withdraw(uint256 assets, address receiver, address owner) public asActor {
         veryLiquidVault.withdraw(assets, receiver, owner);
     }
+
+    function veryLiquidVault_rescueTokens(address token, address to) public asActor {
+        veryLiquidVault.rescueTokens(token, to);
+    }
 }

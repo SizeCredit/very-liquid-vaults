@@ -61,4 +61,8 @@ abstract contract AaveStrategyVaultTargets is BaseTargetFunctions, Properties {
     function aaveStrategyVault_withdraw(uint256 assets, address receiver, address owner) public asActor {
         aaveStrategyVault.withdraw(assets, receiver, owner);
     }
+
+    function aaveStrategyVault_rescueTokens(address token, address to) public asActor {
+        aaveStrategyVault.rescueTokens(token, to);
+    }
 }

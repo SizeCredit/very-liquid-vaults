@@ -765,4 +765,29 @@ contract VeryLiquidVaultTest is BaseTest {
 
         assertEq(totalAssetsAfter, totalAssetsBefore);
     }
+
+    function test_VeryLiquidVault_rescueTokens_cannot_drain_vault_multicall() public {
+        uint256 amount = 1000e6;
+        _deposit(alice, veryLiquidVault, amount);
+
+        uint256 totalAssetsBefore = veryLiquidVault.totalAssets();
+        assertGt(totalAssetsBefore, 0);
+
+        IVault[] memory strategies = veryLiquidVault.strategies();
+        address[] memory tokens = new address[](strategies.length);
+        bytes[] memory calls = new bytes[](strategies.length);
+        for (uint256 i = 0; i < strategies.length; i++) {
+            tokens[i] = address(strategies[i]);
+            calls[i] = abi.encodeWithSelector(BaseVault.rescueTokens.selector, tokens[i], guardian);
+        }
+
+        vm.prank(guardian);
+        try veryLiquidVault.multicall(calls) {
+            assertTrue(false, "Should revert");
+        } catch (bytes memory err) {
+            assertEq(bytes4(err), BaseVault.InvalidAsset.selector);
+        }
+
+        assertEq(veryLiquidVault.totalAssets(), totalAssetsBefore);
+    }
 }

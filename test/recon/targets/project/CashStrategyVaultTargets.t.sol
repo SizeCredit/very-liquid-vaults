@@ -61,4 +61,8 @@ abstract contract CashStrategyVaultTargets is BaseTargetFunctions, Properties {
     function cashStrategyVault_withdraw(uint256 assets, address receiver, address owner) public asActor {
         cashStrategyVault.withdraw(assets, receiver, owner);
     }
+
+    function cashStrategyVault_rescueTokens(address token, address to) public asActor {
+        cashStrategyVault.rescueTokens(token, to);
+    }
 }
