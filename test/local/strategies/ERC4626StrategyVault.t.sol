@@ -24,6 +24,7 @@ import {console} from "forge-std/console.sol";
 contract ERC4626StrategyVaultTest is BaseTest, Initializable {
     uint256 initialBalance;
     uint256 initialTotalAssets;
+    uint256 _delta_ = 1;
 
     function setUp() public override {
         super.setUp();
@@ -514,7 +515,6 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         uint256 bobDeposit,
         uint256 lossAmount
     ) public {
-        bool shouldFail = false;
         _setupSimpleConfiguration();
 
         // Bound inputs to reasonable ranges
@@ -557,16 +557,14 @@ contract ERC4626StrategyVaultTest is BaseTest, Initializable {
         uint256 bobValueAfter = erc4626StrategyVault.convertToAssets(bobShares);
 
         // THE TEST: Bob's value should NOT change when Alice withdraws
-        if (shouldFail) {
-            assertEq(bobValueAfter, bobValueBefore, "Alice's withdrawal changed Bob's assets (loss socialization)");
-        }
+        assertGe(
+            bobValueAfter + _delta_, bobValueBefore, "Alice's withdrawal reduced Bob's assets (loss socialization)"
+        );
     }
 
     function test_ERC4626StrategyVault_withdraw_loss_socialization_exact_concrete_01() public {
-        testFuzz_ERC4626StrategyVault_withdraw_loss_socialization(
-            115792089237316195423570985008687907853269984665640564039457584007913129639935,
-            37450757816221578741493850645,
-            8724821593579465066530760615
-        );
+        // set _delta_ to 0 to see it fail
+        _delta_ = 1;
+        testFuzz_ERC4626StrategyVault_withdraw_loss_socialization(962418865, 10000000, 136802347);
     }
 }

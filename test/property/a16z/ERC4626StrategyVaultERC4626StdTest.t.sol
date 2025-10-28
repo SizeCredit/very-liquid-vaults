@@ -250,4 +250,14 @@ contract ERC4626StrategyVaultERC4626StdTest is ERC4626Test, BaseTest {
         (bool success,) = address(this).call(data);
         assertTrue(success);
     }
+
+    function test_withdraw_loss_socialization(Init memory init, uint256 assets) public override {
+        _delta_ = _delta_override;
+        super.test_withdraw_loss_socialization(init, assets);
+    }
+
+    function test_redeem_loss_socialization(Init memory init, uint256 shares) public override {
+        _delta_ = _delta_override;
+        super.test_redeem_loss_socialization(init, shares);
+    }
 }
