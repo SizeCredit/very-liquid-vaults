@@ -208,7 +208,7 @@ abstract contract BaseVault is
     /// @param to The address to send the rescued tokens to
     /// @dev Only addresses with GUARDIAN_ROLE can rescue tokens
     /// @dev Reverts if the `token` is the address(0), or the `to` address is the address(0), or if the rescue operation changes the totalAssets
-    function rescueTokens(address token, address to) external onlyAuth(GUARDIAN_ROLE) {
+    function rescueTokens(address token, address to) external nonReentrant onlyAuth(GUARDIAN_ROLE) {
         if (token == address(0) || to == address(0)) revert NullAddress();
 
         uint256 totalAssetsBefore = totalAssets();
