@@ -77,7 +77,7 @@ abstract contract Setup {
     IAToken internal aToken;
     Auth internal auth;
 
-    function deploy(address admin) public {
+    function deploy(address admin) internal {
         erc20Asset = IERC20Metadata(new USDC(admin));
         weth = new WETH9();
         FIRST_DEPOSIT_AMOUNT = 10 * (10 ** erc20Asset.decimals());
