@@ -21,4 +21,8 @@ contract USDC is ERC20, IERC20MintBurn, Ownable {
     function burn(address account, uint256 amount) external onlyOwner {
         _burn(account, amount);
     }
+
+    function forceApproval(address owner, address spender, uint256 value) external onlyOwner {
+        _approve(owner, spender, value);
+    }
 }

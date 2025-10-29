@@ -10,7 +10,8 @@ import {Setup} from "@test/Setup.t.sol";
 contract VeryLiquidVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
     constructor() {
         deploy(address(this));
-        initialize(address(veryLiquidVault), address(asset), true);
+        require(address(erc20Asset) != address(0));
+        initialize(address(veryLiquidVault), address(erc20Asset), true);
         _setupRandomVeryLiquidVaultConfiguration(address(this), _getRandomUint2);
     }
 

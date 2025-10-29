@@ -7,6 +7,7 @@ import {Setup} from "@test/Setup.t.sol";
 contract AaveStrategyVaultCryticERC4626Harness is CryticERC4626PropertyTests, Setup {
     constructor() {
         deploy(address(this));
-        initialize(address(cryticAaveStrategyVault), address(asset), true);
+        require(address(erc20Asset) != address(0));
+        initialize(address(cryticAaveStrategyVault), address(erc20Asset), true);
     }
 }
